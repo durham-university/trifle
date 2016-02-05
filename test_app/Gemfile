@@ -22,6 +22,8 @@ gem 'resque-pool'
 gem 'nest'
 gem 'redis-session-store'
 
+gem 'kaminari', github: 'jcoyne/kaminari', branch: 'sufia'
+
 gem 'trifle', path: File.expand_path("../..", __FILE__)
 gem 'durham_rails', path: File.expand_path("../../../durham_rails", __FILE__)
 

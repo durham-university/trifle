@@ -8,6 +8,12 @@ module Trifle
       DurhamRails::Noid.set_active_fedora_translators
     end
 
+    initializer "trifle.inflections" do |app|
+      ActiveSupport::Inflector.inflections(:en) do |inflect|
+        inflect.acronym 'IIIF'
+      end
+    end
+
     initializer "trifle.assets.precompile" do |app|
       app.config.assets.precompile += %w( trifle/logo.png )
     end

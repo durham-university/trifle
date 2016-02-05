@@ -1,4 +1,13 @@
 GIT
+  remote: git://github.com/jcoyne/kaminari.git
+  revision: 7f7108e12bdd64eb5a76177633768feb14df5453
+  branch: sufia
+  specs:
+    kaminari (1.0.0.alpha)
+      actionpack (>= 3.0.0)
+      activesupport (>= 3.0.0)
+
+GIT
   remote: git://github.com/projecthydra-labs/hydra-pcdm.git
   revision: 2b43e91ca293ede5bf94d82e36aa168eeebfb8e6
   ref: v0.3.1
@@ -21,7 +30,7 @@ GIT
 PATH
   remote: /home/qgkb58/hydra/durham_rails
   specs:
-    durham_rails (0.0.4)
+    durham_rails (0.0.6)
       active-fedora
       hydra-editor (~> 1.1.0)
       rails (~> 4.2.5)
@@ -37,12 +46,13 @@ PATH
       cancancan (~> 1.10)
       devise
       devise_ldap_authenticatable
-      durham_rails (~> 0.0.4)
+      durham_rails (~> 0.0.5)
       hydra-editor (~> 1.1.0)
       hydra-pcdm (= 0.3.1)
       hydra-works (= 0.6.0)
       jquery-rails
       jquery-ui-rails
+      kaminari
       nokogiri
       rails (~> 4.2.5.1)
       resque
@@ -430,6 +440,7 @@ DEPENDENCIES
   hydra-pcdm!
   hydra-works!
   jettywrapper
+  kaminari!
   nest
   rails (~> 4.2.4)
   redis-session-store

@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'bootstrap-sass-extras'
 
   s.add_dependency 'simple_form', '~> 3.1.0'
+  s.add_dependency 'kaminari'
 
   s.add_dependency 'rsolr', '~> 1.0.6'
   s.add_dependency 'active-fedora'

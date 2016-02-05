@@ -29,7 +29,7 @@ PATH
       cancancan (~> 1.10)
       devise
       devise_ldap_authenticatable
-      durham_rails (~> 0.0.4)
+      durham_rails (~> 0.0.5)
       hydra-editor (~> 1.1.0)
       hydra-pcdm (= 0.3.1)
       hydra-works (= 0.6.0)
@@ -46,7 +46,7 @@ PATH
 PATH
   remote: /home/qgkb58/hydra/durham_rails
   specs:
-    durham_rails (0.0.4)
+    durham_rails (0.0.5)
       active-fedora
       hydra-editor (~> 1.1.0)
       rails (~> 4.2.5)
