@@ -2,6 +2,9 @@ defaults: &defaults
 #  job_temp_dir: '/tmp' # uses system temp dir by default
   identifier_template: 'ta.reeddeeddk'
   identifier_statefile: '/tmp/trifle-minter-state'
+  image_convert_command: ['scripts/convert_ptif.sh']
+  image_convert_format: 'ptif'
+  iipi_dir: '/home/qgkb58/iipimages'
 
 development:
   <<: *defaults
