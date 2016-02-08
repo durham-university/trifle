@@ -1,6 +1,7 @@
 @import "trifle/trifle_bootstrap.scss";
 @import "bootstrap-sprockets";
 @import "bootstrap";
+@import "iipmooviewer.css";
 @import "jquery-ui.css";
 
 body>.container {
@@ -48,4 +49,21 @@ table.item-list {
 
 .form-group.multi_value>ul {
   padding-left: 0;
+}
+
+.iipmooviewer_container {
+  width: 100%;
+  height: 600px;
+  position: relative;
+  overflow: hidden;
+  .iipmooviewer {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
 }

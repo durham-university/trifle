@@ -18,6 +18,10 @@ module Trifle
     @queue ||= Trifle::Resque::Queue.new('trifle')
   end
 
+  def self.image_server_url
+    self.config['image_server_url']
+  end
+
   def self.config
     @config ||= begin
       path = Rails.root.join('config','trifle.yml')
