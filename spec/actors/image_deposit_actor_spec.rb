@@ -34,18 +34,47 @@ RSpec.describe Trifle::ImageDepositActor do
   end
 
   describe "#create_image_object" do
-    before { actor.instance_variable_set(:@logical_path,'folder/foo.ptif')}
+    before {
+      actor.instance_variable_set(:@logical_path,'folder/foo.ptif')
+      actor.instance_variable_set(:@image_analysis, { width: 1234, height: 4567})
+    }
     let(:metadata) { { title: 'Foo title' } }
     let(:image) { actor.create_image_object(metadata) }
     it "creates an IIIFImage and sets metadata" do
       expect(image).to be_a Trifle::IIIFImage
       expect(image.title).to eql('Foo title')
+      expect(image.width).to eql('1234')
+      expect(image.height).to eql('4567')
       expect(image.image_location).to eql('folder/foo.ptif')
     end
   end
 
   describe "#analyse_image" do
-    # TODO
+    let(:dest_path) { '/tmp/dummy_dest.ptif' }
+    let(:stdout) { '1234x5678' }
+    let(:stderr) { '' }
+    let(:status) { 0 }
+    before {
+      expect(actor).to receive(:image_size_command).and_return(['dummy'])
+      expect(actor).to receive(:shell_exec).with('','dummy',dest_path).and_return([stdout,stderr,status])
+    }
+    context "when things work" do
+      it "returns true and sets width and height" do
+        expect(actor.analyse_image(dest_path)).to eql(true)
+        expect(actor.instance_variable_get(:@image_analysis)[:width]).to eql(1234)
+        expect(actor.instance_variable_get(:@image_analysis)[:height]).to eql(5678)
+      end
+    end
+    context "when script fails" do
+      let(:status) { 1 }
+      let(:stdout) { '' }
+      let(:stderr) { "Dummy error message" }
+      it "returns false and logs the error" do
+        expect(actor.analyse_image(dest_path)).to eql(false)
+        expect(actor.log.errors?).to eql(true)
+        expect(actor.log.map(&:message).join(' ')).to include('Dummy error message')
+      end
+    end
   end
 
   describe "#add_to_image_container" do
@@ -69,9 +98,10 @@ RSpec.describe Trifle::ImageDepositActor do
   end
 
   describe "#deposit_image" do
+    let(:container_dir){'folder'}
     before {
       allow(actor).to receive(:file_path).and_return('foo')
-      allow(actor).to receive(:container_dir).and_return('folder')
+      allow(actor).to receive(:container_dir).and_return(container_dir)
       allow(actor).to receive(:image_format).and_return('ptif')
       allow(actor).to receive(:image_base_path).and_return('/tmp/base')
 
@@ -86,6 +116,11 @@ RSpec.describe Trifle::ImageDepositActor do
       expect(actor).to receive(:container_dir).and_return(nil)
       expect(actor.deposit_image(source_path,metadata)).to eql(false)
       expect(actor.log.errors?).to eql(true)
+    end
+
+    it "creates directories" do
+      expect(FileUtils).to receive(:mkpath).with('/tmp/base/folder')
+      expect(actor.deposit_image(source_path,metadata)).to eql(true)
     end
 
     it "sets @logical_path" do
@@ -113,6 +148,14 @@ RSpec.describe Trifle::ImageDepositActor do
       expect(actor.log.errors?).to eql(false)
     end
 
+    context "with malicious data" do
+      let(:container_dir){'../folder'}
+      it "sanitises destination path" do
+        expect(actor.deposit_image(source_path,metadata)).to eql(false)
+        expect(actor.log.last.level).to eql(:error)
+        expect(actor.log.last.message).to eql("Destination path is not under image_base_path")
+      end
+    end
   end
 
   describe "#deposit_image_batch" do

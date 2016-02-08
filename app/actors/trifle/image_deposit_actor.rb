@@ -25,14 +25,27 @@ module Trifle
       Trifle::IIIFImage.new.tap do |image|
         image.image_location = @logical_path
         image.title = metadata[:title] if metadata[:title].present?
-        # TODO: add image width and height from analysis
+        image.width = "#{@image_analysis[:width]}"
+        image.height = "#{@image_analysis[:height]}"
         # TODO: add other metadata
       end
     end
 
-    def analyse_image
+    def analyse_image(dest_path)
       log!(:info, "Structural analysis of image")
-      # TODO: Read image width and height and possibly other things
+
+      stdout, stderr, exit_status = shell_exec('',*(image_size_command+[dest_path]))
+      scan = stdout.scan(/(\d+)x(\d+)/)
+      unless scan.present?
+        log!(:error, "Unable determine image size. (#{exit_status})")
+        log!(:error, stderr) if stderr.present?
+        log!(:error, stdout) if stdout.present?
+        return false
+      end
+
+      @image_analysis ||= {}
+      @image_analysis.merge!( width: scan[0][0].to_i, height: scan[0][1].to_i )
+
       return true
     end
 
@@ -55,6 +68,11 @@ module Trifle
       @logical_path = "#{container_dir}/#{file_base}.#{image_format}"
       dest_path = File.join(image_base_path,container_dir,"#{file_base}.#{image_format}")
 
+      unless File.absolute_path(dest_path).start_with?("#{File.absolute_path(image_base_path)}#{File::SEPARATOR}")
+        log!(:error, "Destination path is not under image_base_path")
+        return false
+      end
+
       if File.exists?(dest_path)
         if @overwrite
           log!(:info,"Overwriting destination file #{dest_path}")
@@ -63,15 +81,19 @@ module Trifle
           return false
         end
       end
+      FileUtils.mkpath(File.join(image_base_path,container_dir))
 
-      convert_image(source_path, dest_path) && analyse_image &&
+      convert_image(source_path, dest_path) && analyse_image(dest_path) &&
         add_to_image_container(metadata)
     end
 
     def deposit_image_batch(image_data)
       log!(:info,"Depositing image batch")
       status = true
-      image_data.each do |hash|
+      index_offset = @model_object.ordered_members.to_a.count
+      image_data.each_with_index do |hash,i|
+        hash = {source_path: hash.to_s} unless hash.is_a? Hash
+        hash[:title] ||= "#{index_offset+i+1}"
         status &= deposit_image(hash[:source_path],hash.except(:source_path))
       end
       status
@@ -97,6 +119,10 @@ module Trifle
 
       def convert_command
         Trifle.config['image_convert_command']
+      end
+
+      def image_size_command
+        Trifle.config['image_size_command']
       end
 
       def temp_dir

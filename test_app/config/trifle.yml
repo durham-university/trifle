@@ -3,12 +3,14 @@ defaults: &defaults
   identifier_template: 'ta.reeddeeddk'
   identifier_statefile: '/tmp/trifle-minter-state'
   image_convert_command: ['scripts/convert_ptif.sh']
+  image_size_command: ['scripts/image_size.sh']
   image_convert_format: 'ptif'
-  iipi_dir: '/home/qgkb58/iipimages'
 
 development:
   <<: *defaults
   ark_naan: '12345'
+  iipi_dir: '/home/qgkb58/iipimages'
+  image_server_url: 'http://localhost/iipsrv/iipsrv.fcgi'
 
 test:
   <<: *defaults

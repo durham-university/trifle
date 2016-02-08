@@ -11,6 +11,10 @@ module Trifle
       index.as :symbol
     end
 
+    property :width, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_width')
+    property :height, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_height')
+
+
     def to_s
       title
     end
