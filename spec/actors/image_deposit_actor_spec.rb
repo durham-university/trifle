@@ -96,6 +96,31 @@ RSpec.describe Trifle::ImageDepositActor do
       end
     end
   end
+  
+  describe "#deposit_url" do
+    let(:source_url) { 'http://www.example.com/dummy' }
+    let(:image) { fixture('test1.jpg').read } 
+    let(:metadata) { { basename: 'foo' } }
+    let(:response) {
+      double('response').tap do |response|
+        allow(response).to receive(:read_body) { |&block|
+          image.chars.each_slice(1024).map(&:join).each(&block)
+        }
+      end
+    }
+    before {
+      expect(Net::HTTP).to receive(:get_response).with(URI(source_url)).and_yield(response)
+    }
+    it "downloads the file and calls #deposit_image" do
+      expect(actor).to receive(:deposit_image) { |_source_path,_metadata|
+        expect(_metadata).to eql(metadata)
+        expect(File.exists?(_source_path)).to eql(true)
+        expect(File.read(_source_path, binmode: true) == image).to eql(true)
+      } .and_return('test value')
+      expect(actor.deposit_url(source_url,metadata)).to eql('test value')
+    end
+    
+  end
 
   describe "#deposit_image" do
     let(:container_dir){'folder'}
@@ -111,6 +136,21 @@ RSpec.describe Trifle::ImageDepositActor do
     }
     let(:source_path) { '/tmp/source' }
     let(:metadata) { { basename: 'foo' } }
+    
+    context "with http:// path" do
+      let(:source_path) { 'http://www.example.com/dummy' }
+      it "delegates to deposit_url if path starts with http://" do
+        expect(actor).to receive(:deposit_url).with(source_path, metadata).and_return('test value')
+        expect(actor.deposit_image(source_path, metadata)).to eql('test value')
+      end
+    end
+    context "with https:// path" do
+      let(:source_path) { 'https://www.example.com/dummy' }
+      it "delegates to deposit_url if path starts with https://" do
+        expect(actor).to receive(:deposit_url).with(source_path, metadata).and_return('test value')
+        expect(actor.deposit_image(source_path, metadata)).to eql('test value')
+      end
+    end
 
     it "fails if no container_dir" do
       expect(actor).to receive(:container_dir).and_return(nil)
@@ -160,7 +200,7 @@ RSpec.describe Trifle::ImageDepositActor do
 
   describe "#deposit_image_batch" do
     it "calls deposit_image with matadata" do
-      expect(actor).to receive(:deposit_image).with('/tmp/source',{dummy: 'dummy'}).and_return true
+      expect(actor).to receive(:deposit_image).with('/tmp/source',{dummy: 'dummy', title: '1'}).and_return true
       ret_val = actor.deposit_image_batch([{source_path: '/tmp/source', dummy: 'dummy'}])
       expect(ret_val).to eql(true)
     end

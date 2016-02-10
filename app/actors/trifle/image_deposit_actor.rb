@@ -58,7 +58,23 @@ module Trifle
       return ret_val
     end
 
+    def deposit_url(source_url,metadata={})
+      Tempfile.open('',temp_dir, binmode: true) do |temp_file|
+        log!(:info,"Downloading #{source_url} to #{temp_file.path}")
+        Net::HTTP.get_response(URI(source_url)) do |resp|
+          resp.read_body do |chunk|
+            temp_file.write(chunk)
+          end
+        end
+        temp_file.close
+
+        return deposit_image(temp_file.path, metadata)
+      end
+    end
+
     def deposit_image(source_path,metadata={})
+      return deposit_url(source_path,metadata) if source_path.start_with?('http://') || source_path.start_with?('https://')
+
       file_base = file_path(metadata)
       log!(:info,"Depositing #{file_base}")
       unless container_dir
