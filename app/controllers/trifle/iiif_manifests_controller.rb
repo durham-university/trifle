@@ -1,6 +1,7 @@
 module Trifle
   class IIIFManifestsController < Trifle::ApplicationController
     include DurhamRails::ModelControllerBase
+    include Trifle::ImageDepositBehaviour
 
     helper 'trifle/application'
 

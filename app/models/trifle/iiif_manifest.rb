@@ -23,6 +23,18 @@ module Trifle
       self.ordered_members << image
       return self.save
     end
+    
+    def default_container_location!
+      return if self.image_container_location
+      if id.nil?
+        # assigning a new ark here is just a convenient way to reserve an id
+        # which can be used for the container location
+        assign_new_ark
+        self.image_container_location = (id_from_ark || SecureRandom.hex)
+      else
+        self.image_container_location = id
+      end
+    end
 
     def allow_destroy?
       true

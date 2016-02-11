@@ -38,7 +38,7 @@ PATH
       cancancan (~> 1.10)
       devise
       devise_ldap_authenticatable
-      durham_rails (~> 0.0.5)
+      durham_rails (~> 0.0.6)
       hydra-editor (~> 1.1.0)
       hydra-pcdm (= 0.3.1)
       hydra-works (= 0.6.0)
