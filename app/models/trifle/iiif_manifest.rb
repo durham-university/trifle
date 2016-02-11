@@ -3,6 +3,7 @@ module Trifle
     include Hydra::Works::WorkBehavior
     include DurhamRails::NoidBehaviour
     include DurhamRails::ArkBehaviour
+    include DurhamRails::WithBackgroundJobs
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
     property :image_container_location, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_container_location')
@@ -26,5 +27,6 @@ module Trifle
     def allow_destroy?
       true
     end
+    
   end
 end
