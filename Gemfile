@@ -1,15 +1,14 @@
 source 'https://rubygems.org'
 
-# Declare your gem's dependencies in trifle.gemspec.
-# Bundler will treat runtime dependencies like base dependencies, and
-# development dependencies will be added by default to the :development group.
 gemspec
 
-# Declare any dependencies that are still in development here instead of in
-# your gemspec. These might include edge Rails or gems from your path or
-# Git. Remember to move these dependencies to your gemspec before releasing
-# your gem to rubygems.org.
+gem 'durham_rails', path: File.expand_path("../../durham_rails", __FILE__)
 
-# To use a debugger
-# gem 'byebug', group: [:development, :test]
+# gem 'simplecov', :require => false, :group => :test
 
+test_app_gemfile_path = File.expand_path("../test_app/Gemfile", __FILE__)
+if File.exists?(test_app_gemfile_path)
+  instance_eval (File.read(test_app_gemfile_path).lines.select do |line|
+    !(line.index('trifle') || line.index('source') || line.index('durham_rails'))
+  end).join("\n")
+end

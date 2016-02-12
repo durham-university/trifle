@@ -1,0 +1,51 @@
+@import "trifle/trifle_bootstrap.scss";
+@import "bootstrap-sprockets";
+@import "bootstrap";
+@import "jquery-ui.css";
+
+body>.container {
+  padding-top: 100px;
+}
+
+.page-header {
+  margin-top: 0;
+  h1 {
+    margin-top: 0;
+  }
+}
+
+footer {
+  margin: 10px 0;
+}
+
+.navbar .logo {
+  margin-left: 20px;
+  margin-top: 13px;
+}
+
+.navbar-brand {
+  width: auto;
+  height: 58px;
+  font-size: 27px;
+}
+
+
+table.item-list {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  td {
+    padding-right: 1em;
+  }
+}
+
+.popup-tool-form {
+  margin: 20px;
+}
+
+.show-tools .nav hr {
+  margin: 10px 0 0 0;
+}
+
+.form-group.multi_value>ul {
+  padding-left: 0;
+}

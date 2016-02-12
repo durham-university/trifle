@@ -1,4 +1,4 @@
 Trifle
 ======
 
-Triple IF Loader and Editor
+Triple I F Loader and Editor

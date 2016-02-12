@@ -1,0 +1,14 @@
+defaults: &defaults
+#  job_temp_dir: '/tmp' # uses system temp dir by default
+  identifier_template: 'ta.reeddeeddk'
+  identifier_statefile: '/tmp/trifle-minter-state'
+
+development:
+  <<: *defaults
+  ark_naan: '12345'
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults
