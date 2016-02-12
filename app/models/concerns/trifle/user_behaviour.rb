@@ -9,6 +9,10 @@ module Trifle
     def is_registered?
       raise 'Override this'
     end
+    
+    def is_api?
+      raise 'Override this'
+    end
 
 
     def user_key

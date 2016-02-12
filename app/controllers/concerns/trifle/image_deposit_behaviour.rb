@@ -59,7 +59,9 @@ module Trifle
     
     private
       def deposit_items
-        params['deposit_items']
+        params['deposit_items'].select do |item|
+          item.is_a?(String) && (item.start_with?('http://') || item.start_with?('https://'))
+        end
       end
       
       def set_deposit_resource

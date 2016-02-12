@@ -12,6 +12,10 @@ class User < ActiveRecord::Base
   def is_registered?
     !new_record?
   end
+  
+  def is_api?
+    roles.include? 'api'
+  end
 
   def to_s
     display_name || username

@@ -61,6 +61,13 @@ PATH
       sass-rails (~> 5.0)
       simple_form (~> 3.1.0)
 
+PATH
+  remote: /home/qgkb58/hydra/trifle/trifle_api
+  specs:
+    trifle_api (0.0.1)
+      httparty
+      rails
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -175,6 +182,9 @@ GEM
     hiredis (0.6.1)
     htmlentities (4.3.4)
     http_logger (0.5.1)
+    httparty (0.13.7)
+      json (~> 1.8)
+      multi_xml (>= 0.5.2)
     hydra-derivatives (3.0.0)
       active-fedora (~> 9.0)
       activesupport (~> 4.0)
@@ -243,6 +253,7 @@ GEM
     minitest (5.8.4)
     mono_logger (1.1.0)
     multi_json (1.11.2)
+    multi_xml (0.5.5)
     multipart-post (2.0.0)
     nest (2.0.0)
       redic
@@ -450,4 +461,5 @@ DEPENDENCIES
   spring
   sqlite3
   trifle!
+  trifle_api!
   web-console (~> 2.0)

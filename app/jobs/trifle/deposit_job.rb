@@ -23,7 +23,7 @@ module Trifle
     
     
     def run_job
-      actor = Trifle::DepositActor.new(resource)
+      actor = Trifle::ImageDepositActor.new(resource)
       actor.instance_variable_set(:@log,log)
       actor.deposit_image_batch(deposit_items)
     end
