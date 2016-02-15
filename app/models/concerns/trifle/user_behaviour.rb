@@ -10,7 +10,7 @@ module Trifle
       raise 'Override this'
     end
     
-    def is_api?
+    def is_api_user?
       raise 'Override this'
     end
 
