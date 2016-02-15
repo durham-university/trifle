@@ -9,11 +9,18 @@ defaults: &defaults
 development:
   <<: *defaults
   ark_naan: '12345'
-  iipi_dir: '/home/qgkb58/iipimages'
-  image_server_url: 'http://localhost/iipsrv/iipsrv.fcgi'
-  image_service_url: 'http://localhost/iipsrv/iipsrv.fcgi?IIIF='
-  iiif_host: 'http://localhost:3000'
-  mirador_location: 'Durham University'
+  # path where image server images are stored
+  iipi_dir: '/home/qgkb58/iipimages' 
+  # url to image server
+  image_server_url: 'http://localhost/iipsrv/iipsrv.fcgi' 
+  # url to image server with IIIF protocol
+  image_service_url: 'http://localhost/iipsrv/iipsrv.fcgi?IIIF=' 
+  # host used in IIIF manifest files for resources, should ideally be same as rails application host
+  iiif_host: 'http://localhost:3000' 
+  # location for manifests in mirador manifest list
+  mirador_location: 'Durham University' 
+  # base url where mirador viewer can be found
+  mirador_base_url: 'http://localhost/mirador/' 
 
 test:
   <<: *defaults

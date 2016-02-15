@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="stylesheet" type="text/css" href="<%= Trifle.config['mirador_base_url'] %>css/mirador-combined.css">
+    <title>Mirador Viewer</title>
+    <style type="text/css">
+      body { padding: 0; margin: 0; overflow: hidden; font-size: 70%; }
+      #viewer { background: #333; width: 100%; height: 100%; position: fixed; }
+      .mirador-main-menu { padding-right: 20px; }
+    </style>
+  </head>
+  <body>
+    <div id="viewer"></div>
+    <script src="<%= Trifle.config['mirador_base_url'] %>mirador.js"></script>
+    <script type="text/javascript">
+     function initMirador(manifest){
+       var options = {
+         "id": "viewer",
+         "saveSession": false,
+         "mainMenuSettings": {
+           "buttons": { "bookmark": false }
+         }
+       };
+       if(manifest){
+         options["windowObjects"]=[{
+           "loadedManifest": manifest
+         }];
+       }
+       
+       $.ajax({
+         url: '<%= trifle.iiif_manifests_url %>.json?mirador=true',
+         dataType: 'json',
+         success: function(data, status, xhr){
+           options["data"] = data;
+           Mirador(options);
+         }
+       });         
+     }
+     function windowLoaded(){
+       if(typeof(Mirador.viewer)!='undefined') return;
+       initMirador(<%= @resource ? "'#{trifle.iiif_manifest_manifest_url(@resource)}'".html_safe : 'null' %>);
+     }
+     <% unless @no_auto_load %>
+      $(function(){windowLoaded();});
+     <% end %>
+    </script>
+  </body>
+</html>

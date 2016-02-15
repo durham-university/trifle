@@ -9,6 +9,10 @@ Trifle::Engine.routes.draw do
   end
   resources :iiif_images, only: [:show, :edit, :update, :destroy]
   resources :background_jobs, only: [:show]
+  
+  get '/mirador', to: 'mirador#index', as: :mirador_index
+  get '/mirador/:id', to: 'mirador#show', as: :mirador_manifest
+  get '/mirador/:id/embed', to: 'mirador#show', as: :mirador_manifest_embed, defaults: { no_auto_load: 'true' }
 
   get '/iiif_manifests/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_manifest_background_jobs
   get '/iiif_manifests/:id/manifest', to: 'iiif_manifests#manifest', as: :iiif_manifest_manifest
