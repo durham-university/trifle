@@ -3,6 +3,7 @@ module Trifle
     include DurhamRails::ModelControllerBase
     include Trifle::ImageDepositBehaviour
     include Trifle::ServeManifestBehaviour
+    include Trifle::AllowCorsBehaviour # Keep this last
 
     helper 'trifle/application'
 
@@ -32,6 +33,13 @@ module Trifle
       return true if params[:action].to_sym == :index && params['format'] == 'json' && params['mirador'] == 'true'
       return super
     end
+    
+    private 
+      def set_cors_headers?
+        return true if params[:action].to_sym == :index && params['format'] == 'json' && params['mirador'] == 'true'
+        return true if params[:action].to_sym == :manifest
+        return false
+      end
     
   end
 end
