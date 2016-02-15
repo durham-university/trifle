@@ -40,5 +40,23 @@ module Trifle
       true
     end
     
+    def iiif_sequences
+      [IIIF::Presentation::Sequence.new.tap do |sequence|
+        sequence['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_url(self, host: Trifle.iiif_host) + '/sequences/default'
+        sequence.label = 'default'
+        sequence.viewing_direction = 'left-to-right'
+        sequence.viewing_hint = 'paged'
+        sequence.canvases = images.map(&:iiif_canvas)
+      end]
+    end
+    
+    def iiif_manifest
+      IIIF::Presentation::Manifest.new.tap do |manifest|
+        manifest['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_url(self, host: Trifle.iiif_host)
+        manifest.sequences = iiif_sequences
+        manifest.label = self.title
+      end
+    end
+    
   end
 end

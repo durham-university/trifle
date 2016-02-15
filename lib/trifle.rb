@@ -4,6 +4,7 @@ require 'bootstrap-sass-extras'
 require 'jquery-rails'
 require 'jquery-ui-rails'
 require 'simple_form'
+require 'iiif/presentation'
 require 'rsolr'
 require 'active-fedora'
 require 'active_fedora/noid'
@@ -20,6 +21,18 @@ module Trifle
 
   def self.image_server_url
     self.config['image_server_url']
+  end
+  
+  def self.iiif_host
+    self.config.fetch('iiif_host','http://localhost:3000')
+  end
+  
+  def self.iiif_service
+    self.config.fetch('iiif_service','http://localhost/iipsrv/iipsrv.fcgi?IIIF=')
+  end
+  
+  def self.mirador_location
+    self.config.fetch('mirador_location','')
   end
 
   def self.config

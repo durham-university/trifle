@@ -50,6 +50,7 @@ PATH
       hydra-editor (~> 1.1.0)
       hydra-pcdm (= 0.3.1)
       hydra-works (= 0.6.0)
+      iiif-presentation
       jquery-rails
       jquery-ui-rails
       kaminari
@@ -199,6 +200,10 @@ GEM
     hydra-file_characterization (0.3.3)
       activesupport (>= 3.0.0)
     i18n (0.7.0)
+    iiif-presentation (0.0.5)
+      activesupport (>= 3.2.18)
+      faraday (~> 0.9.0)
+      json
     jettywrapper (2.0.3)
       activesupport (>= 3.0.0)
       childprocess

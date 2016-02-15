@@ -24,6 +24,16 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
         }.not_to change(Trifle::IIIFManifest, :count)
       end
     end
+    
+    describe "GET #manifest" do
+      let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_images) }
+      it "renders manifest json" do
+        expect_any_instance_of(Trifle::IIIFManifest).to receive(:iiif_manifest).and_call_original
+        get :manifest, id: manifest.id
+        expect(JSON.parse(response.body)).to be_a(Hash)
+        expect(response.body).to include(manifest.images.first.image_location)
+      end
+    end
   end
   
   context "with admin user" do

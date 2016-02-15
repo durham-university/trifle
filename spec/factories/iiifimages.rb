@@ -3,6 +3,8 @@ FactoryGirl.define do
 
     sequence(:title) { |n| "Image #{n}" }
     sequence(:image_location) { |n| "folder/image#{n}.ptif" }
+    width '1000'
+    height '800'
 
     trait :with_manifest do
       after :create do |image, evaluator|

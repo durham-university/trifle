@@ -26,6 +26,42 @@ module Trifle
     def allow_destroy?
       true
     end
+    
+    def iiif_service
+      IIIF::Service.new.tap do |service|
+        service['@id'] = "#{Trifle.iiif_service}/#{image_location}"
+        service['profile'] = "http://iiif.io/api/image/2/level1.json"
+      end
+    end
+    
+    def iiif_resource
+      IIIF::Presentation::ImageResource.new.tap do |image|
+        image['@id'] = "#{Trifle.iiif_service}/#{image_location}/full/full/0/default.jpg"
+        image.format = 'image/jpeg'
+        image.width = width.to_i
+        image.height = height.to_i
+        image.service = iiif_service
+      end
+    end
+    
+    def iiif_annotation
+      IIIF::Presentation::Annotation.new.tap do |annotation|
+        annotation['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_url(self, host: Trifle.iiif_host) + '/annotation'
+        annotation.resource = iiif_resource
+      end
+    end
+    
+    def iiif_canvas
+      IIIF::Presentation::Canvas.new.tap do |canvas|
+        canvas['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_url(self, host: Trifle.iiif_host)
+        canvas.label = title
+        canvas.width = width.to_i
+        canvas.height = height.to_i
+        canvas.images = [iiif_annotation]
+        
+        canvas.images.each do |image| image['on'] = canvas['@id'] end
+      end
+    end
 
   end
 end

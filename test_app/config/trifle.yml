@@ -11,6 +11,9 @@ development:
   ark_naan: '12345'
   iipi_dir: '/home/qgkb58/iipimages'
   image_server_url: 'http://localhost/iipsrv/iipsrv.fcgi'
+  image_service_url: 'http://localhost/iipsrv/iipsrv.fcgi?IIIF='
+  iiif_host: 'http://localhost:3000'
+  mirador_location: 'Durham University'
 
 test:
   <<: *defaults

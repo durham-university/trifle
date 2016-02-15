@@ -11,6 +11,7 @@ Trifle::Engine.routes.draw do
   resources :background_jobs, only: [:show]
 
   get '/iiif_manifests/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_manifest_background_jobs
+  get '/iiif_manifests/:id/manifest', to: 'iiif_manifests#manifest', as: :iiif_manifest_manifest
   post '/iiif_manifests/:id/deposit', to: 'iiif_manifests#deposit_images'
   
 end

@@ -36,4 +36,15 @@ RSpec.describe Trifle::IIIFManifest do
       end
     end
   end
+  
+  describe "#iiif_manifest" do
+    let(:manifest) { FactoryGirl.create(:iiifmanifest,:with_images) }
+    it "makes a valid iiif_manifest object" do
+      m = manifest.iiif_manifest
+      expect(m).to be_a(IIIF::Presentation::Manifest)
+      json = m.to_json
+      expect(json).to be_a(String)
+      expect(json).to include(manifest.images.first.image_location)
+    end
+  end
 end

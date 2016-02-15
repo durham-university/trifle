@@ -36,4 +36,8 @@ RSpec.describe Trifle::StaticPagesController, type: :routing do
     expect(post: "/iiif_manifests/deposit").to route_to("trifle/iiif_manifests#create_and_deposit_images")
   end
   
+  it "routes to #manifest" do
+    expect(get: "/iiif_manifests/1/manifest").to route_to("trifle/iiif_manifests#manifest", id: "1")
+  end
+  
 end
