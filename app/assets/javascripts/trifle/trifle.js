@@ -16,5 +16,5 @@
 //= require bootstrap-sprockets
 //= require trifle/blacklight_mock
 //= require hydra-editor/hydra-editor
-//= require iipmooviewer
+//# require iipmooviewer
 //= require_tree .
