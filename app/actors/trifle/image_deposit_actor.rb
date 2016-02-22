@@ -59,7 +59,8 @@ module Trifle
     end
 
     def deposit_url(source_url,metadata={})
-      Tempfile.open('',temp_dir, binmode: true) do |temp_file|
+      temp_file = Tempfile.open('',temp_dir, binmode: true)
+      begin
         log!(:info,"Downloading #{source_url} to #{temp_file.path}")
         Net::HTTP.get_response(URI(source_url)) do |resp|
           resp.read_body do |chunk|
@@ -67,8 +68,9 @@ module Trifle
           end
         end
         temp_file.close
-
         return deposit_image(temp_file.path, metadata)
+      ensure
+        temp_file.unlink if temp_file
       end
     end
 
