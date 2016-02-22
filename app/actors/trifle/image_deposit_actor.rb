@@ -50,7 +50,7 @@ module Trifle
     end
 
     def add_to_image_container(metadata={})
-      log!(:info, "Addin to image container")
+      log!(:info, "Adding to image container #{@model_object.id}")
       image_obj = create_image_object(metadata)
       return false unless image_obj
       ret_val = @model_object.add_deposited_image(image_obj)
@@ -78,7 +78,7 @@ module Trifle
       return deposit_url(source_path,metadata) if source_path.start_with?('http://') || source_path.start_with?('https://')
 
       file_base = file_path(metadata)
-      log!(:info,"Depositing #{file_base}")
+      log!(:info,"Depositing #{source_path}")
       unless container_dir
         log!(:error,"Couldn't resolve image container location")
         return false
