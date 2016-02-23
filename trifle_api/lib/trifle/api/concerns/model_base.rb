@@ -44,10 +44,17 @@ module Trifle
 
       def fetch
         return local_fetch if local_mode?
-        response = self.class.get("#{fetch_url}")
+        response = self.class.get(fetch_url)
         raise Trifle::API::FetchError, "Error fetching object \"#{fetch_url}\": #{response.code} - #{response.message}" unless response.code == 200
         parse_json( response.body )
         self
+      end
+
+      def destroy
+        return local_destroy if local_mode?
+        response = self.class.delete(fetch_url)
+        raise Trifle::API::FetchError, "Error destroying object \"#{fetch_url}\": #{response.code} - #{response.message}" unless response.code == 200
+        return true
       end
 
       module ClassMethods
@@ -93,6 +100,16 @@ module Trifle
       end
 
       private
+
+        def local_destroy
+          begin
+            obj = local_class.find(id)
+            obj.destroy
+            return true
+          rescue StandardError => e
+            raise Trifle::API::FetchError, "Error doing a local_destroy for #{model_name} #{id}"
+          end
+        end
 
         def local_fetch
           begin
