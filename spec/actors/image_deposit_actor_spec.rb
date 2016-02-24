@@ -38,7 +38,7 @@ RSpec.describe Trifle::ImageDepositActor do
       actor.instance_variable_set(:@logical_path,'folder/foo.ptif')
       actor.instance_variable_set(:@image_analysis, { width: 1234, height: 4567})
     }
-    let(:metadata) { { title: 'Foo title' } }
+    let(:metadata) { { 'title' => 'Foo title' } }
     let(:image) { actor.create_image_object(metadata) }
     it "creates an IIIFImage and sets metadata" do
       expect(image).to be_a Trifle::IIIFImage
@@ -79,7 +79,7 @@ RSpec.describe Trifle::ImageDepositActor do
 
   describe "#add_to_image_container" do
     let(:image) { FactoryGirl.build(:iiifimage) }
-    let(:metadata) { { dummy: 'foo' } }
+    let(:metadata) { { 'dummy': 'foo' } }
     before {
       expect(actor).to receive(:create_image_object).with(metadata).and_return(image)
     }
@@ -100,7 +100,7 @@ RSpec.describe Trifle::ImageDepositActor do
   describe "#deposit_url" do
     let(:source_url) { 'http://www.example.com/dummy' }
     let(:image) { fixture('test1.jpg').read } 
-    let(:metadata) { { basename: 'foo' } }
+    let(:metadata) { { 'basename' => 'foo' } }
     let(:response) {
       double('response').tap do |response|
         allow(response).to receive(:read_body) { |&block|
@@ -135,7 +135,7 @@ RSpec.describe Trifle::ImageDepositActor do
       allow(actor).to receive(:add_to_image_container).and_return(true)
     }
     let(:source_path) { '/tmp/source' }
-    let(:metadata) { { basename: 'foo' } }
+    let(:metadata) { { 'basename' => 'foo' } }
     
     context "with http:// path" do
       let(:source_path) { 'http://www.example.com/dummy' }
@@ -200,8 +200,8 @@ RSpec.describe Trifle::ImageDepositActor do
 
   describe "#deposit_image_batch" do
     it "calls deposit_image with matadata" do
-      expect(actor).to receive(:deposit_image).with('/tmp/source',{dummy: 'dummy', title: '1'}).and_return true
-      ret_val = actor.deposit_image_batch([{source_path: '/tmp/source', dummy: 'dummy'}])
+      expect(actor).to receive(:deposit_image).with('/tmp/source',{'dummy' => 'dummy', 'title' => '1'}).and_return true
+      ret_val = actor.deposit_image_batch([{source_path: '/tmp/source', 'dummy' => 'dummy'}])
       expect(ret_val).to eql(true)
     end
 
@@ -214,7 +214,7 @@ RSpec.describe Trifle::ImageDepositActor do
 
   describe "#file_path" do
     it "returns from metadata if set" do
-      expect(actor.send(:file_path,{basename: 'moo'})).to eql('moo')
+      expect(actor.send(:file_path,{'basename' => 'moo'})).to eql('moo')
     end
     it "returns a random path if not set" do
       expect(actor.send(:file_path,{})).to be_present

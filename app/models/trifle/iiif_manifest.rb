@@ -10,6 +10,12 @@ module Trifle
     property :identifier, predicate: ::RDF::DC.identifier do |index|
       index.as :symbol
     end
+    property :date_published, multiple:false, predicate: ::RDF::Vocab::DC.date
+    property :author, predicate: ::RDF::Vocab::DC.creator
+    property :description, multiple: false, predicate: ::RDF::Vocab::DC.description
+    property :json_file, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#json_file')
+    property :licence, multiple: false, predicate: ::RDF::Vocab::DC.rights
+    property :attribution, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#attribution')
 
     def to_s
       title
@@ -53,8 +59,22 @@ module Trifle
     def iiif_manifest
       IIIF::Presentation::Manifest.new.tap do |manifest|
         manifest['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_url(self, host: Trifle.iiif_host)
-        manifest.sequences = iiif_sequences
         manifest.label = self.title
+        manifest.description = self.description if self.description.present?
+        
+        # TODO: Move hard coded lincence text to config
+        manifest.license = "All images of manuscripts on this website are copyright of the respective repositories and are reproduced with permission.<br>"
+        manifest.license += "It is permitted to use this work under the conditions of #{self.licence}. The terms of this licence apply only to the contents of the Durham Priory Library Recreated website.<br>" if self.licence.present? && self.licence.downcase!='all rights reserved'
+        manifest.license += "For questions regarding terms of use, requests to purchase reproductions, or further permissions to publish, please contact:<br>Durham Cathedral Library<br>Durham Cathedral<br>The College<br>Durham<br>DH1 3EH<br>library@durhamcathedral.co.uk<br>"
+        
+        manifest.attribution = self.attribution if self.attribution.present?
+        
+        metadata = []
+        metadata << {"label" => "Author", "value" => self.author} if self.author.present?
+        metadata << {"label" => "Published", "value" => self.date_published} if self.date_published.present?
+        manifest.metadata = metadata
+        
+        manifest.sequences = iiif_sequences        
       end
     end
     

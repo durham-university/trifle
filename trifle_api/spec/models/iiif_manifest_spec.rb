@@ -1,8 +1,14 @@
 require 'shared/model_common'
 
 RSpec.describe Trifle::API::IIIFManifest do
-  let( :all_json_s ) { %q|{"resources":[{"id":"tajd472w44j","title":"Test title","image_container_location":"testimages","identifier":["ark:/12345/tajd472w44j"]},{"id":"tajd472w55j","title":"Test title 2","image_container_location":"testimages2","identifier":["ark:/12345/tajd472w55j"]},{"id":"tajd472w66j","title":"Test title 3","image_container_location":"testimages3","identifier":["ark:/12345/tajd472w66j"]}],"page":1,"total_pages":1}| }
-  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","image_container_location" => "testimages","identifier" => ["ark:/12345/tajd472w44j"]} }
+
+  let( :all_json_s ) {
+    %q|{"resources":[
+      {"id":"tajd472w44j","title":"Test title","image_container_location":"testimages","identifier":["ark:/12345/tajd472w44j"],"date_published":"Xth century","author":["various authors"],"description":"test description","json_file":"test.json","licence":"All rights reserved","attribution":"part of test items"},
+      {"id":"tajd472w55j","title":"Test title 2","image_container_location":"testimages2","identifier":["ark:/12345/tajd472w55j"],"date_published":"Xth century","author":["various authors"],"description":"test description","json_file":"test.json","licence":"All rights reserved","attribution":"part of test items"},
+      {"id":"tajd472w66j","title":"Test title 3","image_container_location":"testimages3","identifier":["ark:/12345/tajd472w66j"],"date_published":"Xth century","author":["various authors"],"description":"test description","json_file":"test.json","licence":"All rights reserved","attribution":"part of test items"}],"page":1,"total_pages":1}|      
+  }
+  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","image_container_location" => "testimages","identifier" => ["ark:/12345/tajd472w44j"], "date_published" => "Xth century", "author" => ["various authors"], "description" => "test description", "json_file" => "test.json", "licence" => "All rights reserved", "attribution" => "part of test items"} }
   let( :manifest ) { Trifle::API::IIIFManifest.from_json(json) }
   let( :deposit_items ) { ['http://localhost/dummy1','http://localhost/dummy2'] }
 
@@ -23,8 +29,14 @@ RSpec.describe Trifle::API::IIIFManifest do
   describe "#as_json" do
     it "adds attributes to json" do
       json = manifest.as_json
-      expect(json[:image_container_location]).to eql 'testimages'
-      expect(json[:identifier]).to eql ['ark:/12345/tajd472w44j']
+      expect(json['image_container_location']).to eql 'testimages'
+      expect(json['identifier']).to eql ['ark:/12345/tajd472w44j']
+      expect(json['date_published']).to eql('Xth century')
+      expect(json['author']).to eql(['various authors'])
+      expect(json['description']).to eql('test description')
+      expect(json['json_file']).to eql('test.json')
+      expect(json['licence']).to eql('All rights reserved')      
+      expect(json['attribution']).to eql('part of test items')
     end
   end
 
@@ -32,29 +44,37 @@ RSpec.describe Trifle::API::IIIFManifest do
     it "parses everything" do
       expect(manifest.image_container_location).to eql 'testimages'
       expect(manifest.identifier).to eql ['ark:/12345/tajd472w44j']
+      expect(manifest.date_published).to eql('Xth century')
+      expect(manifest.author).to eql(['various authors'])
+      expect(manifest.description).to eql('test description')
+      expect(manifest.json_file).to eql('test.json')
+      expect(manifest.licence).to eql('All rights reserved')      
+      expect(manifest.attribution).to eql('part of test items')
     end
   end
 
   describe ".deposit_new" do
+    let( :manifest_metadata ) { { title: 'test title', description: 'test description' } }
     let( :response ) { { status: 'ok', resource: json }.to_json }
     let( :response_code ) { 200 }
     before {
       expect(Trifle::API::IIIFManifest).to receive(:post) { |url,params|
         expect(url).to eql "iiif_manifests/deposit.json"
         query = params[:query]
-        expect(query[:'deposit_items']).to eql(deposit_items)
+        expect(query[:deposit_items]).to eql(deposit_items)
+        expect(query[:iiif_manifest]).to eql(manifest_metadata)
         OpenStruct.new(body: response, code: response_code)
       }
     }
     it "deposits items" do
-      resp = Trifle::API::IIIFManifest.deposit_new(deposit_items)
+      resp = Trifle::API::IIIFManifest.deposit_new(deposit_items, manifest_metadata)
       expect(resp[:resource]).to be_a Trifle::API::IIIFManifest
       expect(resp[:status]).to eql 'ok'
     end
     context "with error" do
       let( :response ) { { status: 'error', message: 'test message' }.to_json }
       it "handles errors" do
-        resp = Trifle::API::IIIFManifest.deposit_new(deposit_items)
+        resp = Trifle::API::IIIFManifest.deposit_new(deposit_items, manifest_metadata)
         expect(resp[:status]).to eql 'error'
         expect(resp[:message]).to include 'test message'
       end
@@ -104,15 +124,19 @@ RSpec.describe Trifle::API::IIIFManifest do
       Trifle.send(:remove_const,:DepositJob)
     }
     describe ".deposit_new_local" do
+      let(:manifest_metadata ) { { title: 'test title', description: 'test description' } }
       it "deposits items" do
         expect(new_manifest_mock).to receive(:default_container_location!)
         expect(new_manifest_mock).to receive(:save).and_return(true)
+        expect(new_manifest_mock).to receive(:attributes=) do |val|
+          expect(val).to eql(manifest_metadata)
+        end
         expect(Trifle::DepositJob).to receive(:new)
           .with(hash_including(resource: new_manifest_mock, deposit_items: deposit_items))
           .and_return(job_mock)
         expect(job_mock).to receive(:queue_job)
         
-        resp = Trifle::API::IIIFManifest.deposit_new(deposit_items)
+        resp = Trifle::API::IIIFManifest.deposit_new(deposit_items,manifest_metadata)
         expect(resp[:resource]).to be_a Trifle::API::IIIFManifest
         expect(resp[:status]).to eql 'ok'
       end

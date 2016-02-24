@@ -24,10 +24,9 @@ module Trifle
     def create_image_object(metadata={})
       Trifle::IIIFImage.new.tap do |image|
         image.image_location = @logical_path
-        image.title = metadata[:title] if metadata[:title].present?
+        image.title = metadata['title'] if metadata['title'].present?
         image.width = "#{@image_analysis[:width]}"
         image.height = "#{@image_analysis[:height]}"
-        # TODO: add other metadata
       end
     end
 
@@ -111,7 +110,7 @@ module Trifle
       index_offset = @model_object.ordered_members.to_a.count
       image_data.each_with_index do |hash,i|
         hash = {source_path: hash.to_s} unless hash.is_a? Hash
-        hash[:title] ||= "#{index_offset+i+1}"
+        hash['title'] ||= "#{index_offset+i+1}"
         status &= deposit_image(hash[:source_path],hash.except(:source_path))
       end
       status
@@ -120,7 +119,7 @@ module Trifle
     private
 
       def file_path(metadata)
-        metadata[:basename] || SecureRandom.hex
+        metadata['basename'] || SecureRandom.hex
       end
 
       def container_dir

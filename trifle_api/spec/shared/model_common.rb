@@ -1,5 +1,5 @@
 RSpec.shared_examples "model_common" do
-  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","image_container_location" => "testimages","identifier" => ["ark:/12345/tajd472w44j"]} }
+  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","image_container_location" => "testimages","identifier" => ["ark:/12345/tajd472w44j"], "date_published" => "Xth century", "author" => ["various authors"], "description" => "test description", "json_file" => "test.json", "licence" => "All rights reserved", "attribution" => "part of test items"} }
   let( :json_s ) { json.to_json }
   let( :obj_class ) { described_class }
   let( :obj ) { obj_class.from_json(json) }
@@ -21,8 +21,8 @@ RSpec.shared_examples "model_common" do
   describe "#as_json" do
     it "adds attributes to json" do
       json = obj.as_json
-      expect(json[:id]).to eql 'tajd472w44j'
-      expect(json[:title]).to eql 'Test title'
+      expect(json['id']).to eql 'tajd472w44j'
+      expect(json['title']).to eql 'Test title'
     end
   end
 
@@ -30,6 +30,10 @@ RSpec.shared_examples "model_common" do
     it "works" do
       expect(obj.to_json).to be_a String
       expect(obj.to_json.length).to be > 0
+    end
+    it "is stable" do
+      json_out = obj.to_json
+      expect(obj_class.from_json(json).to_json).to eql(json_out)
     end
   end
 

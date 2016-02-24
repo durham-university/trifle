@@ -25,7 +25,7 @@ module Trifle
       end
 
       def as_json(*args)
-        json = {id: id, title: title}
+        json = {'id' => id, 'title' => title}
         json
       end
 

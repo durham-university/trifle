@@ -5,7 +5,7 @@ module Trifle
       include APIAuthentication
 
       attr_accessor :image_container_location
-      attr_accessor :identifier
+      attr_accessor :identifier, :date_published, :author, :description, :json_file, :licence, :attribution
 
       def initialize
         super
@@ -15,12 +15,24 @@ module Trifle
         super(json)
         @image_container_location = json['image_container_location']
         @identifier = json['identifier']
+        @date_published = json['date_published']
+        @author = json['author']
+        @description = json['description']
+        @json_file = json['json_file']
+        @licence = json['licence']
+        @attribution = json['attribution']
       end
 
       def as_json(*args)
         json = super(*args)
-        json[:image_container_location] = @image_container_location
-        json[:identifier] = @identifier
+        json['image_container_location'] = @image_container_location
+        json['identifier'] = @identifier
+        json['date_published'] = @date_published
+        json['author'] = @author
+        json['description'] = @description
+        json['json_file'] = @json_file
+        json['licence'] = @licence
+        json['attribution'] = @attribution
         json
       end
 
@@ -45,9 +57,9 @@ module Trifle
         'iiif_manifests'
       end
 
-      def self.deposit_new(deposit_items)
-        return deposit_new_local(deposit_items) if local_mode?
-        response = self.post("iiif_manifests/deposit.json", {query: {deposit_items: deposit_items}})
+      def self.deposit_new(deposit_items,manifest_metadata={})
+        return deposit_new_local(deposit_items,manifest_metadata) if local_mode?
+        response = self.post("iiif_manifests/deposit.json", {query: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,
@@ -80,8 +92,11 @@ module Trifle
         }
       end
       
-      def self.deposit_new_local(deposit_items)
-        local_manifest = Trifle::IIIFManifest.new(title: "New manifest #{DateTime.now.strftime('%F %R')}")
+      def self.deposit_new_local(deposit_items,manifest_metadata={})
+        manifest_metadata['title'] ||= "New manifest #{DateTime.now.strftime('%F %R')}"
+        local_manifest = Trifle::IIIFManifest.new()
+        local_manifest.attributes = manifest_metadata
+
         local_manifest.default_container_location!
         local_manifest.save
         

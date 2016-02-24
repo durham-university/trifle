@@ -8,7 +8,7 @@ module Trifle
     helper 'trifle/application'
 
     def self.presenter_terms
-      super + [:identifier, :image_container_location]
+      super + [:identifier,  :image_container_location, :date_published, :author, :description, :json_file, :licence, :attribution]
     end
 
     def set_parent
