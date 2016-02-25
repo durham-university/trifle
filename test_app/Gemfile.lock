@@ -30,7 +30,7 @@ GIT
 PATH
   remote: /home/qgkb58/hydra/durham_rails
   specs:
-    durham_rails (0.0.6)
+    durham_rails (0.0.7)
       active-fedora
       hydra-editor (~> 1.1.0)
       rails (~> 4.2.5)
@@ -46,7 +46,7 @@ PATH
       cancancan (~> 1.10)
       devise
       devise_ldap_authenticatable
-      durham_rails (~> 0.0.6)
+      durham_rails (~> 0.0.7)
       hydra-editor (~> 1.1.0)
       hydra-pcdm (= 0.3.1)
       hydra-works (= 0.6.0)
@@ -133,9 +133,8 @@ GEM
       tzinfo (~> 1.1)
     addressable (2.4.0)
     arel (6.0.3)
-    autoprefixer-rails (6.3.1)
+    autoprefixer-rails (6.3.3.1)
       execjs
-      json
     bcp47 (0.3.3)
       i18n
     bcrypt (3.1.10)
