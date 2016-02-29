@@ -85,7 +85,7 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
   config.before :each do |example|
-    unless (example.metadata[:type] == :view || example.metadata[:type] == :input || example.metadata[:no_clean])
+    if (example.metadata[:type] == :view && !example.metadata[:no_clean])
       ActiveFedora::Cleaner.clean!
     end
   end
