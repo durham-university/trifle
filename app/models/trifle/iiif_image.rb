@@ -19,8 +19,22 @@ module Trifle
       title
     end
 
+    def as_json(*args)
+      super(*args).tap do |json|
+        json.merge!({
+          'images' => images.map(&:as_json)
+        }) if args.first.try(:fetch,:include_children,false)
+        parent_id = parent.try(:id)
+        json.merge!({'parent_id' => parent_id}) if parent_id.present?
+      end
+    end    
+
     def parent
       ordered_by.to_a.find do |m| m.is_a? IIIFManifest end
+    end
+
+    def root_collection
+      parent.try(:root_collection)
     end
 
     def allow_destroy?
@@ -61,6 +75,10 @@ module Trifle
         
         canvas.images.each do |image| image['on'] = canvas['@id'] end
       end
+    end
+
+    def to_iiif
+      iiif_canvas
     end
 
   end

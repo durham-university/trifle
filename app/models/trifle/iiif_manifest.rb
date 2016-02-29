@@ -5,7 +5,9 @@ module Trifle
     include DurhamRails::ArkBehaviour
     include DurhamRails::WithBackgroundJobs
 
-    property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
+    property :title, multiple:false, predicate: ::RDF::Vocab::DC.title do |index|
+      index.as :stored_searchable
+    end
     property :image_container_location, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_container_location')
     property :identifier, predicate: ::RDF::DC.identifier do |index|
       index.as :symbol
@@ -19,6 +21,28 @@ module Trifle
 
     def to_s
       title
+    end
+    
+    def as_json(*args)
+      super(*args).tap do |json|
+        json.merge!({
+          'images' => images.map(&:as_json)
+        }) if args.first.try(:fetch,:include_children,false)
+        parent_id = parent.try(:id)
+        json.merge!({'parent_id' => parent_id}) if parent_id.present?
+      end
+    end    
+
+    def parent
+      ordered_by.to_a.find do |m| m.is_a? IIIFCollection end
+    end    
+    
+    def parents
+      ordered_by.to_a.select do |m| m.is_a? IIIFCollection end
+    end
+
+    def root_collection
+      parent.try(:root_collection)
     end
 
     def images
@@ -56,10 +80,15 @@ module Trifle
       end]
     end
     
-    def iiif_manifest
+    def iiif_manifest_stub
       IIIF::Presentation::Manifest.new.tap do |manifest|
         manifest['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_url(self, host: Trifle.iiif_host)
         manifest.label = self.title
+      end
+    end
+        
+    def iiif_manifest
+      iiif_manifest_stub.tap do |manifest|
         manifest.description = self.description if self.description.present?
         
         # TODO: Move hard coded lincence text to config
@@ -78,5 +107,22 @@ module Trifle
       end
     end
     
+    def to_iiif
+      iiif_manifest
+    end
+    
+    def to_solr(solr_doc={})
+      super(solr_doc).tap do |solr_doc|
+        root = root_collection
+        if root && root != self
+          solr_doc[Solrizer.solr_name('root_collection_id', type: :symbol)] = root.id
+        end
+      end
+    end
+    
+    def self.all_in_collection(c)
+      c = c.id if c.is_a?(Trifle::IIIFCollection)
+      self.where(Solrizer.solr_name('root_collection_id', type: :symbol) => c)
+    end    
   end
 end

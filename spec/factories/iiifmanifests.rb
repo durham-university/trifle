@@ -9,5 +9,13 @@ FactoryGirl.define do
         [ FactoryGirl.build(:iiifimage), FactoryGirl.build(:iiifimage) ]
       }
     end
+    
+    trait :with_parent do
+      after :create do |manifest, evaluator|
+        collection = FactoryGirl.create(:iiifcollection)
+        collection.ordered_members << manifest
+        collection.save
+      end
+    end
   end
 end

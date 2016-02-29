@@ -16,7 +16,7 @@ module Trifle
     
     private 
       def set_cors_headers?
-        true
+        false
       end
     
       def cors_allow_origin

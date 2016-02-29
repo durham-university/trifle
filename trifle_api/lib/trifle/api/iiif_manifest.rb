@@ -40,7 +40,7 @@ module Trifle
         # TODO: handle paging properly
         return all_local if local_mode?
         response = self.get('/iiif_manifests.json')
-        raise FetchError, "Error fetching preserved_files: #{response.code} - #{response.message}" unless response.code == 200
+        raise FetchError, "Error fetching manifests: #{response.code} - #{response.message}" unless response.code == 200
         json = JSON.parse(response.body)
         json['resources'].map do |resource_json|
           self.from_json(resource_json)

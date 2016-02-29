@@ -1,5 +1,11 @@
 <div class="page-header">
   <h1>Trifle</h1>
-  <p>Triple I F Loader and Editor</p>
-
 </div>
+
+<p>Triple I F Loader and Editor</p>
+
+<h2>IIIF Collections</h2>
+<%
+  @resources = Trifle::IIIFCollection.root_collections
+%>
+<%= render 'durham_rails/base_shared/index', model_name: 'iiif_collection', model_class: Trifle::IIIFCollection, no_paging: true, no_title: true, no_add: true %>

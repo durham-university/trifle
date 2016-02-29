@@ -6,6 +6,7 @@ module Trifle
     extend ActiveSupport::Autoload
 
     autoload :IIIFManifest
+    autoload :IIIFCollection
     autoload :FetchError
     
     autoload_under 'concerns' do

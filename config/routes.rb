@@ -3,8 +3,13 @@ Trifle::Engine.routes.draw do
 
   get 'home' => 'static_pages#home'
 
+  resources :iiif_collections do
+    resources :iiif_collections, only: [:new, :create]
+    resources :iiif_manifests, only: [:new, :create]
+  end
+
   post '/iiif_manifests/deposit', to: 'iiif_manifests#create_and_deposit_images'
-  resources :iiif_manifests do
+  resources :iiif_manifests, only: [:show, :edit, :update, :destroy, :index] do
     resources :iiif_images, only: [:new, :create]
   end
   resources :iiif_images, only: [:show, :edit, :update, :destroy]
@@ -14,8 +19,11 @@ Trifle::Engine.routes.draw do
   get '/mirador/:id', to: 'mirador#show', as: :mirador_manifest
   get '/mirador/:id/embed', to: 'mirador#show', as: :mirador_manifest_embed, defaults: { no_auto_load: 'true' }
 
+  get '/iiif_collections/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_collection_background_jobs
+  get '/iiif_collections/:id/iiif', to: 'iiif_collections#show_iiif', as: :iiif_collection_iiif
+
   get '/iiif_manifests/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_manifest_background_jobs
-  get '/iiif_manifests/:id/manifest', to: 'iiif_manifests#manifest', as: :iiif_manifest_manifest
+  get '/iiif_manifests/:id/iiif', to: 'iiif_manifests#show_iiif', as: :iiif_manifest_iiif
   post '/iiif_manifests/:id/deposit', to: 'iiif_manifests#deposit_images'
   
 end

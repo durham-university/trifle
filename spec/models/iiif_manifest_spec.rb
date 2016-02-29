@@ -47,4 +47,60 @@ RSpec.describe Trifle::IIIFManifest do
       expect(json).to include(manifest.images.first.image_location)
     end
   end
+  
+  describe "#to_iiif" do
+    it "calls #iiif_manifest" do
+      expect(manifest).to receive(:iiif_manifest).and_return({test: 'foo'})
+      expect(manifest.to_iiif).to eql({test: 'foo'})
+    end
+  end
+  
+  describe "#as_json" do
+    let(:manifest) { FactoryGirl.build(:iiifmanifest)}
+    let(:json) { manifest.as_json }
+    it "sets properties" do
+      expect(json['title']).to be_present
+    end
+    context "with parent" do
+      let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_parent)}
+      it "sets parent_id" do
+        expect(json['parent_id']).to be_present
+      end
+    end
+    context "with include_children" do
+      let(:manifest) { FactoryGirl.build(:iiifmanifest, :with_images )}
+      let(:json) { manifest.as_json(include_children: true) }
+      it "includes child objects" do
+        expect(json['images'].length).to be > 0
+      end
+    end
+  end  
+  
+  describe "#to_solr" do
+    let(:solr_doc) { manifest.to_solr }
+    context "with a parent" do
+      let(:manifest) { FactoryGirl.create(:iiifcollection, :with_parent)}
+      it "includes root collection id in solr" do
+        expect(solr_doc[Solrizer.solr_name('root_collection_id', type: :symbol)]).to eql(manifest.root_collection.id)
+      end
+    end
+    context "with a root object" do
+      it "doesn't add solr field" do
+        expect(solr_doc.key?(Solrizer.solr_name('root_collection_id', type: :symbol))).to eql(false)
+      end
+    end
+  end  
+  
+  describe "::all_in_collections" do
+    let!(:root1) { FactoryGirl.create(:iiifcollection, ordered_members: [man1, man2]) }
+    let!(:root2) { FactoryGirl.create(:iiifcollection, ordered_members: [man3]) }
+    let(:man1) { FactoryGirl.create(:iiifmanifest) }
+    let(:man2) { FactoryGirl.create(:iiifmanifest) }
+    let(:man3) { FactoryGirl.create(:iiifmanifest) }
+    let(:all) { Trifle::IIIFManifest.all_in_collection(root1) }
+    it "returns all in specified collection" do
+      expect(all.count).to eql(2)
+      expect(all.map(&:id)).to match_array([man1.id,man2.id])
+    end
+  end  
 end

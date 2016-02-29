@@ -41,6 +41,12 @@ module Trifle
         @id = json['id']
         @title = json['title']
       end
+      
+      def full
+        # Override if using stub objects. Usually something like
+        # @some_child_objects.nil? ? fetch : self
+        self
+      end      
 
       def fetch
         return local_fetch if local_mode?
@@ -114,7 +120,7 @@ module Trifle
         def local_fetch
           begin
             obj = local_class.find(id)
-            self.from_json(obj.as_json)
+            self.from_json(obj.as_json(include_children: true))
             self
           rescue StandardError => e
             raise Trifle::API::FetchError, "Error doing a local_fetch for #{model_name} #{id}"

@@ -25,11 +25,11 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
       end
     end
     
-    describe "GET #manifest" do
+    describe "GET #show_iiif" do
       let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_images) }
       it "renders manifest json" do
-        expect_any_instance_of(Trifle::IIIFManifest).to receive(:iiif_manifest).and_call_original
-        get :manifest, id: manifest.id
+        expect_any_instance_of(Trifle::IIIFManifest).to receive(:to_iiif).and_call_original
+        get :show_iiif, id: manifest.id
         expect(JSON.parse(response.body)).to be_a(Hash)
         expect(response.body).to include(manifest.images.first.image_location)
       end

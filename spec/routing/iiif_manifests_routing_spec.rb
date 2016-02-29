@@ -13,7 +13,10 @@ RSpec.describe Trifle::StaticPagesController, type: :routing do
     expect(get: "/iiif_manifests/1/edit").to route_to("trifle/iiif_manifests#edit", id: "1")
   end
   it "routes to #create" do
-    expect(post: "/iiif_manifests").to route_to("trifle/iiif_manifests#create")
+    expect(post: "/iiif_collections/1/iiif_manifests").to route_to("trifle/iiif_manifests#create", iiif_collection_id: "1")
+  end
+  it "routes to #new" do
+    expect(get: "/iiif_collections/1/iiif_manifests/new").to route_to("trifle/iiif_manifests#new", iiif_collection_id: "1")
   end
 
   it "routes to #update via PUT" do
@@ -36,8 +39,8 @@ RSpec.describe Trifle::StaticPagesController, type: :routing do
     expect(post: "/iiif_manifests/deposit").to route_to("trifle/iiif_manifests#create_and_deposit_images")
   end
   
-  it "routes to #manifest" do
-    expect(get: "/iiif_manifests/1/manifest").to route_to("trifle/iiif_manifests#manifest", id: "1")
+  it "routes to #show_iiif" do
+    expect(get: "/iiif_manifests/1/iiif").to route_to("trifle/iiif_manifests#show_iiif", id: "1")
   end
   
 end

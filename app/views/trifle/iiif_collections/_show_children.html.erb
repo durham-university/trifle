@@ -1,0 +1,15 @@
+<h2>Sub collections
+  <% if can? :edit, @resource %>
+    <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_collection_iiif_collection_path(@resource), { class: 'btn btn-default' }) %>
+  <% end %>
+</h2>
+
+<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.sub_collections %>
+
+<h2>Manifests
+  <% if can? :edit, @resource %>
+    <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_collection_iiif_manifest_path(@resource), { class: 'btn btn-default' }) %>
+  <% end %>
+</h2>
+
+<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.manifests %>
