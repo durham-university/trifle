@@ -5,7 +5,7 @@ module Trifle
       include APIAuthentication
 
       attr_accessor :image_container_location
-      attr_accessor :identifier, :date_published, :author, :description, :json_file, :licence, :attribution
+      attr_accessor :identifier, :date_published, :author, :description, :licence, :attribution
 
       def initialize
         super
@@ -18,7 +18,6 @@ module Trifle
         @date_published = json['date_published']
         @author = json['author']
         @description = json['description']
-        @json_file = json['json_file']
         @licence = json['licence']
         @attribution = json['attribution']
       end
@@ -30,7 +29,6 @@ module Trifle
         json['date_published'] = @date_published
         json['author'] = @author
         json['description'] = @description
-        json['json_file'] = @json_file
         json['licence'] = @licence
         json['attribution'] = @attribution
         json

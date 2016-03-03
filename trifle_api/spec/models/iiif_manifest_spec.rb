@@ -4,11 +4,11 @@ RSpec.describe Trifle::API::IIIFManifest do
 
   let( :all_json_s ) {
     %q|{"resources":[
-      {"id":"tajd472w44j","title":"Test title","image_container_location":"testimages","identifier":["ark:/12345/tajd472w44j"],"date_published":"Xth century","author":["various authors"],"description":"test description","json_file":"test.json","licence":"All rights reserved","attribution":"part of test items"},
-      {"id":"tajd472w55j","title":"Test title 2","image_container_location":"testimages2","identifier":["ark:/12345/tajd472w55j"],"date_published":"Xth century","author":["various authors"],"description":"test description","json_file":"test.json","licence":"All rights reserved","attribution":"part of test items"},
-      {"id":"tajd472w66j","title":"Test title 3","image_container_location":"testimages3","identifier":["ark:/12345/tajd472w66j"],"date_published":"Xth century","author":["various authors"],"description":"test description","json_file":"test.json","licence":"All rights reserved","attribution":"part of test items"}],"page":1,"total_pages":1}|      
+      {"id":"tajd472w44j","title":"Test title","image_container_location":"testimages","identifier":["ark:/12345/tajd472w44j"],"date_published":"Xth century","author":["various authors"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"},
+      {"id":"tajd472w55j","title":"Test title 2","image_container_location":"testimages2","identifier":["ark:/12345/tajd472w55j"],"date_published":"Xth century","author":["various authors"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"},
+      {"id":"tajd472w66j","title":"Test title 3","image_container_location":"testimages3","identifier":["ark:/12345/tajd472w66j"],"date_published":"Xth century","author":["various authors"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"}],"page":1,"total_pages":1}|      
   }
-  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","image_container_location" => "testimages","identifier" => ["ark:/12345/tajd472w44j"], "date_published" => "Xth century", "author" => ["various authors"], "description" => "test description", "json_file" => "test.json", "licence" => "All rights reserved", "attribution" => "part of test items"} }
+  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","image_container_location" => "testimages","identifier" => ["ark:/12345/tajd472w44j"], "date_published" => "Xth century", "author" => ["various authors"], "description" => "test description", "licence" => "All rights reserved", "attribution" => "part of test items"} }
   let( :manifest ) { Trifle::API::IIIFManifest.from_json(json) }
   let( :deposit_items ) { ['http://localhost/dummy1','http://localhost/dummy2'] }
 
@@ -34,7 +34,6 @@ RSpec.describe Trifle::API::IIIFManifest do
       expect(json['date_published']).to eql('Xth century')
       expect(json['author']).to eql(['various authors'])
       expect(json['description']).to eql('test description')
-      expect(json['json_file']).to eql('test.json')
       expect(json['licence']).to eql('All rights reserved')      
       expect(json['attribution']).to eql('part of test items')
     end
@@ -47,7 +46,6 @@ RSpec.describe Trifle::API::IIIFManifest do
       expect(manifest.date_published).to eql('Xth century')
       expect(manifest.author).to eql(['various authors'])
       expect(manifest.description).to eql('test description')
-      expect(manifest.json_file).to eql('test.json')
       expect(manifest.licence).to eql('All rights reserved')      
       expect(manifest.attribution).to eql('part of test items')
     end

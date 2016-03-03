@@ -15,7 +15,6 @@ module Trifle
     property :date_published, multiple:false, predicate: ::RDF::Vocab::DC.date
     property :author, predicate: ::RDF::Vocab::DC.creator
     property :description, multiple: false, predicate: ::RDF::Vocab::DC.description
-    property :json_file, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#json_file')
     property :licence, multiple: false, predicate: ::RDF::Vocab::DC.rights
     property :attribution, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#attribution')
 
