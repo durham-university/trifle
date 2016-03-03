@@ -1,6 +1,7 @@
 module Trifle
   class IIIFImage < ActiveFedora::Base
     include Hydra::Works::WorkBehavior
+    include Trifle::ModelBase
     include DurhamRails::NoidBehaviour
     include DurhamRails::ArkBehaviour
     include DurhamRails::DestroyFromContainers
@@ -14,10 +15,6 @@ module Trifle
     property :width, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_width')
     property :height, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_height')
 
-
-    def to_s
-      title
-    end
 
     def as_json(*args)
       super(*args).tap do |json|
@@ -37,10 +34,6 @@ module Trifle
       parent.try(:root_collection)
     end
 
-    def allow_destroy?
-      true
-    end
-    
     def iiif_service
       IIIF::Service.new.tap do |service|
         service['@id'] = "#{Trifle.iiif_service}/#{image_location}"

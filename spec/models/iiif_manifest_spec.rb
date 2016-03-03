@@ -92,11 +92,13 @@ RSpec.describe Trifle::IIIFManifest do
   end  
   
   describe "::all_in_collections" do
-    let!(:root1) { FactoryGirl.create(:iiifcollection, ordered_members: [man1, man2]) }
+    let!(:root1) { FactoryGirl.create(:iiifcollection, ordered_members: [sub1, man1]) }
+    let!(:sub1) { FactoryGirl.create(:iiifcollection, ordered_members: [man2])}
     let!(:root2) { FactoryGirl.create(:iiifcollection, ordered_members: [man3]) }
     let(:man1) { FactoryGirl.create(:iiifmanifest) }
     let(:man2) { FactoryGirl.create(:iiifmanifest) }
     let(:man3) { FactoryGirl.create(:iiifmanifest) }
+    before { Trifle::IIIFManifest.all.each do |m| m.update_index end }
     let(:all) { Trifle::IIIFManifest.all_in_collection(root1) }
     it "returns all in specified collection" do
       expect(all.count).to eql(2)

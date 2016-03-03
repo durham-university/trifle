@@ -1,6 +1,7 @@
 module Trifle
   class IIIFManifest < ActiveFedora::Base
     include Hydra::Works::WorkBehavior
+    include Trifle::ModelBase
     include DurhamRails::NoidBehaviour
     include DurhamRails::ArkBehaviour
     include DurhamRails::WithBackgroundJobs
@@ -18,10 +19,6 @@ module Trifle
     property :licence, multiple: false, predicate: ::RDF::Vocab::DC.rights
     property :attribution, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#attribution')
 
-    def to_s
-      title
-    end
-    
     def as_json(*args)
       super(*args).tap do |json|
         json.merge!({
@@ -65,10 +62,6 @@ module Trifle
       end
     end
 
-    def allow_destroy?
-      true
-    end
-    
     def iiif_sequences
       [IIIF::Presentation::Sequence.new.tap do |sequence|
         sequence['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_url(self, host: Trifle.iiif_host) + '/sequences/default'

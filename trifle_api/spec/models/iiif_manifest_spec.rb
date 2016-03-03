@@ -10,14 +10,27 @@ RSpec.describe Trifle::API::IIIFManifest do
   }
   let( :json ) { {"id" => "tajd472w44j","title" => "Test title","image_container_location" => "testimages","identifier" => ["ark:/12345/tajd472w44j"], "date_published" => "Xth century", "author" => ["various authors"], "description" => "test description", "licence" => "All rights reserved", "attribution" => "part of test items"} }
   let( :manifest ) { Trifle::API::IIIFManifest.from_json(json) }
+  let( :collection ) { Trifle::API::IIIFCollection.from_json('id' => 'colid', 'title' => 'test collection') }
   let( :deposit_items ) { ['http://localhost/dummy1','http://localhost/dummy2'] }
 
   it_behaves_like "model_common"
 
-  describe "all" do
+  describe ".all" do
     it "parses the response" do
-      expect(Trifle::API::IIIFManifest).to receive(:get).and_return(OpenStruct.new(body: all_json_s, code: 200))
+      expect(Trifle::API::IIIFManifest).to receive(:get).with('/iiif_manifests.json').and_return(OpenStruct.new(body: all_json_s, code: 200))
       resp = Trifle::API::IIIFManifest.all
+      expect(resp).to be_a Array
+      expect(resp.size).to eql 3
+      resp.each do |manifest|
+        expect(manifest).to be_a Trifle::API::IIIFManifest
+      end
+    end
+  end
+  
+  describe ".all_in_collection" do
+    it "parses the response" do
+      expect(Trifle::API::IIIFManifest).to receive(:get).with("/iiif_collections/#{collection.id}.json?full_manifest_list=1").and_return(OpenStruct.new(body: all_json_s, code: 200))
+      resp = Trifle::API::IIIFManifest.all_in_collection(collection)
       expect(resp).to be_a Array
       expect(resp.size).to eql 3
       resp.each do |repo|
@@ -113,12 +126,16 @@ RSpec.describe Trifle::API::IIIFManifest do
     before { allow(Trifle::API::IIIFManifest).to receive(:local_mode?).and_return(true) }
     before {
       Trifle.send(:const_set, :IIIFManifest, double('manifest_class'))
+      Trifle.send(:const_set, :IIIFCollection, double('collection_class'))
       Trifle.send(:const_set, :DepositJob, double('job_class'))
       allow(Trifle::IIIFManifest).to receive(:find).with(manifest_id).and_return(local_manifest_mock)
       allow(Trifle::IIIFManifest).to receive(:new).and_return(new_manifest_mock)
+      allow(Trifle::API::IIIFManifest).to receive(:local_class).and_return(Trifle::IIIFManifest)
+      allow(Trifle::API::IIIFCollection).to receive(:local_class).and_return(Trifle::IIIFCollection)
     }
     after {
       Trifle.send(:remove_const,:IIIFManifest)
+      Trifle.send(:remove_const,:IIIFCollection)
       Trifle.send(:remove_const,:DepositJob)
     }
     describe ".deposit_new_local" do
@@ -149,6 +166,19 @@ RSpec.describe Trifle::API::IIIFManifest do
         resp = Trifle::API::IIIFManifest.deposit_into(manifest, deposit_items)
         expect(resp[:resource]).to be_a Trifle::API::IIIFManifest
         expect(resp[:status]).to eql 'ok'
+      end
+    end
+    describe ".all_in_collection_local" do
+      let(:collection_mock) { double('collection', id: 'colid') }
+      let(:local_collection_mock) { double('local collection') }
+      it "gets all in collection" do
+        expect(Trifle::IIIFCollection).to receive(:find).with('colid').and_return(local_collection_mock)
+        expect(Trifle::IIIFManifest).to receive(:all_in_collection).with(local_collection_mock).and_return([local_manifest_mock])
+        resp = Trifle::API::IIIFManifest.all_in_collection(collection_mock)
+        expect(resp).to be_a(Array)
+        expect(resp.count).to eql(1)
+        expect(resp.first).to be_a Trifle::API::IIIFManifest
+        expect(resp.first.id).to eql(manifest_id)
       end
     end
   end

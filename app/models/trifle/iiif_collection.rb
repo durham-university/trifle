@@ -1,6 +1,7 @@
 module Trifle
   class IIIFCollection < ActiveFedora::Base
     include Hydra::Works::CollectionBehavior
+    include Trifle::ModelBase
     include DurhamRails::NoidBehaviour
     include DurhamRails::ArkBehaviour
     include DurhamRails::WithBackgroundJobs
@@ -14,10 +15,6 @@ module Trifle
     property :description, multiple: false, predicate: ::RDF::Vocab::DC.description
     property :licence, multiple: false, predicate: ::RDF::Vocab::DC.rights
     property :attribution, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#attribution')
-    
-    def to_s
-      title
-    end
     
     def as_json(*args)
       super(*args).tap do |json|
@@ -33,7 +30,7 @@ module Trifle
     def parent
       ordered_by.to_a.find do |m| m.is_a? IIIFCollection end
     end
-    
+         
     def root_collection
       parent.try(:root_collection) || self
     end
@@ -44,10 +41,6 @@ module Trifle
 
     def manifests
       ordered_members.to_a.select do |m| m.is_a? IIIFManifest end
-    end
-    
-    def allow_destroy?
-      true
     end
     
     def iiif_collection_stub

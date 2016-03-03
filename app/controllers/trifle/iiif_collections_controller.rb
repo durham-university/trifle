@@ -27,6 +27,20 @@ module Trifle
       end  
     end
     
+    def show
+      if params['full_manifest_list'].present?
+        authorize!(:index_all, Trifle::IIIFManifest)
+        resources = Trifle::IIIFManifest.all_in_collection(@resource.root_collection)
+        render json: {resources: (resources.map do |res| res.as_json end), page: 1, total_pages: 1}
+      elsif params['full_collection_list'].present?
+        authorize!(:index_all, Trifle::IIIFCollection)
+        resources = Trifle::IIIFCollection.all_in_collection(@resource.root_collection)
+        render json: {resources: (resources.map do |res| res.as_json end), page: 1, total_pages: 1}
+      else
+        super
+      end
+    end
+    
         
     protected
     

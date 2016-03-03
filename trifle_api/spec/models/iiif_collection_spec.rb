@@ -26,6 +26,18 @@ RSpec.describe Trifle::API::IIIFCollection do
     end
   end
   
+  describe ".all_in_collection" do
+    it "parses the response" do
+      expect(Trifle::API::IIIFCollection).to receive(:get).with("/iiif_collections/#{collection.id}.json?full_collection_list=1").and_return(OpenStruct.new(body: all_json_s, code: 200))
+      resp = Trifle::API::IIIFCollection.all_in_collection(collection)
+      expect(resp).to be_a Array
+      expect(resp.size).to eql 2
+      resp.each do |collection|
+        expect(collection).to be_a Trifle::API::IIIFCollection
+      end
+    end
+  end
+  
   describe "#sub_collections" do
     context "with a fully feched resource" do
       let(:collection) { Trifle::API::IIIFCollection.from_json(json.merge('sub_collections' => [JSON.parse(sub_json_s)])) }
@@ -87,4 +99,29 @@ RSpec.describe Trifle::API::IIIFCollection do
     end
   end
 
+  context "with local mode" do
+    let(:collection_id) { 'tajd472w44j' }
+    before { allow(Trifle::API::IIIFCollection).to receive(:local_mode?).and_return(true) }
+    before {
+      Trifle.send(:const_set, :IIIFCollection, double('collection_class'))
+      allow(Trifle::API::IIIFCollection).to receive(:local_class).and_return(Trifle::IIIFCollection)
+    }
+    after {
+      Trifle.send(:remove_const,:IIIFCollection)
+    }
+    describe ".all_in_collection_local" do
+      let(:collection_mock) { double('collection', id: 'colid') }
+      let(:local_collection_mock) { double('local collection') }
+      let(:local_sub_collection_mock) { double('local sub collection', as_json: json) }
+      it "gets all in collection" do
+        expect(Trifle::IIIFCollection).to receive(:find).with('colid').and_return(local_collection_mock)
+        expect(Trifle::IIIFCollection).to receive(:all_in_collection).with(local_collection_mock).and_return([local_sub_collection_mock])
+        resp = Trifle::API::IIIFCollection.all_in_collection(collection_mock)
+        expect(resp).to be_a(Array)
+        expect(resp.count).to eql(1)
+        expect(resp.first).to be_a Trifle::API::IIIFCollection
+        expect(resp.first.id).to eql(collection_id)
+      end
+    end
+  end
 end

@@ -47,6 +47,7 @@ module Trifle
         fetch unless @files
       end      
 
+      # Note that .all is really only all root level collections
       def self.all
         return all_local if local_mode?
         response = self.get('/iiif_collections.json')
@@ -62,7 +63,24 @@ module Trifle
           self.from_json(resource.as_json)
         end
       end
-
+      
+      def self.all_in_collection(collection)
+        return all_in_collection_local(collection) if local_mode?
+        response = self.get("/iiif_collections/#{collection.id}.json?full_collection_list=1")
+        raise FetchError, "Error fetching full collection list: #{response.code} - #{response.message}" unless response.code == 200
+        json = JSON.parse(response.body)
+        json['resources'].map do |resource_json|
+          self.from_json(resource_json)
+        end
+      end
+      
+      def self.all_in_collection_local(collection)
+        collection_local = Trifle::API::IIIFCollection.local_class.find(collection.id)
+        local_class.all_in_collection(collection_local).map do |resource|
+          self.from_json(resource.as_json)
+        end
+      end
+      
       def self.model_name
         'iiif_collections'
       end
