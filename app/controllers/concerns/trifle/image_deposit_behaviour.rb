@@ -4,6 +4,8 @@ module Trifle
 
     included do
       before_action :set_deposit_resource, only: [:deposit_images]
+      before_action :set_deposit_parent, only: [:create_and_deposit_images]
+      before_action :authorize_deposit_to_parent_resource!, only: [:create_and_deposit_images]
     end
     
     def deposit_images
@@ -43,7 +45,17 @@ module Trifle
       
       @resource.default_container_location!
       
-      unless @resource.save
+      saved = false
+      if @resource.valid?
+        if @parent
+          @parent.ordered_members << @resource
+          saved = @parent.save && @resource.save
+        else
+          saved = @resource.save
+        end
+      end
+            
+      unless saved
         respond_to do |format|
           format.html { 
             flash[:error] = "Unable to create manifest." 
@@ -67,6 +79,14 @@ module Trifle
       def set_deposit_resource
         set_resource
       end
+      
+      def set_deposit_parent
+        set_parent
+      end
+      
+      def authorize_deposit_to_parent_resource!
+        authorize!(:deposit_into, @parent) if @parent
+      end      
             
   end
 end

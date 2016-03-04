@@ -18,6 +18,7 @@ module Trifle
         can :index_all, [Trifle::IIIFCollection, Trifle::IIIFManifest]
         can :deposit, Trifle::IIIFManifest
         can :create_and_deposit, Trifle::IIIFManifest
+        can :deposit_into, Trifle::IIIFCollection
       else
       end
     end

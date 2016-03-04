@@ -4,12 +4,22 @@ module Trifle
       include ModelBase
       include APIAuthentication
 
-      attr_accessor :identifier, :description, :licence, :attribution
+      attr_accessor :parent_id, :identifier, :description, :licence, :attribution
 
       def initialize
         super
         @sub_collections = nil
         @manifests = nil
+      end
+
+      def parent
+        @parent ||= begin
+          if parent_id
+            Trifle::API::IIIFCollection.find(parent_id)
+          else
+            nil
+          end
+        end
       end
 
       def from_json(json)
@@ -20,6 +30,7 @@ module Trifle
         @attribution = json['attribution']
         @sub_collections = json['sub_collections'].map do |c_json| Trifle::API::IIIFCollection.from_json(c_json) end if json.key?('sub_collections')
         @manifests = json['manifests'].map do |m_json| Trifle::API::IIIFManifest.from_json(m_json) end if json.key?('manifests')
+        @parent_id = json['parent_id']
       end
 
       def as_json(*args)
@@ -30,6 +41,7 @@ module Trifle
         json['attribution'] = @attribution
         json['sub_collections'] = @sub_collections.map(&:as_json) if @sub_collections
         json['manifests'] = @manifests.map(&:as_json) if @manifests
+        json['parent_id'] = @parent_id
         json
       end
       

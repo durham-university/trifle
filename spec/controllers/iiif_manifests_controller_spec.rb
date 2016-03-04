@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Trifle::IIIFManifestsController, type: :controller do
 
+  let(:collection) { FactoryGirl.create(:iiifcollection) }
   let(:manifest) { FactoryGirl.create(:iiifmanifest) }
 
   routes { Trifle::Engine.routes }
@@ -20,7 +21,7 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
     describe "POST #create_and_deposit_images" do
       it "fails authentication" do
         expect {
-          post :create_and_deposit_images
+          post :create_and_deposit_images, iiif_collection_id: collection.id
         }.not_to change(Trifle::IIIFManifest, :count)
       end
     end
@@ -79,16 +80,17 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
             expect(job.deposit_items).to eql(deposit_items)
             expect(job.resource.id).to be_present
           } .and_return(true)
+        expect(collection.ordered_members.to_a).to be_empty
         expect {
-          post :create_and_deposit_images, deposit_items: deposit_items
+          post :create_and_deposit_images, iiif_collection_id: collection.id, deposit_items: deposit_items, format: 'json'
         }.to change(Trifle::IIIFManifest, :count).by(1)
-      end
-      it "returns json" do
-        expect_any_instance_of(Trifle::DepositJob).to receive(:queue_job).and_return(true)        
-        post :create_and_deposit_images, deposit_items: deposit_items, format: 'json'
+        
         parsed = JSON.parse(response.body)
         expect(parsed['resource']['id']).to be_present
         expect(parsed['status']).to eql('ok')
+        
+        expect(collection.reload.ordered_members.to_a.map(&:id)).to eql([parsed['resource']['id']])
+        expect(Trifle::IIIFManifest.all_in_collection(collection).map(&:id)).to eql([parsed['resource']['id']])
       end
     end
     

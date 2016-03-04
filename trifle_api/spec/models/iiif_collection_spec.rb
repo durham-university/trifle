@@ -9,10 +9,29 @@ RSpec.describe Trifle::API::IIIFCollection do
   }
   let( :sub_json_s ) { %q|{"id":"tajd472w66j","title":"Test title 3","identifier":["ark:/12345/tajd472w66j"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"}| }
   let( :manifest_json_s ) { %q|{"id":"tajd472w77j","title":"Test manifest","identifier":["ark:/12345/tajd472w77j"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"}| }
-  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","identifier" => ["ark:/12345/tajd472w44j"],"description" => "test description","licence" => "All rights reserved", "attribution" => "part of test items"} }
+  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","identifier" => ["ark:/12345/tajd472w44j"],"description" => "test description","licence" => "All rights reserved", "attribution" => "part of test items", "parent_id" => "dummy_collection_id"} }
   let( :collection ) { Trifle::API::IIIFCollection.from_json(json) }
   
   it_behaves_like "model_common"
+
+  describe "#parent" do
+    let( :parent_collection ) { Trifle::API::IIIFCollection.new }
+
+    it "finds the parent" do
+      allow(Trifle::API::IIIFCollection).to receive(:find).with('dummy_collection_id').and_return(parent_collection)
+      expect(collection.parent).to eql(parent_collection)
+    end
+
+    it "raises when parent is not found" do
+      allow(Trifle::API::IIIFCollection).to receive(:find).with('dummy_collection_id') { raise Trifle::API::FetchError }
+      expect { collection.parent } .to raise_error(Trifle::API::FetchError)
+    end
+
+    it "returns nil when parent_id is nil" do
+      json['parent_id'] = nil
+      expect(collection.parent).to be_nil
+    end
+  end
 
   describe "all" do
     it "parses the response" do
@@ -87,6 +106,7 @@ RSpec.describe Trifle::API::IIIFCollection do
       expect(json['description']).to eql('test description')
       expect(json['licence']).to eql('All rights reserved')      
       expect(json['attribution']).to eql('part of test items')
+      expect(json['parent_id']).to eql('dummy_collection_id')
     end
   end
 
@@ -96,6 +116,7 @@ RSpec.describe Trifle::API::IIIFCollection do
       expect(collection.description).to eql('test description')
       expect(collection.licence).to eql('All rights reserved')      
       expect(collection.attribution).to eql('part of test items')
+      expect(collection.parent_id).to eql('dummy_collection_id')
     end
   end
 

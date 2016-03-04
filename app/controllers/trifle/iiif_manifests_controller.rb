@@ -12,6 +12,7 @@ module Trifle
     end
 
     def set_parent
+      @parent = IIIFCollection.find(params[:iiif_collection_id])      
     end
     
     def index

@@ -5,10 +5,20 @@ module Trifle
       include APIAuthentication
 
       attr_accessor :image_container_location
-      attr_accessor :identifier, :date_published, :author, :description, :licence, :attribution
+      attr_accessor :parent_id, :identifier, :date_published, :author, :description, :licence, :attribution
 
       def initialize
         super
+      end
+
+      def parent
+        @parent ||= begin
+          if parent_id
+            Trifle::API::IIIFCollection.find(parent_id)
+          else
+            nil
+          end
+        end
       end
 
       def from_json(json)
@@ -20,6 +30,7 @@ module Trifle
         @description = json['description']
         @licence = json['licence']
         @attribution = json['attribution']
+        @parent_id = json['parent_id']
       end
 
       def as_json(*args)
@@ -31,6 +42,7 @@ module Trifle
         json['description'] = @description
         json['licence'] = @licence
         json['attribution'] = @attribution
+        json['parent_id'] = @parent_id
         json
       end
 
@@ -72,9 +84,10 @@ module Trifle
         'iiif_manifests'
       end
 
-      def self.deposit_new(deposit_items,manifest_metadata={})
-        return deposit_new_local(deposit_items,manifest_metadata) if local_mode?
-        response = self.post("iiif_manifests/deposit.json", {query: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
+      def self.deposit_new(parent, deposit_items,manifest_metadata={})
+        return deposit_new_local(parent, deposit_items,manifest_metadata) if local_mode?
+        parent = parent.id if parent.respond_to?(:id)
+        response = self.post("iiif_collections/#{CGI.escape parent}/iiif_manifests/deposit.json", {query: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,
@@ -107,12 +120,16 @@ module Trifle
         }
       end
       
-      def self.deposit_new_local(deposit_items,manifest_metadata={})
+      def self.deposit_new_local(parent, deposit_items,manifest_metadata={})
+        parent = parent.id if parent.respond_to?(:id)
         manifest_metadata['title'] ||= "New manifest #{DateTime.now.strftime('%F %R')}"
+        local_collection = Trifle::IIIFCollection.find(parent)
         local_manifest = Trifle::IIIFManifest.new()
         local_manifest.attributes = manifest_metadata
 
         local_manifest.default_container_location!
+        local_collection.ordered_members << local_manifest
+        local_collection.save
         local_manifest.save
         
         job = Trifle::DepositJob.new(resource: local_manifest, deposit_items: deposit_items)

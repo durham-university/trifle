@@ -8,12 +8,31 @@ RSpec.describe Trifle::API::IIIFManifest do
       {"id":"tajd472w55j","title":"Test title 2","image_container_location":"testimages2","identifier":["ark:/12345/tajd472w55j"],"date_published":"Xth century","author":["various authors"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"},
       {"id":"tajd472w66j","title":"Test title 3","image_container_location":"testimages3","identifier":["ark:/12345/tajd472w66j"],"date_published":"Xth century","author":["various authors"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"}],"page":1,"total_pages":1}|      
   }
-  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","image_container_location" => "testimages","identifier" => ["ark:/12345/tajd472w44j"], "date_published" => "Xth century", "author" => ["various authors"], "description" => "test description", "licence" => "All rights reserved", "attribution" => "part of test items"} }
+  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","image_container_location" => "testimages","identifier" => ["ark:/12345/tajd472w44j"], "date_published" => "Xth century", "author" => ["various authors"], "description" => "test description", "licence" => "All rights reserved", "attribution" => "part of test items", "parent_id" => "dummy_collection_id"} }
   let( :manifest ) { Trifle::API::IIIFManifest.from_json(json) }
   let( :collection ) { Trifle::API::IIIFCollection.from_json('id' => 'colid', 'title' => 'test collection') }
   let( :deposit_items ) { ['http://localhost/dummy1','http://localhost/dummy2'] }
 
   it_behaves_like "model_common"
+  
+  describe "#parent" do
+    let( :parent_collection ) { Trifle::API::IIIFCollection.new }
+
+    it "finds the parent" do
+      allow(Trifle::API::IIIFCollection).to receive(:find).with('dummy_collection_id').and_return(parent_collection)
+      expect(manifest.parent).to eql(parent_collection)
+    end
+
+    it "raises when parent is not found" do
+      allow(Trifle::API::IIIFCollection).to receive(:find).with('dummy_collection_id') { raise Trifle::API::FetchError }
+      expect { manifest.parent } .to raise_error(Trifle::API::FetchError)
+    end
+
+    it "returns nil when parent_id is nil" do
+      json['parent_id'] = nil
+      expect(manifest.parent).to be_nil
+    end
+  end  
 
   describe ".all" do
     it "parses the response" do
@@ -49,6 +68,7 @@ RSpec.describe Trifle::API::IIIFManifest do
       expect(json['description']).to eql('test description')
       expect(json['licence']).to eql('All rights reserved')      
       expect(json['attribution']).to eql('part of test items')
+      expect(json['parent_id']).to eql('dummy_collection_id')
     end
   end
 
@@ -61,16 +81,18 @@ RSpec.describe Trifle::API::IIIFManifest do
       expect(manifest.description).to eql('test description')
       expect(manifest.licence).to eql('All rights reserved')      
       expect(manifest.attribution).to eql('part of test items')
+      expect(manifest.parent_id).to eql('dummy_collection_id')
     end
   end
 
   describe ".deposit_new" do
+    let( :parent ) { collection }
     let( :manifest_metadata ) { { title: 'test title', description: 'test description' } }
     let( :response ) { { status: 'ok', resource: json }.to_json }
     let( :response_code ) { 200 }
     before {
       expect(Trifle::API::IIIFManifest).to receive(:post) { |url,params|
-        expect(url).to eql "iiif_manifests/deposit.json"
+        expect(url).to eql "iiif_collections/#{parent.id}/iiif_manifests/deposit.json"
         query = params[:query]
         expect(query[:deposit_items]).to eql(deposit_items)
         expect(query[:iiif_manifest]).to eql(manifest_metadata)
@@ -78,14 +100,14 @@ RSpec.describe Trifle::API::IIIFManifest do
       }
     }
     it "deposits items" do
-      resp = Trifle::API::IIIFManifest.deposit_new(deposit_items, manifest_metadata)
+      resp = Trifle::API::IIIFManifest.deposit_new(parent, deposit_items, manifest_metadata)
       expect(resp[:resource]).to be_a Trifle::API::IIIFManifest
       expect(resp[:status]).to eql 'ok'
     end
     context "with error" do
       let( :response ) { { status: 'error', message: 'test message' }.to_json }
       it "handles errors" do
-        resp = Trifle::API::IIIFManifest.deposit_new(deposit_items, manifest_metadata)
+        resp = Trifle::API::IIIFManifest.deposit_new(parent, deposit_items, manifest_metadata)
         expect(resp[:status]).to eql 'error'
         expect(resp[:message]).to include 'test message'
       end
@@ -120,14 +142,18 @@ RSpec.describe Trifle::API::IIIFManifest do
   
   context "with local mode" do
     let(:manifest_id) { 'tajd472w44j' }
+    let(:local_collection_mock) { double('local_collection_mock', ordered_members: collection_members_mock) }
+    let(:collection_members_mock) { double('local_collection_members_mock') }
     let(:local_manifest_mock) { double('local_manifest_mock', as_json: json) }
     let(:new_manifest_mock) { double('new_manifest_mock', as_json: json) }
     let(:job_mock) { double('job_mock') }
+    let( :parent ) { collection }
     before { allow(Trifle::API::IIIFManifest).to receive(:local_mode?).and_return(true) }
     before {
       Trifle.send(:const_set, :IIIFManifest, double('manifest_class'))
       Trifle.send(:const_set, :IIIFCollection, double('collection_class'))
       Trifle.send(:const_set, :DepositJob, double('job_class'))
+      allow(Trifle::IIIFCollection).to receive(:find).with(parent.id).and_return(local_collection_mock)
       allow(Trifle::IIIFManifest).to receive(:find).with(manifest_id).and_return(local_manifest_mock)
       allow(Trifle::IIIFManifest).to receive(:new).and_return(new_manifest_mock)
       allow(Trifle::API::IIIFManifest).to receive(:local_class).and_return(Trifle::IIIFManifest)
@@ -146,12 +172,14 @@ RSpec.describe Trifle::API::IIIFManifest do
         expect(new_manifest_mock).to receive(:attributes=) do |val|
           expect(val).to eql(manifest_metadata)
         end
+        expect(local_collection_mock).to receive(:save).and_return(true)
+        expect(collection_members_mock).to receive(:<<).with(new_manifest_mock)
         expect(Trifle::DepositJob).to receive(:new)
           .with(hash_including(resource: new_manifest_mock, deposit_items: deposit_items))
           .and_return(job_mock)
         expect(job_mock).to receive(:queue_job)
         
-        resp = Trifle::API::IIIFManifest.deposit_new(deposit_items,manifest_metadata)
+        resp = Trifle::API::IIIFManifest.deposit_new(parent, deposit_items,manifest_metadata)
         expect(resp[:resource]).to be_a Trifle::API::IIIFManifest
         expect(resp[:status]).to eql 'ok'
       end

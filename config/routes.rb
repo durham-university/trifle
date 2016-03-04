@@ -8,7 +8,7 @@ Trifle::Engine.routes.draw do
     resources :iiif_manifests, only: [:new, :create]
   end
 
-  post '/iiif_manifests/deposit', to: 'iiif_manifests#create_and_deposit_images'
+  post '/iiif_collections/:iiif_collection_id/iiif_manifests/deposit', to: 'iiif_manifests#create_and_deposit_images'
   resources :iiif_manifests, only: [:show, :edit, :update, :destroy, :index] do
     resources :iiif_images, only: [:new, :create]
   end
