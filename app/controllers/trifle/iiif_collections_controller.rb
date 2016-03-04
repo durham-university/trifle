@@ -18,7 +18,7 @@ module Trifle
     
     def show_iiif
       if params['mirador'] == 'true'
-        resources = @resource.manifests
+        resources = Trifle::IIIFManifest.all_in_collection(@resource)
         render json: (resources.map do |res|
           {manifestUri: trifle.iiif_manifest_iiif_url(res), location: Trifle.mirador_location }
         end)

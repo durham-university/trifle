@@ -17,6 +17,17 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
       end
     end
     
+    describe "GET #show_iiif?mirador=true" do
+      let(:manifest) { FactoryGirl.create(:iiifmanifest) }
+      let!(:collection) { FactoryGirl.create(:iiifcollection, ordered_members: [FactoryGirl.create(:iiifcollection, ordered_members: [manifest])]) }
+      before { Trifle::IIIFManifest.all.each do |c| c.update_index end }
+      it "renders manifest json" do
+        get :show_iiif, id: collection.id, mirador: 'true'
+        expect(JSON.parse(response.body)).to be_a(Array)
+        expect(response.body).to include(manifest.id)
+      end
+    end
+    
     describe "GET #show full lists" do
       let(:user) { FactoryGirl.create(:user,:admin) }
       before { sign_in user }
