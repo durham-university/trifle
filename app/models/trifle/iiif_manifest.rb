@@ -5,6 +5,7 @@ module Trifle
     include DurhamRails::NoidBehaviour
     include DurhamRails::ArkBehaviour
     include DurhamRails::WithBackgroundJobs
+    include DurhamRails::DestroyFromContainers
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title do |index|
       index.as :stored_searchable
@@ -68,7 +69,7 @@ module Trifle
         sequence.label = 'default'
         sequence.viewing_direction = 'left-to-right'
         sequence.viewing_hint = 'paged'
-        sequence.canvases = images.map(&:iiif_canvas)
+        sequence.canvases = images.map do |img| img.iiif_canvas end
       end]
     end
     

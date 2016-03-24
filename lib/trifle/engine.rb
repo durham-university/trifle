@@ -15,7 +15,7 @@ module Trifle
     end
 
     initializer "trifle.assets.precompile" do |app|
-      app.config.assets.precompile += %w( trifle/logo.png )
+      app.config.assets.precompile += %w( trifle/logo.png trifle/trifleAnnotationEndpoint.js )
     end
 
     config.generators do |g|

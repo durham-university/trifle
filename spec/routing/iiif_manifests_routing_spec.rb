@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Trifle::StaticPagesController, type: :routing do
+RSpec.describe Trifle::IIIFManifestsController, type: :routing do
   routes { Trifle::Engine.routes }
 
   it "routes to #index" do

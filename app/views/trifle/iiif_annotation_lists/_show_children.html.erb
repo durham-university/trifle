@@ -1,0 +1,7 @@
+<h2>Annotations
+  <% if can? :edit, @resource %>
+    <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_annotation_list_iiif_annotation_path(@resource), { class: 'btn btn-default' }) %>
+  <% end %>
+</h2>
+
+<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.annotations %>

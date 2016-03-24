@@ -1,0 +1,18 @@
+<% if @resource.to_model.annotation_lists.count == 1 %>
+  <% @annotation_list = @resource.to_model.annotation_lists.first %>
+  <h2>Annotations in the annotation list
+    <% if can? :edit, @annotation_list %>
+      <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_annotation_list_iiif_annotation_path(@annotation_list), { class: 'btn btn-default' }) %>
+    <% end %>
+  </h2>
+
+  <%= render 'durham_rails/base_shared/item_list', items: @annotation_list.annotations %>
+<% end %>
+
+<h2>Annotation lists
+  <% if can? :edit, @resource %>
+    <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_image_iiif_annotation_list_path(@resource), { class: 'btn btn-default' }) %>
+  <% end %>
+</h2>
+
+<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.annotation_lists %>

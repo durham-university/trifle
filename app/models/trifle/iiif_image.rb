@@ -18,9 +18,6 @@ module Trifle
 
     def as_json(*args)
       super(*args).tap do |json|
-        json.merge!({
-          'images' => images.map(&:as_json)
-        }) if args.first.try(:fetch,:include_children,false)
         parent_id = parent.try(:id)
         json.merge!({'parent_id' => parent_id}) if parent_id.present?
       end
@@ -32,6 +29,10 @@ module Trifle
 
     def root_collection
       parent.try(:root_collection)
+    end
+
+    def annotation_lists
+      ordered_members.to_a.select do |m| m.is_a? IIIFAnnotationList end
     end
 
     def iiif_service
@@ -58,20 +59,24 @@ module Trifle
       end
     end
     
-    def iiif_canvas
+    def iiif_canvas(opts={})
       IIIF::Presentation::Canvas.new.tap do |canvas|
-        canvas['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_url(self, host: Trifle.iiif_host)
+        canvas['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(self, host: Trifle.iiif_host)
         canvas.label = title
         canvas.width = width.to_i
         canvas.height = height.to_i
         canvas.images = [iiif_annotation]
+
+        unless opts[:no_annotations]
+          canvas.other_content = annotation_lists.map do |al| al.iiif_annotation_list(false) end  if annotation_lists.any?
+        end
         
         canvas.images.each do |image| image['on'] = canvas['@id'] end
       end
     end
 
-    def to_iiif
-      iiif_canvas
+    def to_iiif(opts={})
+      iiif_canvas(opts)
     end
 
   end

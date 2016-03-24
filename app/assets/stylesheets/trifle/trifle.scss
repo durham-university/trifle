@@ -70,9 +70,15 @@ table.item-list {
 }
 
 #mirador_modal .modal-dialog {
-  width: 95%;
-  height: 90%;
-  position: relative;
+  position: absolute;
+  left: 15px;
+  top: 15px;
+  right: 35px;
+  bottom: 15px;
+  width: auto;
+  height: auto;
+  margin: 0;
+
   .modal-content {
     width: 100%;
     height: 100%;
@@ -80,6 +86,24 @@ table.item-list {
     background-color: #333;
     
     button.close {
+      position: absolute;
+      width: 38px;
+      height: 42px;
+      background-color: #333;
+      border-radius: 6px;
+      right: -30px;
+      border: 8px solid #333;
+      top: 0px;
+      border-left: none;
+      color: #888;
+      opacity: 1;
+      padding-left: 8px;
+      text-shadow: none;
+      
+      &:hover { color: white; }
+      &:focus { outline: none; }
+      
+      /*
       position: absolute;
       color: white;
       opacity: 0.3;
@@ -89,6 +113,7 @@ table.item-list {
       &:hover {
         opacity: 0.5;
       }
+      */
     }
     
     iframe {

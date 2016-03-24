@@ -15,6 +15,6 @@
 //= require jquery-ui
 //= require bootstrap-sprockets
 //= require trifle/blacklight_mock
+//# require trifle/setup_iipmooviewer
 //= require hydra-editor/hydra-editor
 //# require iipmooviewer
-//= require_tree .

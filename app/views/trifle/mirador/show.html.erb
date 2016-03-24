@@ -3,24 +3,43 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <%= csrf_meta_tag %>
     <link rel="stylesheet" type="text/css" href="<%= Trifle.config['mirador_base_url'] %>css/mirador-combined.css">
     <title>Mirador Viewer</title>
     <style type="text/css">
       body { padding: 0; margin: 0; overflow: hidden; font-size: 70%; }
       #viewer { background: #333; width: 100%; height: 100%; position: fixed; }
-      .mirador-main-menu { padding-right: 20px; }
+      .annotation-editor .tags-editor { display: none; }
     </style>
   </head>
   <body>
     <div id="viewer"></div>
     <script src="<%= Trifle.config['mirador_base_url'] %>mirador.js"></script>
+    <%= javascript_include_tag "trifle/trifleAnnotationEndpoint" %>
+    <script src=""></script>
     <script type="text/javascript">
      function initMirador(manifest){
+       <% if @resource.is_a?(Trifle::IIIFManifest) && can?(:update,@resource) %>
+        // disables annotations in the manifest if we use an annotation endpoint
+        window.Mirador.Manifest.prototype.getAnnotationsListUrl = function(canvasId) { return false; };
+       <% end %>
+       
        var options = {
          "id": "viewer",
          "saveSession": false,
          "mainMenuSettings": {
            "buttons": { "bookmark": false }
+         },
+         "buildPath": "<%= Trifle.config['mirador_base_url'] %>",
+         "annotationEndpoint":{
+           <% if @resource.is_a?(Trifle::IIIFManifest) && can?(:update,@resource) %>
+             "name": "Trifle",
+             "module": "TrifleEndpoint",
+             "options": {
+               "trifleUrlBase": "<%= trifle.root_url %>",
+               "trifleManifestId": "<%= @resource.id %>"
+             }
+           <% end %>
          }
        };
        if(manifest){
