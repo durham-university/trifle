@@ -18,8 +18,8 @@
     <%= javascript_include_tag "trifle/trifleAnnotationEndpoint" %>
     <script src=""></script>
     <script type="text/javascript">
-     function initMirador(manifest){
-       <% if @resource.is_a?(Trifle::IIIFManifest) && can?(:update,@resource) %>
+     function initMirador(manifest, image){
+       <% if @use_annotations %>
         // disables annotations in the manifest if we use an annotation endpoint
         window.Mirador.Manifest.prototype.getAnnotationsListUrl = function(canvasId) { return false; };
        <% end %>
@@ -32,12 +32,12 @@
          },
          "buildPath": "<%= Trifle.config['mirador_base_url'] %>",
          "annotationEndpoint":{
-           <% if @resource.is_a?(Trifle::IIIFManifest) && can?(:update,@resource) %>
+           <% if @use_annotations %>
              "name": "Trifle",
              "module": "TrifleEndpoint",
              "options": {
                "trifleUrlBase": "<%= trifle.root_url %>",
-               "trifleManifestId": "<%= @resource.id %>"
+               "trifleManifestId": "<%= @manifest.id %>"
              }
            <% end %>
          }
@@ -46,10 +46,17 @@
          options["windowObjects"]=[{
            "loadedManifest": manifest
          }];
+         if(image){
+           options["windowObjects"][0]["canvasID"]=image;
+           options["windowObjects"][0]["viewType"]="ImageView";
+         }
+       }
+       else {
+         options["openManifestsPage"]=true;
        }
        
        $.ajax({
-         url: '<%= trifle.iiif_collection_iiif_url(@resource.root_collection) + "?mirador=true" %>',
+         url: '<%= trifle.iiif_collection_iiif_url(@collection) + "?mirador=true" %>',
          dataType: 'json',
          success: function(data, status, xhr){
            options["data"] = data;
@@ -59,7 +66,8 @@
      }
      function windowLoaded(){
        if(typeof(Mirador.viewer)!='undefined') return;
-       initMirador(<%= @resource.try(:is_a?, Trifle::IIIFManifest) ? "'#{trifle.iiif_manifest_iiif_url(@resource)}'".html_safe : 'null' %>);
+       initMirador(<%= @manifest ? "'#{trifle.iiif_manifest_iiif_url(@manifest)}'".html_safe : 'null' %>,
+                   <%= @image ? "'#{trifle.iiif_image_iiif_url(@image)}'".html_safe : 'null' %>);
      }
      <% unless @no_auto_load %>
       $(function(){windowLoaded();});
