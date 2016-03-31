@@ -1,0 +1,12 @@
+<%
+  images = if f.object.to_model.persisted?
+    f.object.to_model.manifest.try(:images) || []
+  else
+    if @parent.is_a?(Trifle::IIIFManifest)
+      @parent.images
+    else
+      @parent.manifest.images
+    end
+  end
+%>
+<%= f.input :canvas_ids, collection: images, label_method: :title, value_method: :to_param, input_html: { multiple: true } %>

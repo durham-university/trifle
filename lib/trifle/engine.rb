@@ -11,6 +11,7 @@ module Trifle
     initializer "trifle.inflections" do |app|
       ActiveSupport::Inflector.inflections(:en) do |inflect|
         inflect.acronym 'IIIF'
+        inflect.irregular 'canvas', 'canvases'
       end
     end
 

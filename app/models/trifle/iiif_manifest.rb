@@ -45,6 +45,21 @@ module Trifle
     def images
       ordered_members.to_a.select do |m| m.is_a? IIIFImage end
     end
+    
+    def structures
+      ordered_members.to_a.select do |m| m.is_a? IIIFStructure end
+    end
+    
+    def traverse_structures
+      todo=self.structures.to_a
+      ret=[]
+      while todo.any?
+        s = todo.shift
+        ret << s
+        todo += s.sub_structures.to_a
+      end
+      ret
+    end
 
     def add_deposited_image(image)
       self.ordered_members << image
@@ -61,6 +76,10 @@ module Trifle
       else
         self.image_container_location = id
       end
+    end
+
+    def iiif_structures
+      traverse_structures.map(&:to_iiif)
     end
 
     def iiif_sequences
@@ -95,6 +114,8 @@ module Trifle
         metadata << {"label" => "Author", "value" => self.author} if self.author.present?
         metadata << {"label" => "Published", "value" => self.date_published} if self.date_published.present?
         manifest.metadata = metadata
+        
+        manifest.structures = iiif_structures
         
         manifest.sequences = iiif_sequences        
       end

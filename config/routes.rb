@@ -11,6 +11,7 @@ Trifle::Engine.routes.draw do
   post '/iiif_collections/:iiif_collection_id/iiif_manifests/deposit', to: 'iiif_manifests#create_and_deposit_images'
   resources :iiif_manifests, only: [:show, :edit, :update, :destroy, :index] do
     resources :iiif_images, only: [:new, :create]
+    resources :iiif_structures, only: [:new, :create]
   end
   resources :iiif_images, only: [:show, :edit, :update, :destroy] do
     resources :iiif_annotation_lists, only: [:new, :create]
@@ -21,6 +22,9 @@ Trifle::Engine.routes.draw do
   end
   resources :iiif_annotations, only: [:show, :edit, :update, :destroy]
   
+  resources :iiif_structures, only: [:show, :edit, :update, :destroy] do
+    resources :iiif_structures, only: [:new, :create]
+  end
   
   resources :background_jobs, only: [:show]
   
@@ -34,6 +38,8 @@ Trifle::Engine.routes.draw do
   get '/iiif_manifests/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_manifest_background_jobs
   get '/iiif_manifests/:id/iiif', to: 'iiif_manifests#show_iiif', as: :iiif_manifest_iiif
   post '/iiif_manifests/:id/deposit', to: 'iiif_manifests#deposit_images'
+  
+  get '/iiif_structures/:id/iiif',to: 'iiif_structures#show_iiif', as: :iiif_structure_iiif
 
   get '/iiif_images/:id/all_annotations', to: 'iiif_images#all_annotations', as: :iiif_image_all_annotations
   get '/iiif_images/:id/iiif', to: 'iiif_images#show_iiif', as: :iiif_image_iiif  

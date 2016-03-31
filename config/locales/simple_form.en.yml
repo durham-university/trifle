@@ -3,3 +3,5 @@ en:
       labels:
         iiif_manifest:
           image_container_location: 'Image location'
+        iiif_structure:
+          canvas_ids: 'Canvases'

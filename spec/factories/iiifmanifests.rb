@@ -5,9 +5,15 @@ FactoryGirl.define do
     sequence(:image_container_location) { |n| "folder#{n}" }
 
     trait :with_images do
-      ordered_members {
-        [ FactoryGirl.build(:iiifimage), FactoryGirl.build(:iiifimage) ]
-      }
+      after :build do |manifest|
+        manifest.ordered_members += [ FactoryGirl.build(:iiifimage), FactoryGirl.build(:iiifimage) ]
+      end
+    end
+
+    trait :with_structure do
+      after :build do |manifest|
+        manifest.ordered_members += [ FactoryGirl.build(:iiifstructure) ]
+      end
     end
     
     trait :with_parent do
@@ -17,5 +23,6 @@ FactoryGirl.define do
         collection.save
       end
     end
+    
   end
 end
