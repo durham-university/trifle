@@ -20,7 +20,7 @@ module Trifle
       else
           raise 'Resource must be either a collection, a manifest or an image'
       end
-      @use_annotation = @manifest && can?(:update,@manifest)
+      @use_annotations = @manifest && can?(:update,@manifest)
       @no_auto_load = true if params['no_auto_load']
       render :show, layout: false
     end

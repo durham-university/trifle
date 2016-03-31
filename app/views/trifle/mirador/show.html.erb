@@ -19,6 +19,8 @@
     <script src=""></script>
     <script type="text/javascript">
      function initMirador(manifest, image){
+       // disable Bookmark panel excessively posting things to jsonBlob
+       window.Mirador.BookmarkPanel.prototype.listenForActions = function() {};
        <% if @use_annotations %>
         // disables annotations in the manifest if we use an annotation endpoint
         window.Mirador.Manifest.prototype.getAnnotationsListUrl = function(canvasId) { return false; };
