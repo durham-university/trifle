@@ -1,0 +1,21 @@
+<div class="row" style="clear: both">
+  <div class="col-xs-12 col-sm-3">
+    <div class="well iiif_image_preview">
+      <a href="#" data-target="#mirador_modal" data-toggle="modal" onclick="$('#mirador_modal iframe')[0].contentWindow.windowLoaded()">
+        <%= image_tag(presenter.to_model.image_url(width: 150)) %>
+      </a>
+    </div>
+  </div>
+  <div class="col-xs-12 col-sm-9">
+    <div class="page-header"><h1>
+      <%= presenter.to_model.title %>
+    </h1></div>
+
+    <dl class="dl-horizontal file-show-term file-show-descriptions">
+      <% presenter.present_terms(self) do |r, term| %>
+        <dt><%= r.label(term) %></dt>
+        <dd><%= r.value(term) %></dd>
+      <% end %>
+    </dl>
+  </div>
+</div>

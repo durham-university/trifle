@@ -52,6 +52,13 @@ table.item-list {
   padding-left: 0;
 }
 
+.iiif_image_preview {
+  text-align: center;
+  img {
+    max-width: 100%;
+  }
+}
+
 .iipmooviewer_container {
   width: 100%;
   height: 600px;

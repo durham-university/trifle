@@ -1,6 +1,6 @@
 <% Array(record.model.send(key)).each do |v| %>
   <span itemprop="<%= key %>" itemscope itemtype="http://schema.org/Thing">
-    <%= v %>
+    <%= link_to(v.title, engine_paths.polymorphic_path(v)) %>
   </span>
   <br />
 <% end %>

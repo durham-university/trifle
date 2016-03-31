@@ -1,1 +1,7 @@
-<%= render 'durham_rails/base_shared/show' %>
+<% if @resource.canvases.any? %>
+  <% content_for :sidebar do %>
+    <%= render 'trifle/shared/open_mirador_control', resource: @resource.canvases.first %>
+  <% end %>
+<% end %>
+
+<%= render 'durham_rails/base_shared/show', next_prev: get_next_prev(method: (@resource.parent.respond_to?(:structures) ? :structures : :sub_structures)) %>

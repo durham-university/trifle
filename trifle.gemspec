@@ -38,7 +38,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'hydra-works', '0.6.0'
   s.add_dependency 'hydra-editor', '~> 1.1.0'
 
-  s.add_dependency 'durham_rails', '~> 0.0.7'
+  s.add_dependency 'durham_rails', '~> 0.0.9'
 
   s.add_dependency 'devise'
   s.add_dependency 'devise_ldap_authenticatable'

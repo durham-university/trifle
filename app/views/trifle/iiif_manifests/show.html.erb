@@ -2,4 +2,4 @@
   <%= render 'trifle/shared/open_mirador_control', resource: @resource %>
 <% end %>
 
-<%= render 'durham_rails/base_shared/show' %>
+<%= render 'durham_rails/base_shared/show', next_prev: get_next_prev(method: :manifests)  %>

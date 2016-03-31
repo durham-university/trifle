@@ -34,6 +34,11 @@ module Trifle
     def annotation_lists
       ordered_members.to_a.select do |m| m.is_a? IIIFAnnotationList end
     end
+    
+    def image_url(crop: 'full', size: 'full', width: nil, height: nil)
+      size = "#{width},#{height}" if width || height
+      "#{Trifle.iiif_service}/#{image_location}/#{crop}/#{size}/0/default.jpg"
+    end
 
     def iiif_service
       IIIF::Service.new.tap do |service|
@@ -44,7 +49,7 @@ module Trifle
     
     def iiif_resource
       IIIF::Presentation::ImageResource.new.tap do |image|
-        image['@id'] = "#{Trifle.iiif_service}/#{image_location}/full/full/0/default.jpg"
+        image['@id'] = image_url
         image.format = 'image/jpeg'
         image.width = width.to_i
         image.height = height.to_i
