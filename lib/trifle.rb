@@ -28,7 +28,7 @@ module Trifle
   end
   
   def self.iiif_service
-    self.config.fetch('iiif_service','http://localhost/iipsrv/iipsrv.fcgi?IIIF=')
+    self.config.fetch('image_service_url','http://localhost/iipsrv/iipsrv.fcgi?IIIF=')
   end
   
   def self.mirador_location
