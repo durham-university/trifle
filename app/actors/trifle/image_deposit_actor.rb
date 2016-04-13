@@ -58,10 +58,17 @@ module Trifle
     end
 
     def deposit_url(source_url,metadata={})
-      temp_file = Tempfile.open('',temp_dir, binmode: true)
+      temp_file = nil
       begin
-        log!(:info,"Downloading #{source_url} to #{temp_file.path}")
+        log!(:info,"Downloading #{source_url}")
         Net::HTTP.get_response(URI(source_url)) do |resp|
+          extension = ''
+          if resp.content_type.present?
+            mime = MIME::Types[resp.content_type].first
+            extension = ".#{mime.extensions.first}" if mime.present?
+          end
+          temp_file = Tempfile.open(['',extension],temp_dir, binmode: true)
+          log!(:info,"...saving to #{temp_file.path}")
           resp.read_body do |chunk|
             temp_file.write(chunk)
           end

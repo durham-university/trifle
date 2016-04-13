@@ -103,6 +103,7 @@ RSpec.describe Trifle::ImageDepositActor do
     let(:metadata) { { 'basename' => 'foo' } }
     let(:response) {
       double('response').tap do |response|
+        allow(response).to receive(:content_type).and_return('image/tiff')
         allow(response).to receive(:read_body) { |&block|
           image.chars.each_slice(1024).map(&:join).each(&block)
         }
@@ -111,10 +112,11 @@ RSpec.describe Trifle::ImageDepositActor do
     before {
       expect(Net::HTTP).to receive(:get_response).with(URI(source_url)).and_yield(response)
     }
-    it "downloads the file and calls #deposit_image" do
+    fit "downloads the file, uses file extension and calls #deposit_image" do
       expect(actor).to receive(:deposit_image) { |_source_path,_metadata|
         expect(_metadata).to eql(metadata)
         expect(File.exists?(_source_path)).to eql(true)
+        expect(_source_path).to end_with('.tiff')
         expect(File.read(_source_path, binmode: true) == image).to eql(true)
       } .and_return('test value')
       expect(actor.deposit_url(source_url,metadata)).to eql('test value')

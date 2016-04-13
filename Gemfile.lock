@@ -30,7 +30,7 @@ GIT
 PATH
   remote: .
   specs:
-    trifle (0.0.2)
+    trifle (0.0.3)
       active-fedora
       active_fedora-noid
       bootstrap-sass (~> 3.3.5)
@@ -127,7 +127,7 @@ GEM
       tzinfo (~> 1.1)
     addressable (2.4.0)
     arel (6.0.3)
-    autoprefixer-rails (6.3.5)
+    autoprefixer-rails (6.3.6)
       execjs
     bcp47 (0.3.3)
       i18n
