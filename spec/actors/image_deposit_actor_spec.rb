@@ -112,7 +112,7 @@ RSpec.describe Trifle::ImageDepositActor do
     before {
       expect(Net::HTTP).to receive(:get_response).with(URI(source_url)).and_yield(response)
     }
-    fit "downloads the file, uses file extension and calls #deposit_image" do
+    it "downloads the file, uses file extension and calls #deposit_image" do
       expect(actor).to receive(:deposit_image) { |_source_path,_metadata|
         expect(_metadata).to eql(metadata)
         expect(File.exists?(_source_path)).to eql(true)

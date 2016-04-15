@@ -1,6 +1,6 @@
 <% if @resource.canvases.any? %>
   <% content_for :sidebar do %>
-    <%= render 'trifle/shared/open_mirador_control', resource: @resource.canvases.first %>
+    <%= render 'trifle/sidebar/open_mirador_control', resource: @resource.canvases.first %>
   <% end %>
 <% end %>
 

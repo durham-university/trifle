@@ -92,6 +92,52 @@ RSpec.describe Trifle::IIIFManifest do
     end
   end  
   
+  describe "refreshing from source" do
+    let(:manifest) { FactoryGirl.build(:iiifmanifest, source_record: 'schmit:ark:/12345/testid#subid') }    
+    describe "#source_type" do
+      it "returns the source type" do
+        expect(manifest.source_type).to eql('schmit')
+      end
+    end
+    describe "#source_identifier" do
+      it "returns source identifier" do
+        expect(manifest.source_identifier).to eql('ark:/12345/testid#subid')
+      end
+    end
+    describe "#refresh_from_source" do
+      it "calls schmit version" do
+        expect(manifest).to receive('refresh_from_schmit_source')
+        manifest.refresh_from_source
+      end
+      it "calls millenium version" do 
+        manifest.source_record='millenium:test'
+        expect(manifest).to receive('refresh_from_millenium_source')
+        manifest.refresh_from_source        
+      end
+    end
+    describe "#refresh_from_schmit_source" do
+      let(:manifest_api) { 
+        double('manifest_api_mock').tap do |mock|
+          expect(mock).to receive(:xml_record).and_return(double('xml_record_mock').tap do |mock|
+            expect(mock).to receive(:sub_item).with('subid').and_return(double('sub_record_mock').tap do |mock|
+              allow(mock).to receive(:title_path).and_return('new title')
+              allow(mock).to receive(:date).and_return('new date')
+              allow(mock).to receive(:scopecontent).and_return('new scopecontent')
+            end)
+          end)
+        end
+      }
+      
+      it "fetches new information from source" do
+        expect(Schmit::API::Catalogue).to receive(:try_find).with('ark:/12345/testid').and_return(manifest_api)
+        manifest.refresh_from_schmit_source
+        expect(manifest.title).to eql('new title')
+        expect(manifest.date_published).to eql('new date')
+        expect(manifest.description).to eql('new scopecontent')
+      end
+    end
+  end
+  
   describe "::all_in_collections" do
     let!(:root1) { FactoryGirl.create(:iiifcollection, ordered_members: [sub1, man1]) }
     let!(:sub1) { FactoryGirl.create(:iiifcollection, ordered_members: [man2])}

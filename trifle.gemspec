@@ -39,6 +39,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'hydra-editor', '~> 1.1.0'
 
   s.add_dependency 'durham_rails', '~> 0.0.9'
+  s.add_dependency 'schmit_api', '~> 0.1.1'
 
   s.add_dependency 'devise'
   s.add_dependency 'devise_ldap_authenticatable'
@@ -49,11 +50,10 @@ Gem::Specification.new do |s|
   s.add_dependency 'resque'
   s.add_dependency 'resque-pool'
 
-  s.add_development_dependency "sqlite3"
   s.add_development_dependency 'rspec-rails'
   s.add_development_dependency 'capybara'
   s.add_development_dependency 'factory_girl_rails'
   s.add_development_dependency 'database_cleaner'
-    s.add_development_dependency 'ladle'
+  s.add_development_dependency 'ladle'
 
 end

@@ -1,0 +1,3 @@
+<% if can?(:edit, resource) && resource.source_record.present? %>
+  <li><%= link_to("Refresh from source", engine_paths.polymorphic_path([resource,:refresh_from_source]), method: "POST") %></li>
+<% end %>

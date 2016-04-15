@@ -38,6 +38,7 @@ Trifle::Engine.routes.draw do
   get '/iiif_manifests/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_manifest_background_jobs
   get '/iiif_manifests/:id/iiif', to: 'iiif_manifests#show_iiif', as: :iiif_manifest_iiif
   post '/iiif_manifests/:id/deposit', to: 'iiif_manifests#deposit_images'
+  post '/iiif_manifests/:id/refresh_from_source', to: 'iiif_manifests#refresh_from_source', as: :iiif_manifest_refresh_from_source
   
   get '/iiif_structures/:id/iiif',to: 'iiif_structures#show_iiif', as: :iiif_structure_iiif
 

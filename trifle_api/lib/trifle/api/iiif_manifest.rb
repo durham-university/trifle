@@ -125,7 +125,7 @@ module Trifle
         manifest_metadata['title'] ||= "New manifest #{DateTime.now.strftime('%F %R')}"
         local_collection = Trifle::IIIFCollection.find(parent)
         local_manifest = Trifle::IIIFManifest.new()
-        local_manifest.attributes = manifest_metadata
+        local_manifest.attributes = manifest_metadata.compact
 
         local_manifest.default_container_location!
         local_collection.ordered_members << local_manifest

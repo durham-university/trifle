@@ -6,6 +6,7 @@ module Trifle
     include DurhamRails::ArkBehaviour
     include DurhamRails::WithBackgroundJobs
     include DurhamRails::DestroyFromContainers
+    include Trifle::SourceRecord
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title do |index|
       index.as :stored_searchable

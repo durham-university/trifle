@@ -45,6 +45,8 @@ module Trifle
       
       @resource.default_container_location!
       
+      @resource.refresh_from_source if @resource.source_record.present?
+      
       saved = false
       if @resource.valid?
         if @parent

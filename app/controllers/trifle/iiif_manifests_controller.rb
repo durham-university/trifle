@@ -3,12 +3,13 @@ module Trifle
     include DurhamRails::ModelControllerBase
     include Trifle::ImageDepositBehaviour
     include Trifle::ServeIIIFBehaviour
+    include Trifle::RefreshFromSourceBehaviour
     include Trifle::AllowCorsBehaviour # Keep this last
 
     helper 'trifle/application'
 
     def self.presenter_terms
-      super + [:identifier,  :image_container_location, :date_published, :author, :description, :licence, :attribution]
+      super + [:identifier,  :image_container_location, :date_published, :author, :description, :source_record, :licence, :attribution]
     end
 
     def set_parent

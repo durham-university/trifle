@@ -52,16 +52,24 @@ PATH
       resque-pool
       rsolr (~> 1.0.6)
       sass-rails (~> 5.0)
+      schmit_api (~> 0.1.1)
       simple_form (~> 3.1.0)
 
 PATH
   remote: /home/qgkb58/hydra/durham_rails
   specs:
-    durham_rails (0.0.9)
+    durham_rails (0.0.10)
       active-fedora
       httparty
       hydra-editor (~> 1.1.0)
       rails (~> 4.2.5)
+
+PATH
+  remote: /home/qgkb58/hydra/schmit/schmit_api
+  specs:
+    schmit_api (0.1.1)
+      httparty
+      rails
 
 GEM
   remote: https://rubygems.org/
@@ -496,6 +504,7 @@ DEPENDENCIES
   resque
   resque-pool
   rspec-rails
+  schmit_api!
   sdoc (~> 0.4.0)
   spring
   sqlite3

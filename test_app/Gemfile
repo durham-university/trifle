@@ -27,6 +27,7 @@ gem 'kaminari', github: 'jcoyne/kaminari', branch: 'sufia'
 gem 'trifle', path: File.expand_path("../..", __FILE__)
 gem 'trifle_api', path: File.expand_path("../../trifle_api", __FILE__)
 gem 'durham_rails', path: File.expand_path("../../../durham_rails", __FILE__)
+gem 'schmit_api', path: File.expand_path("../../../schmit/schmit_api", __FILE__)
 
 gem 'hydra-pcdm', github: 'projecthydra-labs/hydra-pcdm', ref: 'v0.3.1'
 gem 'hydra-works', github: 'projecthydra-labs/hydra-works', ref: 'v0.6.0'
