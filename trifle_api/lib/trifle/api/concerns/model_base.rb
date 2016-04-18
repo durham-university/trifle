@@ -9,7 +9,7 @@ module Trifle
 
         class << self
           def local_mode?
-            @local_mode ||= Trifle::API.config.fetch('local_mode', false)
+            Trifle::API.config.fetch('local_mode', false)
           end
         end
 

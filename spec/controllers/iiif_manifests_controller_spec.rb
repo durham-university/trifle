@@ -50,6 +50,28 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
     before { sign_in user }
     let(:deposit_items) { ['http://localhost/dummy1', 'http://localhost/dummy2'] }
     
+    describe "GET #index with in_source set" do
+      let!(:manifest1) { FactoryGirl.create(:iiifmanifest, source_record: 'schmit:ark:/12345/testid1#subid') }
+      let!(:manifest2) { FactoryGirl.create(:iiifmanifest, source_record: 'schmit:ark:/12345/testid2#subid') }
+      it "returns only manifests in source with prefix query" do
+        expect(Trifle::IIIFManifest).to receive(:find_from_source).and_call_original
+        get :index, in_source: 'schmit:ark:/12345/testid1', format: 'json'
+        json = JSON.parse(response.body)
+        expect(json['resources'].length).to eql(1)
+        expect(json['resources'].first['id']).to eql(manifest1.id)
+      end
+      it "returns only manifests in source with exact query" do
+        get :index, in_source: 'schmit:ark:/12345/testid1#subid', in_source_prefix: 'false', format: 'json'
+        json = JSON.parse(response.body)
+        expect(json['resources'].length).to eql(1)
+        expect(json['resources'].first['id']).to eql(manifest1.id)
+        
+        get :index, in_source: 'schmit:ark:/12345/testid1', in_source_prefix: 'false', format: 'json'
+        json = JSON.parse(response.body)
+        expect(json['resources'].length).to eql(0)
+      end
+    end
+    
     describe "POST #refresh_from_source" do
       let(:manifest) { FactoryGirl.create(:iiifmanifest, source_record: 'schmit:ark:/12345/testid#subid') }
       let(:manifest_api) { 

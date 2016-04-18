@@ -3,16 +3,20 @@ module Trifle
     extend ActiveSupport::Concern
     
     included do
-      property :source_record, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#source_record')
+      property :source_record, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#source_record') do |index|
+        index.as :symbol
+      end
     end
     
     def source_type
+      return nil unless source_record.present?
       ind = source_record.index(':')
       return nil if ind.nil? || ind==0
       source_record[0..(ind-1)]
     end
     
     def source_identifier
+      return nil unless source_record.present?
       ind = source_record.index(':')
       return source_record if ind.nil?
       return source_record[1..-1] if ind==0
@@ -47,6 +51,19 @@ module Trifle
       self.date_published = item.date if item.date.present?
       self.description = item.scopecontent if item.scopecontent.present?
       true
+    end
+    
+    module ClassMethods
+      def find_from_source(source,prefix=true)
+        solr_field = Solrizer.solr_name(:source_record,*self.reflect_on_property(:source_record).behaviors)
+        # one escape for ruby, one for replacement patterns, one for _query_ string and one for v= string
+        escaped = source.gsub("\\","\\\\\\\\\\\\\\\\").gsub("\"","\\\\\\\\\\\"")
+        if prefix
+          self.all.where("_query_:\"{!prefix f=#{solr_field} v=\\\"#{escaped}\\\"}\"")
+        else
+          self.all.where("_query_:\"{!raw f=#{solr_field} v=\\\"#{escaped}\\\"}\"")
+        end
+      end
     end
     
   end

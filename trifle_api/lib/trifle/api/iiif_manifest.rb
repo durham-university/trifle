@@ -5,7 +5,7 @@ module Trifle
       include APIAuthentication
 
       attr_accessor :image_container_location
-      attr_accessor :parent_id, :identifier, :date_published, :author, :description, :licence, :attribution
+      attr_accessor :parent_id, :identifier, :date_published, :author, :description, :licence, :attribution, :source_record
 
       def initialize
         super
@@ -25,6 +25,7 @@ module Trifle
         super(json)
         @image_container_location = json['image_container_location']
         @identifier = json['identifier']
+        @source_record = json['source_record']
         @date_published = json['date_published']
         @author = json['author']
         @description = json['description']
@@ -37,6 +38,7 @@ module Trifle
         json = super(*args)
         json['image_container_location'] = @image_container_location
         json['identifier'] = @identifier
+        json['source_record'] = @source_record
         json['date_published'] = @date_published
         json['author'] = @author
         json['description'] = @description
@@ -49,7 +51,7 @@ module Trifle
       def self.all
         # TODO: handle paging properly
         return all_local if local_mode?
-        response = self.get('/iiif_manifests.json')
+        response = self.get('/iiif_manifests.json?per_page=1000')
         raise FetchError, "Error fetching manifests: #{response.code} - #{response.message}" unless response.code == 200
         json = JSON.parse(response.body)
         json['resources'].map do |resource_json|
@@ -76,6 +78,22 @@ module Trifle
       def self.all_in_collection_local(collection)
         collection_local = Trifle::API::IIIFCollection.local_class.find(collection.id)
         local_class.all_in_collection(collection_local).map do |resource|
+          self.from_json(resource.as_json)
+        end
+      end
+      
+      def self.all_in_source(source)
+        return all_in_source_local(source) if local_mode?
+        response = self.get("/iiif_manifests.json?in_source=#{CGI.escape(source)}&per_page=1000&api_debug=true")
+        raise FetchError, "Error fetching manifests in source: #{response.code} - #{response.message}" unless response.code == 200
+        json = JSON.parse(response.body)
+        json['resources'].map do |resource_json|
+          self.from_json(resource_json)
+        end        
+      end
+      
+      def self.all_in_source_local(source)
+        local_class.find_from_source(source).to_a.map do |resource|
           self.from_json(resource.as_json)
         end
       end
@@ -125,7 +143,7 @@ module Trifle
         manifest_metadata['title'] ||= "New manifest #{DateTime.now.strftime('%F %R')}"
         local_collection = Trifle::IIIFCollection.find(parent)
         local_manifest = Trifle::IIIFManifest.new()
-        local_manifest.attributes = manifest_metadata.compact
+        local_manifest.attributes = manifest_metadata.reject do |key,value| value.nil? end
 
         local_manifest.default_container_location!
         local_collection.ordered_members << local_manifest

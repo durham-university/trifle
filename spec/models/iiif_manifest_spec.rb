@@ -92,7 +92,7 @@ RSpec.describe Trifle::IIIFManifest do
     end
   end  
   
-  describe "refreshing from source" do
+  describe "source record" do
     let(:manifest) { FactoryGirl.build(:iiifmanifest, source_record: 'schmit:ark:/12345/testid#subid') }    
     describe "#source_type" do
       it "returns the source type" do
@@ -134,6 +134,33 @@ RSpec.describe Trifle::IIIFManifest do
         expect(manifest.title).to eql('new title')
         expect(manifest.date_published).to eql('new date')
         expect(manifest.description).to eql('new scopecontent')
+      end
+    end
+    describe "::find_from_source" do
+      let!(:manifest1) { FactoryGirl.create(:iiifmanifest, source_record: 'schmit:ark:/12345/testid1#subid\\1') }    
+      let!(:manifest2) { FactoryGirl.create(:iiifmanifest, source_record: 'schmit:ark:/12345/testid1#subid\\2') }    
+      let!(:manifest3) { FactoryGirl.create(:iiifmanifest, source_record: 'schmit:ark:/12345/testid2#subid"1"') }    
+      
+      context "prefix search" do
+        let(:result1) { Trifle::IIIFManifest.find_from_source('schmit:ark:/12345/testid1#')}
+        let(:result2) { Trifle::IIIFManifest.find_from_source('schmit:ark:/12345/testid2#')}
+        let(:result3) { Trifle::IIIFManifest.find_from_source('schmit:ark:/12345/testid\\2')}
+        it "finds correct manifests" do
+          expect(result1.map(&:id)).to match_array([manifest1.id,manifest2.id])
+          expect(result2.map(&:id)).to match_array([manifest3.id])
+          expect(result3.empty?).to eql(true)
+        end
+      end
+      
+      context "exact search" do
+        let(:result1) { Trifle::IIIFManifest.find_from_source('schmit:ark:/12345/testid1#subid\\1',false)}
+        let(:result2) { Trifle::IIIFManifest.find_from_source('schmit:ark:/12345/testid2#subid"1"',false)}
+        let(:result3) { Trifle::IIIFManifest.find_from_source('schmit:ark:/12345/testid1#',false)}
+        it "finds correct manifests" do
+          expect(result1.map(&:id)).to match_array([manifest1.id])
+          expect(result2.map(&:id)).to match_array([manifest3.id])
+          expect(result3.empty?).to eql(true)
+        end
       end
     end
   end

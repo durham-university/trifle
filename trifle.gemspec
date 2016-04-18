@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'iiif-presentation'
 
   s.add_dependency 'rsolr', '~> 1.0.6'
-  s.add_dependency 'active-fedora'
+  s.add_dependency 'active-fedora', '~> 9.10.0'
   s.add_dependency 'active_fedora-noid'
 
   s.add_dependency 'hydra-pcdm', '0.3.1'
