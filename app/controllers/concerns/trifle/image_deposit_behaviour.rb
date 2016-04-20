@@ -35,6 +35,9 @@ module Trifle
     end
     
     def create_and_deposit_images
+      # NOTE: This is usually called through Trifle::API::IIIFManifest.deposit_new.
+      #       The local version of that does not come to this controller code but instead
+      #       duplicates most of this.
       authorize!(:create_and_deposit, Trifle::IIIFManifest)
       
       # params['iiif_manifest'] must have something in it, otherwise resource_params

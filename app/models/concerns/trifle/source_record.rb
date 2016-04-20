@@ -35,14 +35,21 @@ module Trifle
     end
     
     def refresh_from_adlib_source
-      raise 'TODO'
+      item = DurhamRails::LibrarySystems::Adlib.connection.record(source_identifier)
+      raise("Couldn't find Adlib record #{source_identifier}") unless item && item.exists?
+      
+      self.title = item.title if item.title.present?
+      date = item.production_date || item.period
+      self.date_published = date if date.present?
+      self.description = item.description if item.description.present?
+      true
     end
     
     def refresh_from_schmit_source
       schmit_id, item_id = source_identifier.split('#',2)
       raise("Source identifier doesn't contain an item_id: #{source_identifier}") unless item_id.present?
       
-      record = Schmit::API::Catalogue.try_find(schmit_id) || raise("Couldn't find Schmit record #{schmit_id}")
+      record = Schmit::API::Catalogue.try_find(schmit_id) || raise("Couldn't find Schmit record #{schmit_id}") 
       
       xml_record = record.xml_record || raise("Couldn't get xml_record for #{schmit_id}")
       item = xml_record.sub_item(item_id) || raise("Couldn't find sub item #{item_id} for #{schmit_id}")

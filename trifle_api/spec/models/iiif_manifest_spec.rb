@@ -181,6 +181,8 @@ RSpec.describe Trifle::API::IIIFManifest do
     describe ".deposit_new_local" do
       let(:manifest_metadata ) { { title: 'test title', description: 'test description' } }
       it "deposits items" do
+        expect(new_manifest_mock).to receive(:source_record).at_least(:once).and_return("test:ark:/12345/testid")
+        expect(new_manifest_mock).to receive(:refresh_from_source).and_return(true)
         expect(new_manifest_mock).to receive(:default_container_location!)
         expect(new_manifest_mock).to receive(:save).and_return(true)
         expect(new_manifest_mock).to receive(:attributes=) do |val|

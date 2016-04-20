@@ -146,6 +146,7 @@ module Trifle
         local_manifest.attributes = manifest_metadata.reject do |key,value| value.nil? end
 
         local_manifest.default_container_location!
+        local_manifest.refresh_from_source if local_manifest.source_record  && local_manifest.source_record.strip.length>0
         local_collection.ordered_members << local_manifest
         local_collection.save
         local_manifest.save
