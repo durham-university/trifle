@@ -31,11 +31,11 @@ Gem::Specification.new do |s|
   s.add_dependency 'iiif-presentation'
 
   s.add_dependency 'rsolr', '~> 1.0.6'
-  s.add_dependency 'active-fedora', '~> 9.10.0'
+  s.add_dependency 'active-fedora'
   s.add_dependency 'active_fedora-noid'
 
-  s.add_dependency 'hydra-pcdm', '0.3.1'
-  s.add_dependency 'hydra-works', '0.6.0'
+  s.add_dependency 'hydra-pcdm', '0.6.0'
+  s.add_dependency 'hydra-works', '0.8.1'
   s.add_dependency 'hydra-editor', '~> 1.1.0'
 
   s.add_dependency 'durham_rails', '~> 0.0.9'
