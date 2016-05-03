@@ -7,5 +7,9 @@ FactoryGirl.define do
     trait :admin do
       roles ['admin']
     end
+    
+    trait :api do
+      roles ['api']
+    end
   end
 end

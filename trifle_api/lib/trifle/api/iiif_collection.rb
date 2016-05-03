@@ -2,7 +2,6 @@ module Trifle
   module API
     class IIIFCollection
       include ModelBase
-      include APIAuthentication
 
       attr_accessor :parent_id, :identifier, :description, :licence, :attribution
 

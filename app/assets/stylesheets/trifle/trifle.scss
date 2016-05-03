@@ -1,7 +1,4 @@
-@import "trifle/trifle_bootstrap.scss";
-@import "bootstrap-sprockets";
-@import "bootstrap";
-@import "iipmooviewer.css";
+/* @import "iipmooviewer.css"; */
 @import "jquery-ui.css";
 @import "durham_rails/durham_rails.scss";
 
@@ -50,6 +47,21 @@ table.item-list {
 
 .form-group.multi_value>ul {
   padding-left: 0;
+}
+
+form.new_user {
+  .form-control {
+    width: auto;
+    height: auto;
+    display: inline-block;
+  }
+
+  div.user_remember_me>div {
+    display: inline;
+    input[type='checkbox'] {
+      margin-left: 10px;
+    }
+  }
 }
 
 .iiif_image_preview {

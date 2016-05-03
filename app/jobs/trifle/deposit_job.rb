@@ -18,7 +18,7 @@ module Trifle
     
     def validate_job!
       super
-      raise "No items to deposit giver" unless deposit_items.any?
+      raise "No items to deposit given" unless deposit_items.any?
     end
     
     

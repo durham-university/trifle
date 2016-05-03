@@ -5,6 +5,7 @@ module Trifle
 
       included do
         include ::HTTParty
+        include DurhamRails::API::Authentication
         base_uri Trifle::API.config.fetch('base_url','http://localhost:3000/trifle')
 
         class << self

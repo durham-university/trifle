@@ -121,7 +121,34 @@ RSpec.describe Trifle::ImageDepositActor do
       } .and_return('test value')
       expect(actor.deposit_url(source_url,metadata)).to eql('test value')
     end
-    
+  end
+  
+  describe "#deposit_oubliette" do
+    let(:source_url) { 'oubliette:12345' }
+    let(:image) { fixture('test1.jpg').read } 
+    let(:metadata) { { 'basename' => 'foo' } }
+    let(:response) {
+      double('response').tap do |response|
+        allow(response).to receive(:content_type).and_return('image/tiff')
+        allow(response).to receive(:read_body) { |&block|
+          image.chars.each_slice(1024).map(&:join).each(&block)
+        }
+      end
+    }
+    let(:mock_preserved_file) { double('mock_preserved_file') }
+    before {
+      expect(Oubliette::API::PreservedFile).to receive(:try_find).with('12345').and_return(mock_preserved_file)
+      expect(mock_preserved_file).to receive(:download).and_yield(response)
+    }    
+    it "downloads file from oubliette" do
+      expect(actor).to receive(:deposit_image) { |_source_path,_metadata|
+        expect(_metadata).to eql(metadata)
+        expect(File.exists?(_source_path)).to eql(true)
+        expect(_source_path).to end_with('.tiff')
+        expect(File.read(_source_path, binmode: true) == image).to eql(true)
+      } .and_return('test value')
+      expect(actor.deposit_oubliette(source_url,metadata)).to eql('test value')
+    end
   end
 
   describe "#deposit_image" do

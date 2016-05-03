@@ -2,7 +2,6 @@ module Trifle
   module API
     class IIIFManifest
       include ModelBase
-      include APIAuthentication
 
       attr_accessor :image_container_location
       attr_accessor :parent_id, :identifier, :date_published, :author, :description, :licence, :attribution, :source_record
@@ -105,7 +104,7 @@ module Trifle
       def self.deposit_new(parent, deposit_items,manifest_metadata={})
         return deposit_new_local(parent, deposit_items,manifest_metadata) if local_mode?
         parent = parent.id if parent.respond_to?(:id)
-        response = self.post("iiif_collections/#{CGI.escape parent}/iiif_manifests/deposit.json", {query: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
+        response = self.post("/iiif_collections/#{CGI.escape parent}/iiif_manifests/deposit.json", {query: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,
@@ -117,7 +116,7 @@ module Trifle
       def self.deposit_into(manifest, deposit_items)
         return deposit_into_local(manifest, deposit_items) if local_mode?
         manifest = manifest.id if manifest.respond_to?(:id)
-        response = self.post("iiif_manifests/#{CGI.escape manifest}/deposit.json", {query: {deposit_items: deposit_items}})
+        response = self.post("/iiif_manifests/#{CGI.escape manifest}/deposit.json", {query: {deposit_items: deposit_items}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,

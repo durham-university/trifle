@@ -13,11 +13,14 @@ module Trifle
       if user.is_admin?
         can :manage, :all
       elsif user.is_registered?
-      elsif user.is_api_user?
+      else
+      end
+      if user.is_api_user?
         can :show, [Trifle::IIIFCollection, Trifle::IIIFManifest, Trifle::IIIFImage]
+        can :index, [Trifle::IIIFCollection, Trifle::IIIFManifest]
         can :index_all, [Trifle::IIIFCollection, Trifle::IIIFManifest]
-        can :deposit, Trifle::IIIFManifest
-        can :create_and_deposit, Trifle::IIIFManifest
+        can :deposit_images, Trifle::IIIFManifest
+        can :create_and_deposit_images, Trifle::IIIFManifest
         can :deposit_into, Trifle::IIIFCollection
       else
       end

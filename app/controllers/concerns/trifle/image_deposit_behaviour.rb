@@ -9,8 +9,7 @@ module Trifle
     end
     
     def deposit_images
-      authorize!(:deposit, @resource)
-      job = Trifle::DepositJob.new(resource: @resource, deposit_items: deposit_items)
+      job = Trifle::DepositJob.new(resource: @resource, deposit_items: deposit_item_params)
       
       success = false
       error_message = nil
@@ -38,7 +37,6 @@ module Trifle
       # NOTE: This is usually called through Trifle::API::IIIFManifest.deposit_new.
       #       The local version of that does not come to this controller code but instead
       #       duplicates most of this.
-      authorize!(:create_and_deposit, Trifle::IIIFManifest)
       
       # params['iiif_manifest'] must have something in it, otherwise resource_params
       # won't work. And we want to assign an automatic title anyway.
@@ -75,9 +73,11 @@ module Trifle
     end
     
     private
-      def deposit_items
+      def deposit_item_params
         params['deposit_items'].select do |item|
-          item.is_a?(String) && (item.start_with?('http://') || item.start_with?('https://'))
+          next false unless item.is_a?(Hash)
+          next false unless item[:source_path].present?
+          (item[:source_path].start_with?('oubliette:') || item[:source_path].start_with?('http://') || item[:source_path].start_with?('https://'))
         end
       end
       

@@ -56,31 +56,52 @@ module Trifle
       log!(:error, "Unable to add image to container") unless ret_val
       return ret_val
     end
-
-    def deposit_url(source_url,metadata={})
+    
+    # Deposit from Net::HTTPResponse
+    def deposit_response(resp, metadata)
       temp_file = nil
       begin
-        log!(:info,"Downloading #{source_url}")
-        Net::HTTP.get_response(URI(source_url)) do |resp|
-          extension = ''
-          if resp.content_type.present?
-            mime = MIME::Types[resp.content_type].first
-            extension = ".#{mime.extensions.first}" if mime.present?
-          end
-          temp_file = Tempfile.open(['',extension],temp_dir, binmode: true)
-          log!(:info,"...saving to #{temp_file.path}")
-          resp.read_body do |chunk|
-            temp_file.write(chunk)
-          end
+        extension = ''
+        if resp.content_type.present?
+          mime = MIME::Types[resp.content_type].first
+          extension = ".#{mime.extensions.first}" if mime.present?
+        end
+        temp_file = Tempfile.open(['',extension],temp_dir, binmode: true)
+        log!(:info,"...saving to #{temp_file.path}")
+        resp.read_body do |chunk|
+          temp_file.write(chunk)
         end
         temp_file.close
-        return deposit_image(temp_file.path, metadata)
+        return deposit_image(temp_file.path, metadata)        
       ensure
         temp_file.unlink if temp_file
       end
     end
+    
+    def deposit_oubliette(oubliette_url,metadata={})
+      id = oubliette_url
+      id = id[10..-1] if id.start_with?('oubliette:')
+
+      log!(:info,"Downloading from Oubliette #{id}")
+      ofile = Oubliette::API::PreservedFile.try_find(id)
+      unless ofile
+        log!(:error, "Couldn't find file in Oubliette")
+        return false
+      end
+      ofile.download do |resp|
+        deposit_response(resp, metadata)
+      end
+    end
+
+    def deposit_url(source_url,metadata={})
+      log!(:info,"Downloading #{source_url}")
+      Net::HTTP.get_response(URI(source_url)) do |resp|
+        deposit_response(resp, metadata)
+      end
+    end
 
     def deposit_image(source_path,metadata={})
+      return deposit_oubliette(source_path,metadata) if source_path.start_with?('oubliette:')
       return deposit_url(source_path,metadata) if source_path.start_with?('http://') || source_path.start_with?('https://')
 
       file_base = file_path(metadata)

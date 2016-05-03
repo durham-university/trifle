@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*", "Rakefile", "README.md"]
   s.test_files = Dir["spec/**/*"]
 
+  s.add_dependency "durham_rails"
   s.add_dependency "httparty"
   s.add_dependency "rails"
 
