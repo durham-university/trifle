@@ -10,6 +10,10 @@ module Trifle
     def parent
       ordered_by.to_a.find do |m| m.is_a? IIIFImage end
     end
+    
+    def manifest
+      parent.try(:manifest)
+    end
 
     def annotations
       ordered_members.to_a.select do |m| m.is_a? IIIFAnnotation end

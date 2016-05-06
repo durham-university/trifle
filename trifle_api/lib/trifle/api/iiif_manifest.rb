@@ -50,7 +50,7 @@ module Trifle
       def self.all
         # TODO: handle paging properly
         return all_local if local_mode?
-        response = self.get('/iiif_manifests.json?per_page=1000')
+        response = self.get('/manifest.json?per_page=1000')
         raise FetchError, "Error fetching manifests: #{response.code} - #{response.message}" unless response.code == 200
         json = JSON.parse(response.body)
         json['resources'].map do |resource_json|
@@ -66,7 +66,7 @@ module Trifle
       
       def self.all_in_collection(collection)
         return all_in_collection_local(collection) if local_mode?
-        response = self.get("/iiif_collections/#{collection.id}.json?full_manifest_list=1")
+        response = self.get("/collection/#{collection.id}.json?full_manifest_list=1")
         raise FetchError, "Error fetching full manifest list: #{response.code} - #{response.message}" unless response.code == 200
         json = JSON.parse(response.body)
         json['resources'].map do |resource_json|
@@ -83,7 +83,7 @@ module Trifle
       
       def self.all_in_source(source)
         return all_in_source_local(source) if local_mode?
-        response = self.get("/iiif_manifests.json?in_source=#{CGI.escape(source)}&per_page=1000&api_debug=true")
+        response = self.get("/manifest.json?in_source=#{CGI.escape(source)}&per_page=1000&api_debug=true")
         raise FetchError, "Error fetching manifests in source: #{response.code} - #{response.message}" unless response.code == 200
         json = JSON.parse(response.body)
         json['resources'].map do |resource_json|
@@ -98,13 +98,17 @@ module Trifle
       end
 
       def self.model_name
-        'iiif_manifests'
+        'manifest'
+      end
+      
+      def self.local_class
+        'Trifle::IIIFManifest'.constantize
       end
 
       def self.deposit_new(parent, deposit_items,manifest_metadata={})
         return deposit_new_local(parent, deposit_items,manifest_metadata) if local_mode?
         parent = parent.id if parent.respond_to?(:id)
-        response = self.post("/iiif_collections/#{CGI.escape parent}/iiif_manifests/deposit.json", {query: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
+        response = self.post("/collection/#{CGI.escape parent}/manifest/deposit.json", {query: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,
@@ -116,7 +120,7 @@ module Trifle
       def self.deposit_into(manifest, deposit_items)
         return deposit_into_local(manifest, deposit_items) if local_mode?
         manifest = manifest.id if manifest.respond_to?(:id)
-        response = self.post("/iiif_manifests/#{CGI.escape manifest}/deposit.json", {query: {deposit_items: deposit_items}})
+        response = self.post("/manifest/#{CGI.escape manifest}/deposit.json", {query: {deposit_items: deposit_items}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,

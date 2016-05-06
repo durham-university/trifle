@@ -23,5 +23,13 @@ FactoryGirl.define do
         annotation_list.save
       end
     end
+    
+    trait :with_manifest do
+      after :create do |annotation, evaluator|
+        annotation_list = FactoryGirl.create(:iiifannotationlist,:with_manifest)
+        annotation_list.ordered_members << annotation
+        annotation_list.save
+      end
+    end
   end
 end

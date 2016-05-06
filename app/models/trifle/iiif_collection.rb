@@ -46,7 +46,7 @@ module Trifle
     
     def iiif_collection_stub
       IIIF::Presentation::Collection.new.tap do |collection|
-        collection['@id'] = Trifle::Engine.routes.url_helpers.iiif_collection_url(self, host: Trifle.iiif_host)
+        collection['@id'] = Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url(self, host: Trifle.iiif_host)
         collection.label = self.title
       end
     end

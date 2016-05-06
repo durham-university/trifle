@@ -10,9 +10,9 @@ FactoryGirl.define do
       end
     end
 
-    trait :with_structure do
+    trait :with_range do
       after :build do |manifest|
-        manifest.ordered_members += [ FactoryGirl.build(:iiifstructure) ]
+        manifest.ordered_members += [ FactoryGirl.build(:iiifrange) ]
       end
     end
     

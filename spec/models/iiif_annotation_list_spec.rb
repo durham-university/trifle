@@ -10,7 +10,7 @@ RSpec.describe Trifle::IIIFAnnotationList do
   end  
   
   describe "#to_iiif" do
-    let(:annotation_list) { FactoryGirl.create(:iiifannotationlist, :with_image, :with_annotations)}
+    let(:annotation_list) { FactoryGirl.create(:iiifannotationlist, :with_manifest, :with_annotations)}
     let(:json) { annotation_list.to_iiif.to_ordered_hash }
     it "sets properties" do
       expect(json['label']).to eql(annotation_list.title)

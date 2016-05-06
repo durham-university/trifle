@@ -26,6 +26,10 @@ module Trifle
     def parent
       ordered_by.to_a.find do |m| m.is_a? IIIFManifest end
     end
+    
+    def manifest
+      parent
+    end
 
     def root_collection
       parent.try(:root_collection)
@@ -59,8 +63,9 @@ module Trifle
     
     def iiif_annotation
       IIIF::Presentation::Annotation.new.tap do |annotation|
-        annotation['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_url(self, host: Trifle.iiif_host) + '/annotation'
+        annotation['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_annotation_iiif_url(self, host: Trifle.iiif_host)
         annotation.resource = iiif_resource
+        annotation['on'] = Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(self, host: Trifle.iiif_host)
       end
     end
     
@@ -75,8 +80,6 @@ module Trifle
         unless opts[:no_annotations]
           canvas.other_content = annotation_lists.map do |al| al.iiif_annotation_list(false) end  if annotation_lists.any?
         end
-        
-        canvas.images.each do |image| image['on'] = canvas['@id'] end
       end
     end
 

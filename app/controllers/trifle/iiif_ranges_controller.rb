@@ -1,5 +1,5 @@
 module Trifle
-  class IIIFStructuresController < Trifle::ApplicationController
+  class IIIFRangesController < Trifle::ApplicationController
     include DurhamRails::ModelControllerBase
     include Trifle::ServeIIIFBehaviour
 
@@ -18,8 +18,8 @@ module Trifle
     end
     
     def set_parent
-      if params[:iiif_structure_id].present?
-        @parent = IIIFStructure.find(params[:iiif_structure_id])
+      if params[:iiif_range_id].present?
+        @parent = IIIFRange.find(params[:iiif_range_id])
       else
         @parent = IIIFManifest.find(params[:iiif_manifest_id])
       end

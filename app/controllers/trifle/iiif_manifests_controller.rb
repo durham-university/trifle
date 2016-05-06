@@ -8,6 +8,8 @@ module Trifle
 
     helper 'trifle/application'
 
+    before_action :set_sequence_iiif_resource, only: [:show_sequence_iiif]
+
     def self.presenter_terms
       super + [:identifier,  :image_container_location, :date_published, :author, :description, :source_record, :licence, :attribution]
     end
@@ -27,12 +29,20 @@ module Trifle
       end  
     end
     
+    def show_sequence_iiif
+      raise 'Sequence name not given' unless params[:sequence_name]
+      seq = @resource.iiif_sequences.find do |seq| seq.label==params[:sequence_name] end
+      raise 'Invalid sequence' unless seq
+      render json: seq.to_json(pretty: true)
+    end    
+    
     def authenticate_user!(opts={})
       return true if params[:action].to_sym == :index && params['format'] == 'json' && params['mirador'] == 'true'
       return super
     end
     def authorize_resource!
       return true if params[:action].to_sym == :index && params['format'] == 'json' && params['mirador'] == 'true'
+      return true if params[:action].to_sym == :show_sequence_iiif
       return super
     end
     
@@ -53,6 +63,10 @@ module Trifle
       def set_cors_headers?
         return true if params[:action].to_sym == :index && params['format'] == 'json' && params['mirador'] == 'true'
         return super
+      end
+      
+      def set_sequence_iiif_resource
+        set_resource
       end
     
   end

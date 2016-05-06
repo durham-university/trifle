@@ -15,6 +15,10 @@ module Trifle
       ordered_by.to_a.find do |m| m.is_a? IIIFAnnotationList end
     end
     
+    def manifest
+      parent.try(:manifest)
+    end
+    
     def on_image
       parent.try(:parent)
     end

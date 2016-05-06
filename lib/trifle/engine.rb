@@ -18,6 +18,44 @@ module Trifle
     initializer "trifle.assets.precompile" do |app|
       app.config.assets.precompile += %w( trifle/logo.png trifle/trifleAnnotationEndpoint.js )
     end
+    
+    initializer "trifle.route_shortcuts" do |app|
+      # Trifle routes are organised based on IIIF recommended URI patterns where
+      # everything belonging to a manifest is under path including the manifest id.
+      # DurhamRails framework however doesn't generally use parent objects in paths.
+      # This block adds some route helper shortcuts so that the route helpers DurhamRails
+      # uses work with Trifle routes. It essentially converts helpers like
+      # iiif_image_path(image) to iiif_manifest_iiif_image_path(image.manifest,image)
+      Trifle::Engine.routes.named_routes.url_helpers_module.module_eval do
+        {
+          'iiif_image' => ['','edit_','new_'],
+          'iiif_image_iiif' => [''],
+          'iiif_image_annotation_iiif' => [''],
+          'iiif_annotation_list' => ['','edit_'],
+          'iiif_annotation_list_iiif' => [''],
+          'iiif_annotation' => ['','edit_'],
+          'iiif_annotation_iiif' => [''],
+          'iiif_annotation_list_iiif_annotation' => ['new_'],
+          'iiif_annotation_list_iiif_annotations' => [''],
+          'iiif_range' => ['','edit_','new_'],
+          'iiif_range_iiif' => [''],
+          'iiif_range_iiif_range' => ['new_'],
+          'iiif_range_iiif_ranges' => [''],
+          'iiif_image_iiif_annotation_lists' => [''],
+          'iiif_image_iiif_annotation_list' => ['new_'],
+          'iiif_image_all_annotations' => [''],
+        }.each do |suffix,prefixes|
+          prefixes.each do |prefix|
+            ['_url','_path'].each do |mode|
+              define_method(:"#{prefix}#{suffix}#{mode}") do |obj, options={}|
+                send(:"#{prefix}iiif_manifest_#{suffix}#{mode}",obj.manifest,obj,options)
+              end
+            end
+          end
+        end
+        
+      end
+    end
 
     config.generators do |g|
       g.test_framework      :rspec,        :fixture => false
@@ -25,5 +63,6 @@ module Trifle
       g.assets false
       g.helper false
     end
+
   end
 end

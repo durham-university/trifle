@@ -38,6 +38,10 @@ module Trifle
     def parents
       ordered_by.to_a.select do |m| m.is_a? IIIFCollection end
     end
+    
+    def manifest
+      self
+    end
 
     def root_collection
       parent.try(:root_collection)
@@ -47,17 +51,17 @@ module Trifle
       ordered_members.to_a.select do |m| m.is_a? IIIFImage end
     end
     
-    def structures
-      ordered_members.to_a.select do |m| m.is_a? IIIFStructure end
+    def ranges
+      ordered_members.to_a.select do |m| m.is_a? IIIFRange end
     end
     
-    def traverse_structures
-      todo=self.structures.to_a
+    def traverse_ranges
+      todo=self.ranges.to_a
       ret=[]
       while todo.any?
         s = todo.shift
         ret << s
-        todo += s.sub_structures.to_a
+        todo += s.sub_ranges.to_a
       end
       ret
     end
@@ -79,13 +83,13 @@ module Trifle
       end
     end
 
-    def iiif_structures
-      traverse_structures.map(&:to_iiif)
+    def iiif_ranges
+      traverse_ranges.map(&:to_iiif)
     end
 
     def iiif_sequences
       [IIIF::Presentation::Sequence.new.tap do |sequence|
-        sequence['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_url(self, host: Trifle.iiif_host) + '/sequences/default'
+        sequence['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_sequence_iiif_url(self, 'default', host: Trifle.iiif_host)
         sequence.label = 'default'
         sequence.viewing_direction = 'left-to-right'
         sequence.viewing_hint = 'paged'
@@ -95,7 +99,7 @@ module Trifle
     
     def iiif_manifest_stub
       IIIF::Presentation::Manifest.new.tap do |manifest|
-        manifest['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_url(self, host: Trifle.iiif_host)
+        manifest['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_iiif_url(self, host: Trifle.iiif_host)
         manifest.label = self.title
       end
     end
@@ -116,7 +120,7 @@ module Trifle
         metadata << {"label" => "Published", "value" => self.date_published} if self.date_published.present?
         manifest.metadata = metadata
         
-        manifest.structures = iiif_structures
+        manifest.structures = iiif_ranges
         
         manifest.sequences = iiif_sequences        
       end

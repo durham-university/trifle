@@ -1,5 +1,5 @@
 module Trifle
-  class IIIFStructure < ActiveFedora::Base
+  class IIIFRange < ActiveFedora::Base
     include Hydra::Works::WorkBehavior
     include Trifle::ModelBase
     include DurhamRails::NoidBehaviour
@@ -14,24 +14,24 @@ module Trifle
       return _parent.try(:manifest)
     end
     
-    def root_structure
+    def root_range
       _parent = parent
-      return _parent.root_structure if parent.is_a?(IIIFStructure)
+      return _parent.root_range if parent.is_a?(IIIFRange)
       return self
     end
     
-    def parent_structure
+    def parent_range
       _parent = parent
-      return _parent if parent.is_a?(IIIFStructure)
+      return _parent if parent.is_a?(IIIFRange)
       return nil
     end
 
     def parent
-      ordered_by.to_a.find do |m| m.is_a?(IIIFManifest) || m.is_a?(IIIFStructure) end
+      ordered_by.to_a.find do |m| m.is_a?(IIIFManifest) || m.is_a?(IIIFRange) end
     end
     
-    def sub_structures
-      ordered_members.to_a.select do |m| m.is_a? IIIFStructure end      
+    def sub_ranges
+      ordered_members.to_a.select do |m| m.is_a? IIIFRange end      
     end
     
     def canvases
@@ -43,10 +43,11 @@ module Trifle
     end
     
     def canvas_ids=(ids, parent=nil)
+      # Note: parent masked
       parent_manifest = case parent
       when IIIFManifest
         parent
-      when IIIFStructure
+      when IIIFRange
         parent.manifest
       else
         self.manifest
@@ -66,16 +67,16 @@ module Trifle
       end
     end
         
-    def iiif_structure(with_children=true)
+    def iiif_range(with_children=true)
       IIIF::Presentation::Resource.new.tap do |structure|
-        structure['@id'] = Trifle::Engine.routes.url_helpers.iiif_structure_iiif_url(self, host: Trifle.iiif_host)
+        structure['@id'] = Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(self, host: Trifle.iiif_host)
         structure['@context'] = nil
         structure['@type'] = 'sc:Range'
-        _parent = parent_structure
+        _parent = parent_range
         if _parent.nil?
           structure['viewingHint'] = 'top'
         else
-          structure['within'] = Trifle::Engine.routes.url_helpers.iiif_structure_iiif_url(_parent, host: Trifle.iiif_host)
+          structure['within'] = Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(_parent, host: Trifle.iiif_host)
         end
         structure['label'] = title
         structure['canvases'] = iiif_canvases if with_children
@@ -83,7 +84,7 @@ module Trifle
     end
 
     def to_iiif
-      iiif_structure
+      iiif_range
     end    
     
   end

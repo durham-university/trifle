@@ -1,7 +1,0 @@
-<h2>Sub-structures
-  <% if can? :edit, @resource %>
-    <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_structure_iiif_structure_path(@resource), { class: 'btn btn-default' }) %>
-  <% end %>
-</h2>
-
-<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.sub_structures %>

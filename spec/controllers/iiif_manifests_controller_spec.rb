@@ -49,6 +49,16 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
         expect(response.body).to include(manifest.images.first.image_location)
       end
     end
+    
+    describe "GET #show_sequence_iiif" do
+      let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_images) }
+      it "renders sequence json" do
+        expect_any_instance_of(Trifle::IIIFManifest).to receive(:iiif_sequences).and_call_original
+        get :show_sequence_iiif, id: manifest.id, sequence_name: 'default'
+        expect(JSON.parse(response.body)).to be_a(Hash)
+        expect(response.body).to include(manifest.images.first.image_location)
+      end
+    end
   end
   
   context "with api user" do

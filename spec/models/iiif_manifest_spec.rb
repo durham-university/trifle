@@ -38,14 +38,14 @@ RSpec.describe Trifle::IIIFManifest do
   end
   
   describe "#iiif_manifest" do
-    let(:manifest) { FactoryGirl.create(:iiifmanifest,:with_images,:with_structure) }
+    let(:manifest) { FactoryGirl.create(:iiifmanifest,:with_images,:with_range) }
     it "makes a valid iiif_manifest object" do
       m = manifest.iiif_manifest
       expect(m).to be_a(IIIF::Presentation::Manifest)
       json = m.to_json
       expect(json).to be_a(String)
       expect(json).to include(manifest.images.first.image_location)
-      expect(json).to include(manifest.structures.first.id)
+      expect(json).to include(manifest.ranges.first.id)
     end
   end
   

@@ -2,7 +2,7 @@
   $.TrifleEndpoint = function(options) {
     jQuery.extend(this, {
       trifleManifestId: null,
-      trifleUrlBase: 'http://localhost:3000/trifle/',
+      trifleUrlBase: 'http://localhost:3000/trifle/iiif/',
       dfd: null,
       annotationsList: [],
       windowID: null,
@@ -34,29 +34,29 @@
     
     searchUrl: function(canvasUri){
       var canvasId = this.canvasId(canvasUri);
-      return this.trifleUrlBase+"iiif_images/"+canvasId+"/all_annotations";
+      return this.trifleUrlBase+"manifest/_/canvas/"+canvasId+"/all_annotations";
     },
     annotationUrl: function(annotationUri){
       if(annotationUri.startsWith(this.trifleUrlBase))
         return this.canvasUrl(annotationUri); // same processing
       else {
-        // convert id to url
-        return this.trifleUrlBase+"iiif_annotations/"+annotationUri;
+        // convert id to url, and process like canvas uri
+        return this.canvasUrl(this.trifleUrlBase+"manifest/_/annotation/"+annotationUri);
       }
     },
     annotationId: function(annotationUri){
       if(annotationUri.startsWith(this.trifleUrlBase))
-        return annotationUri.substring(this.trifleUrlBase.length).split('/')[1];
+        return annotationUri.substring(this.trifleUrlBase.length).split('/')[4];
       else return annotationUri;
     },
     canvasUrl: function(canvasUri){
       var ind = canvasUri.indexOf("#");
       if(ind>=0) canvasUri = canvasUri.substring(0, ind);
-      if(canvasUri.endsWith('/iiif')) canvasUri = canvasUri.substring(0, canvasUri.length-5);
+      canvasUri = canvasUri.replace('/iiif/manifest/','/manifest/')
       return canvasUri;
     },
     canvasId: function(canvasUri){
-      return canvasUri.substring(this.trifleUrlBase.length).split('/')[1];      
+      return canvasUri.substring(this.trifleUrlBase.length).split('/')[4];
     },
     
     search: function(options, successCallback, errorCallback){
@@ -135,7 +135,7 @@
       }
       
       jQuery.ajax({
-        url: this.canvasUrl(oaAnnotation['on']['full'])+'/iiif_annotations',
+        url: this.canvasUrl(oaAnnotation['on']['full'])+'/annotation',
         beforeSend: this.addCsrf,
         type: 'POST',
         dataType: 'json',

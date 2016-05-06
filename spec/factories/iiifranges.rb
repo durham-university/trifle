@@ -1,7 +1,7 @@
 FactoryGirl.define do
-  factory :iiifstructure, class: Trifle::IIIFStructure do
+  factory :iiifrange, class: Trifle::IIIFRange do
 
-    sequence(:title) { |n| "Structure #{n}" }
+    sequence(:title) { |n| "Range #{n}" }
 
     trait :with_manifest do
       after :create do |s, evaluator|
@@ -22,9 +22,9 @@ FactoryGirl.define do
       end
     end
     
-    trait :with_sub_structure do
+    trait :with_sub_range do
       ordered_members {
-        [ FactoryGirl.build(:iiifstructure), FactoryGirl.build(:iiifstructure) ]
+        [ FactoryGirl.build(:iiifrange), FactoryGirl.build(:iiifrange) ]
       }
     end
   end

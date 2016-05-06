@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe Trifle::IIIFImage do
-  let(:image) { FactoryGirl.build(:iiifimage)}
+  let(:image) { FactoryGirl.create(:iiifimage, :with_manifest)}
   describe "#as_json" do
     let(:json) { image.as_json }
     it "sets properties" do

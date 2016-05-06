@@ -9,7 +9,7 @@ RSpec.describe Trifle::BackgroundJobsController, type: :routing do
     end
 
     it "routes to #index" do
-      expect(get: "/iiif_manifests/1/background_jobs").to route_to("trifle/background_jobs#index", resource_id: '1')
+      expect(get: "/manifest/1/background_jobs").to route_to("trifle/background_jobs#index", resource_id: '1')
     end
 
   end
