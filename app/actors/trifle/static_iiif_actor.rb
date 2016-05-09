@@ -7,17 +7,20 @@ module Trifle
     end
 
     def upload_package(package=nil, connection_params=nil, remote_path=nil)
+      log!("Uploading manifest iiif")
       package ||= iiif_package
-      connection_params ||= Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root)
+      connection_params ||= Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)
       remote_path ||= "#{Trifle.config['image_server_ssh']['iiif_root']}"
       package.each do |file_entry|
         full_path = File.join(remote_path,file_entry.path)
         log!("Sending file #{full_path}")
-        send_file(StringIO.new(file_entry.content), full_path, connection_params)
+        return false unless send_file(StringIO.new(file_entry.content), full_path, connection_params)
       end
+      true
     end
     
     def write_package(root_dir, package=nil)
+      log!("Writing manifest iiif")
       package ||= iiif_package
       package.each do |file_entry|
         full_path = File.join(root_dir, file_entry.path)
@@ -28,6 +31,7 @@ module Trifle
           file.write(file_entry.content)
         end
       end
+      true
     end
           
     def iiif_package

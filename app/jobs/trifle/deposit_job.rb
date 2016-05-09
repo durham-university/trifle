@@ -25,7 +25,11 @@ module Trifle
     def run_job
       actor = Trifle::ImageDepositActor.new(resource)
       actor.instance_variable_set(:@log,log)
-      actor.deposit_image_batch(deposit_items)
+      if actor.deposit_image_batch(deposit_items)
+        iiif_actor = Trifle::StaticIIIFActor.new(resource)
+        iiif_actor.instance_variable_set(:@log,log)
+        iiif_actor.upload_package
+      end
     end
     
   end
