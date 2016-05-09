@@ -12,8 +12,6 @@ defaults: &defaults
 development:
   <<: *defaults
   ark_naan: '12345'
-  # path where image server images are stored
-  iipi_dir: '/home/qgkb58/iipimages' 
   # url to image server
   image_server_url: 'http://localhost/iipsrv/iipsrv.fcgi' 
   # url to image server with IIIF protocol
@@ -29,6 +27,7 @@ development:
     host: 'localhost'
     user: <%= ENV['USER'] %>
     iiif_root: <%= File.join(Dir.home,'mock_iiif') %>/
+    images_root: <%= File.join(Dir.home,'iipimages') %>/
 
 test:
   <<: *defaults

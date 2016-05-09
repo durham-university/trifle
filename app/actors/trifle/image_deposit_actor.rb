@@ -1,9 +1,9 @@
 module Trifle
   class ImageDepositActor < Trifle::BaseActor
     include DurhamRails::Actors::ShellRunner
+    include DurhamRails::Actors::SFTPUploader
 
     def initialize(model_object, user=nil, attributes={})
-      @overwrite = attributes.fetch(:overwrite,false)
       super(model_object, user, attributes)
     end
 
@@ -58,7 +58,7 @@ module Trifle
     end
     
     # Deposit from Net::HTTPResponse
-    def deposit_response(resp, metadata)
+    def deposit_from_response(resp, metadata)
       temp_file = nil
       begin
         extension = ''
@@ -78,7 +78,7 @@ module Trifle
       end
     end
     
-    def deposit_oubliette(oubliette_url,metadata={})
+    def deposit_from_oubliette(oubliette_url,metadata={})
       id = oubliette_url
       id = id[10..-1] if id.start_with?('oubliette:')
 
@@ -89,20 +89,20 @@ module Trifle
         return false
       end
       ofile.download do |resp|
-        deposit_response(resp, metadata)
+        deposit_from_response(resp, metadata)
       end
     end
 
-    def deposit_url(source_url,metadata={})
+    def deposit_from_url(source_url,metadata={})
       log!(:info,"Downloading #{source_url}")
       Net::HTTP.get_response(URI(source_url)) do |resp|
-        deposit_response(resp, metadata)
+        deposit_from_response(resp, metadata)
       end
     end
 
     def deposit_image(source_path,metadata={})
-      return deposit_oubliette(source_path,metadata) if source_path.start_with?('oubliette:')
-      return deposit_url(source_path,metadata) if source_path.start_with?('http://') || source_path.start_with?('https://')
+      return deposit_from_oubliette(source_path,metadata) if source_path.start_with?('oubliette:')
+      return deposit_from_url(source_path,metadata) if source_path.start_with?('http://') || source_path.start_with?('https://')
 
       file_base = file_path(metadata)
       log!(:info,"Depositing #{source_path}")
@@ -112,26 +112,26 @@ module Trifle
       end
       @logical_path = "#{container_dir}/#{file_base}.#{image_format}"
       dest_path = File.join(image_base_path,container_dir,"#{file_base}.#{image_format}")
-
-      unless File.absolute_path(dest_path).start_with?("#{File.absolute_path(image_base_path)}#{File::SEPARATOR}")
-        log!(:error, "Destination path is not under image_base_path")
+      if container_dir.include?('..')
+        log!(:error,"Suspicious container_dir #{container_dir}")
         return false
       end
-
-      if File.exists?(dest_path)
-        if @overwrite
-          log!(:info,"Overwriting destination file #{dest_path}")
-        else
-          log!(:error,"Destination file #{dest_path} already exists")
-          return false
-        end
+      
+      connection_params = Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)      
+      
+      convert_file = Tempfile.new(['trifle_convert',".#{image_format}"])
+      begin
+        convert_file.close
+        convert_path = convert_file.path
+        
+        convert_image(source_path, convert_path) && analyse_image(convert_path) &&
+          send_file(convert_path, dest_path, connection_params) && 
+          add_to_image_container(metadata)
+      ensure
+        convert_file.unlink if convert_file
       end
-      FileUtils.mkpath(File.join(image_base_path,container_dir))
-
-      convert_image(source_path, dest_path) && analyse_image(dest_path) &&
-        add_to_image_container(metadata)
     end
-
+    
     def deposit_image_batch(image_data)
       log!(:info,"Depositing image batch")
       status = true
@@ -155,7 +155,7 @@ module Trifle
       end
 
       def image_base_path
-        Trifle.config['iipi_dir']
+        Trifle.config['image_server_ssh']['images_root']
       end
 
       def image_format

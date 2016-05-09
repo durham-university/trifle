@@ -97,7 +97,7 @@ RSpec.describe Trifle::ImageDepositActor do
     end
   end
   
-  describe "#deposit_url" do
+  describe "#deposit_from_url" do
     let(:source_url) { 'http://www.example.com/dummy' }
     let(:image) { fixture('test1.jpg').read } 
     let(:metadata) { { 'basename' => 'foo' } }
@@ -119,11 +119,11 @@ RSpec.describe Trifle::ImageDepositActor do
         expect(_source_path).to end_with('.tiff')
         expect(File.read(_source_path, binmode: true) == image).to eql(true)
       } .and_return('test value')
-      expect(actor.deposit_url(source_url,metadata)).to eql('test value')
+      expect(actor.deposit_from_url(source_url,metadata)).to eql('test value')
     end
   end
   
-  describe "#deposit_oubliette" do
+  describe "#deposit_from_oubliette" do
     let(:source_url) { 'oubliette:12345' }
     let(:image) { fixture('test1.jpg').read } 
     let(:metadata) { { 'basename' => 'foo' } }
@@ -147,11 +147,19 @@ RSpec.describe Trifle::ImageDepositActor do
         expect(_source_path).to end_with('.tiff')
         expect(File.read(_source_path, binmode: true) == image).to eql(true)
       } .and_return('test value')
-      expect(actor.deposit_oubliette(source_url,metadata)).to eql('test value')
+      expect(actor.deposit_from_oubliette(source_url,metadata)).to eql('test value')
     end
   end
 
   describe "#deposit_image" do
+    before {
+      allow(Trifle).to receive(:config).and_return({
+          'image_server_ssh' => {
+            'images_root' => 'dummy_iipi_dir'
+          }
+        })
+    }
+    
     let(:container_dir){'folder'}
     before {
       allow(actor).to receive(:file_path).and_return('foo')
@@ -161,6 +169,7 @@ RSpec.describe Trifle::ImageDepositActor do
 
       allow(actor).to receive(:convert_image).and_return(true)
       allow(actor).to receive(:analyse_image).and_return(true)
+      allow(actor).to receive(:send_file).and_return(true)
       allow(actor).to receive(:add_to_image_container).and_return(true)
     }
     let(:source_path) { '/tmp/source' }
@@ -169,14 +178,14 @@ RSpec.describe Trifle::ImageDepositActor do
     context "with http:// path" do
       let(:source_path) { 'http://www.example.com/dummy' }
       it "delegates to deposit_url if path starts with http://" do
-        expect(actor).to receive(:deposit_url).with(source_path, metadata).and_return('test value')
+        expect(actor).to receive(:deposit_from_url).with(source_path, metadata).and_return('test value')
         expect(actor.deposit_image(source_path, metadata)).to eql('test value')
       end
     end
     context "with https:// path" do
       let(:source_path) { 'https://www.example.com/dummy' }
       it "delegates to deposit_url if path starts with https://" do
-        expect(actor).to receive(:deposit_url).with(source_path, metadata).and_return('test value')
+        expect(actor).to receive(:deposit_from_url).with(source_path, metadata).and_return('test value')
         expect(actor.deposit_image(source_path, metadata)).to eql('test value')
       end
     end
@@ -187,34 +196,28 @@ RSpec.describe Trifle::ImageDepositActor do
       expect(actor.log.errors?).to eql(true)
     end
 
-    it "creates directories" do
-      expect(FileUtils).to receive(:mkpath).with('/tmp/base/folder')
-      expect(actor.deposit_image(source_path,metadata)).to eql(true)
-    end
-
     it "sets @logical_path" do
       actor.deposit_image(source_path,metadata)
       expect(actor.instance_variable_get(:@logical_path)).to eql("folder/foo.ptif")
     end
 
     it "calls other actions" do
-      expect(actor).to receive(:convert_image).with(source_path,'/tmp/base/folder/foo.ptif').and_return(true)
+      convert_temp=''
+      expect(actor).to receive(:convert_image) do |src, convert_path|
+        expect(src).to eql(source_path)
+        expect(convert_path).to start_with(Dir.tmpdir)
+        expect(convert_path).to end_with('.ptif')
+        convert_temp = convert_path
+        true
+      end
       expect(actor).to receive(:analyse_image).and_return(true)
+      expect(actor).to receive(:send_file) do |convert_path,dest_path|
+        expect(convert_path).to eql(convert_temp)
+        expect(dest_path).to eql('/tmp/base/folder/foo.ptif')
+        true
+      end
       expect(actor).to receive(:add_to_image_container).with(metadata).and_return(true)
       expect(actor.deposit_image(source_path,metadata)).to eql(true)
-    end
-
-    it "doesn't overwrite by default" do
-      expect(File).to receive(:exists?).with('/tmp/base/folder/foo.ptif').and_return(true)
-      expect(actor.deposit_image(source_path,metadata)).to eql(false)
-      expect(actor.log.errors?).to eql(true)
-    end
-
-    it "overwrites if @overwrite is set" do
-      actor.instance_variable_set(:@overwrite, true)
-      expect(File).to receive(:exists?).with('/tmp/base/folder/foo.ptif').and_return(true)
-      expect(actor.deposit_image(source_path,metadata)).to eql(true)
-      expect(actor.log.errors?).to eql(false)
     end
 
     context "with malicious data" do
@@ -222,7 +225,7 @@ RSpec.describe Trifle::ImageDepositActor do
       it "sanitises destination path" do
         expect(actor.deposit_image(source_path,metadata)).to eql(false)
         expect(actor.log.last.level).to eql(:error)
-        expect(actor.log.last.message).to eql("Destination path is not under image_base_path")
+        expect(actor.log.last.message).to start_with("Suspicious container_dir")
       end
     end
   end
@@ -259,10 +262,12 @@ RSpec.describe Trifle::ImageDepositActor do
   describe "configuration methods" do
     before {
       allow(Trifle).to receive(:config).and_return({
-          'iipi_dir' => 'dummy_iipi_dir',
           'image_convert_format' => 'dummy_format',
           'image_convert_command' => ['dummy_convert_command'],
-          'image_convert_temp_dir' => '/tmp/dummy'
+          'image_convert_temp_dir' => '/tmp/dummy',
+          'image_server_ssh' => {
+            'images_root' => 'dummy_iipi_dir'
+          }
         })
     }
 
