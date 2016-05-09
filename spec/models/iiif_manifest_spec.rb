@@ -18,21 +18,21 @@ RSpec.describe Trifle::IIIFManifest do
       expect(manifest.image_container_location).to eql('dummy')
     end
     
-    context "with a persisted manifest" do
+    context "with a persisted manifest and no ark" do
       before { manifest.save }
       it "sets the container_location to be the same as id" do
         manifest.default_container_location!
-        expect(manifest.image_container_location).to eql(manifest.id)
+        expect(manifest.image_container_location).to eql("#{manifest.id[0..1]}/#{manifest.id[2..3]}/#{manifest.id[4..5]}/#{manifest.id}")
       end
     end
     context "with a new manifest" do
       before {
         allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345')
       }
-      it "it reserves an id and sets that as container_location" do
+      it "it reserves an ark and sets that as container_location" do
         manifest.default_container_location!
         manifest.save
-        expect(manifest.image_container_location).to eql(manifest.id)
+        expect(manifest.image_container_location).to eql("12345/#{manifest.id[0..1]}/#{manifest.id[2..3]}/#{manifest.id[4..5]}/#{manifest.id}")
       end
     end
   end

@@ -71,16 +71,23 @@ module Trifle
       return self.save
     end
     
+    def treeify_id
+      ark = local_ark
+      if ark
+        (naan, ark_id) = ark[5..-1].split('/')
+        [naan, *ark_id.match(/(..)(..)(..)/)[1..-1], ark_id].join('/')
+      else
+        use_id = id || SecureRandom.hex
+        [*use_id.match(/(..)(..)(..)/)[1..-1], use_id].join('/')
+      end
+    end
+    
     def default_container_location!
       return if self.image_container_location
-      if id.nil?
-        # assigning a new ark here is just a convenient way to reserve an id
-        # which can be used for the container location
-        assign_new_ark
-        self.image_container_location = (id_from_ark || SecureRandom.hex)
-      else
-        self.image_container_location = id
-      end
+      # assigning a new ark here is just a convenient way to reserve an id
+      # which can be used for the container location
+      assign_new_ark if id.nil?
+      self.image_container_location = treeify_id
     end
 
     def iiif_ranges
