@@ -7,7 +7,7 @@ RSpec.describe Trifle::StaticIIIFActor do
     allow(Trifle).to receive(:config).and_return(config)
   }
   let(:full_manifest) { 
-    FactoryGirl.create(:iiifmanifest, :with_images, identifier: ['ark:/12345/t0bc12df34x']).tap do |man| 
+    FactoryGirl.create(:iiifmanifest, :with_images, :with_parent, identifier: ['ark:/12345/t0bc12df34x']).tap do |man| 
       range = FactoryGirl.create(:iiifrange)
       range.ordered_members += man.images
       range.save
@@ -76,21 +76,38 @@ RSpec.describe Trifle::StaticIIIFActor do
   end
 
   describe "#iiif_package_unstatified" do
-    let(:manifest) { full_manifest }
     let(:enum) { actor.iiif_package_unstatified }
     let(:entries) { enum.to_a }
-    let(:iiif) { entries.find do |e| e.path.ends_with?('/manifest') end .content }
-    let(:prefix) { actor.send(:treeify_id) }
-    it "adds all the entries" do
-      expect(enum).to be_a(Enumerator)
-      expect(entries.map(&:path)).to match_array([
-          "#{prefix}/manifest", "#{prefix}/sequence/default", "#{prefix}/range/#{manifest.ranges.first.id}",
-          *(manifest.images.map do |img| "#{prefix}/canvas/#{img.id}" end),
-          *(manifest.images.map do |img| "#{prefix}/annotation/canvas_#{img.id}" end),
-          "#{prefix}/list/#{manifest.images.first.annotation_lists.first.id}",
-          *(manifest.images.first.annotation_lists.first.annotations.map do |ann| "#{prefix}/annotation/#{ann.id}" end),
-        ])
-      expect(iiif).to be_a(IIIF::Presentation::Manifest)
+    context "with a manifest" do
+      let(:manifest) { full_manifest }
+      let(:iiif) { entries.find do |e| e.path.ends_with?('/manifest') end .content }
+      let(:prefix) { actor.send(:treeify_id) }
+      it "adds all the entries" do
+        expect(enum).to be_a(Enumerator)
+        expect(entries.map(&:path)).to match_array([
+            "#{prefix}/manifest", "#{prefix}/sequence/default", "#{prefix}/range/#{manifest.ranges.first.id}",
+            *(manifest.images.map do |img| "#{prefix}/canvas/#{img.id}" end),
+            *(manifest.images.map do |img| "#{prefix}/annotation/canvas_#{img.id}" end),
+            "#{prefix}/list/#{manifest.images.first.annotation_lists.first.id}",
+            *(manifest.images.first.annotation_lists.first.annotations.map do |ann| "#{prefix}/annotation/#{ann.id}" end),
+            "collection/#{manifest.parent.id}"
+          ])
+        expect(iiif).to be_a(IIIF::Presentation::Manifest)
+      end
+    end
+    
+    context "with a collection" do
+      # variable manifest is really a collection!
+      let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests, :with_parent)}
+      let(:iiif) { entries.find do |e| e.path.ends_with?("collection/#{manifest.id}") end .content }
+      it "works with a collection object" do
+        expect(enum).to be_a(Enumerator)
+        expect(entries.map(&:path)).to match_array([
+            "collection/#{manifest.id}",
+            "collection/#{manifest.parent.id}"
+          ])
+        expect(iiif).to be_a(IIIF::Presentation::Collection)
+      end
     end
   end
   
@@ -125,9 +142,15 @@ RSpec.describe Trifle::StaticIIIFActor do
     end
   end
   
-  describe "#rails_id_prefix" do
+  describe "#rails_manifest_prefix" do
     it "returns route prefix to manifest" do
-      expect(actor.send(:rails_id_prefix)).to eql("#{Trifle.iiif_host}/trifle/iiif/manifest/#{manifest.id}/")
+      expect(actor.send(:rails_manifest_prefix)).to eql("#{Trifle.iiif_host}/trifle/iiif/manifest/#{manifest.id}/")
+    end
+  end
+  
+  describe "#rails_collection_prefix" do
+    it "returns route prefix to collection" do
+      expect(actor.send(:rails_collection_prefix)).to eql("#{Trifle.iiif_host}/trifle/iiif/collection/")
     end
   end
   
@@ -146,7 +169,7 @@ RSpec.describe Trifle::StaticIIIFActor do
   
   describe "#convert_id" do
     let(:uri) { "http://www.example.com/trifle/iiif/manifest/#{manifest.id}/annotation/ttr243b49tvy" }
-    before { allow(actor).to receive(:rails_id_prefix).and_return("http://www.example.com/trifle/iiif/manifest/#{manifest.id}/") }
+    before { allow(actor).to receive(:rails_manifest_prefix).and_return("http://www.example.com/trifle/iiif/manifest/#{manifest.id}/") }
     it "converts uris that start with the prefix" do
       expect(actor).to receive(:treeified_prefix).and_return('http://imageserver/iiif/12345/t0/bc/12/t0bc12df34x/')
       expect(actor.send(:convert_id, uri)).to eql('http://imageserver/iiif/12345/t0/bc/12/t0bc12df34x/annotation/ttr243b49tvy')
@@ -163,8 +186,8 @@ RSpec.describe Trifle::StaticIIIFActor do
     let(:converted) { actor.send(:convert_ids,source) }
     let(:converted_s) { converted.to_json(pretty: true) }
     it "converts all ids" do
-      expect(source_s).to include(actor.send(:rails_id_prefix))
-      expect(converted_s).not_to include(actor.send(:rails_id_prefix))
+      expect(source_s).to include(actor.send(:rails_manifest_prefix))
+      expect(converted_s).not_to include(actor.send(:rails_manifest_prefix))
     end
   end
 

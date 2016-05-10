@@ -61,7 +61,7 @@ module Trifle
         collection.manifests = manifests.to_a.map(&:iiif_manifest_stub)
         
         parent_collection = self.parent
-        collection.within = Trifle::Engine.routes.url_helpers.iiif_collection_url(parent_collection, host: Trifle.iiif_host) if parent_collection.present?
+        collection.within = Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url(parent_collection, host: Trifle.iiif_host) if parent_collection.present?
       end
     end
     
