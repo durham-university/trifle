@@ -5,9 +5,23 @@ module Trifle
     def initialize(model_object, user=nil, attributes={})
       super(model_object, user, attributes)
     end
+    
+    # target_id should be ark for manifests, and fedora id for collections
+    def remove_remote_package(target_id, target_type, connection_params=nil, remote_path=nil)
+      log!("Removing static iiif of #{target_type} #{target_id}")
+      connection_params ||= Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)
+      case target_type.to_sym
+      when :manifest
+        remote_path ||= File.join("#{Trifle.config['image_server_ssh']['iiif_root']}", "#{treeify_id(target_id)}")
+        sftp_rm_rf(remote_path, connection_params)
+      when :collection
+        remote_path ||= File.join("#{Trifle.config['image_server_ssh']['iiif_root']}", "collection/#{target_id}")
+        sftp_rm_rf(remote_path, connection_params)
+      end
+    end
 
     def upload_package(package=nil, connection_params=nil, remote_path=nil)
-      log!("Uploading manifest iiif")
+      log!("Uploading static iiif")
       package ||= iiif_package
       connection_params ||= Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)
       remote_path ||= "#{Trifle.config['image_server_ssh']['iiif_root']}"
@@ -20,7 +34,7 @@ module Trifle
     end
     
     def write_package(root_dir, package=nil)
-      log!("Writing manifest iiif")
+      log!("Writing static iiif")
       package ||= iiif_package
       package.each do |file_entry|
         full_path = File.join(root_dir, file_entry.path)
@@ -34,29 +48,30 @@ module Trifle
       true
     end
               
-    def iiif_package
+    def iiif_package(target=nil)
       Enumerator.new do |yielder|
-        iiif_package_unstatified.each do |file|
+        iiif_package_unstatified(target).each do |file|
           yielder << statify_file(file)
         end
       end
     end
     
-    def iiif_package_unstatified
+    def iiif_package_unstatified(target=nil)
+      target ||= model_object
       Enumerator.new do |yielder|
-        case model_object
+        case target
         when Trifle::IIIFManifest
           prefix = treeify_id
-          yielder << FileEntry.new("#{prefix}/manifest", model_object.to_iiif )
-          model_object.iiif_sequences.each do |seq|
+          yielder << FileEntry.new("#{prefix}/manifest", target.to_iiif )
+          target.iiif_sequences.each do |seq|
             raise "Sequence label contains invalid characters #{seq.label}" unless /^[a-zA-Z0-9_-]+$/ =~ seq.label
             yielder << FileEntry.new("#{prefix}/sequence/#{seq.label}", seq )
           end
-          model_object.traverse_ranges.each do |range|
+          target.traverse_ranges.each do |range|
             raise "Range id contains invalid characters #{range.id}" unless /^[a-zA-Z0-9_-]+$/ =~ range.id
             yielder << FileEntry.new("#{prefix}/range/#{range.id}", range.to_iiif )
           end
-          model_object.images.each do |image|
+          target.images.each do |image|
             raise "Image id contains invalid characters #{image.id}" unless /^[a-zA-Z0-9_-]+$/ =~ image.id
             yielder << FileEntry.new("#{prefix}/canvas/#{image.id}", image.to_iiif )
             yielder << FileEntry.new("#{prefix}/annotation/canvas_#{image.id}", image.iiif_annotation )
@@ -71,12 +86,12 @@ module Trifle
               end
             end
           end
-          model_object.parents.select do |o| o.is_a?(Trifle::IIIFCollection) end .each do |collection|
+          target.parents.select do |o| o.is_a?(Trifle::IIIFCollection) end .each do |collection|
             yielder << FileEntry.new("collection/#{collection.id}", collection.to_iiif)
           end
         when Trifle::IIIFCollection
-          yielder << FileEntry.new("collection/#{model_object.id}", model_object.to_iiif)
-          parent = model_object.parent
+          yielder << FileEntry.new("collection/#{target.id}", target.to_iiif)
+          parent = target.parent
           yielder << FileEntry.new("collection/#{parent.id}", parent.to_iiif) if parent
         end
       end
@@ -99,9 +114,11 @@ module Trifle
         @rails_collection_prefix ||= Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url('', host: Trifle.iiif_host)
       end
       
-      def treeify_id
+      def treeify_id(target=nil)
+        target ||= model_object
+        ark = target.is_a?(String) ? target : target.local_ark
         @treeify_id = begin
-          (naan,id) = model_object.local_ark[5..-1].split('/')
+          (naan,id) = ark[5..-1].split('/')
           [naan, *id.match(/(..)(..)(..)/)[1..-1], id].join('/')
         end
       end

@@ -11,6 +11,8 @@ module Trifle
       
       respond_to do |format|
         if @resource.refresh_from_source && @resource.save
+          Trifle::StatifyJob.new(resource: @resource).queue_job
+          
           format.html { redirect_to @resource, notice: "#{self.class.model_name.humanize} was successfully refreshed from source." }
           format.json { render json: {status: :ok, resource: @resource.as_json } }
         else

@@ -2,6 +2,7 @@ module Trifle
   class IIIFCollectionsController < Trifle::ApplicationController
     include DurhamRails::ModelControllerBase
     include Trifle::ServeIIIFBehaviour
+    include Trifle::StatifyResourceBehaviour
     include Trifle::AllowCorsBehaviour # Keep this last
 
     helper 'trifle/application'

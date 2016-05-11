@@ -74,6 +74,30 @@ RSpec.describe Trifle::StaticIIIFActor do
       actor.write_package('/tmp/iiif-test')
     end
   end
+  
+  describe "#remove_remote_package" do
+    let(:trifle_config) { { 
+      'ark_naan' => '12345',
+      'static_iiif_url' => 'http://www.example.com/iiif/',
+      'image_server_ssh' => {
+        'host' => 'example.com',
+        'user' => 'testuser',
+        'iiif_root' => '/iiif'
+      }
+    } }
+    context "with a manifest" do
+      it "removes the directory" do
+        expect(actor).to receive(:sftp_rm_rf).with('/iiif/12345/t0/bc/12/t0bc12df34x',hash_including(:host, :user)).and_return(true)
+        actor.remove_remote_package('ark:/12345/t0bc12df34x','manifest')
+      end
+    end
+    context "with a collection" do
+      it "removes the file" do
+        expect(actor).to receive(:sftp_rm_rf).with('/iiif/collection/t0bc12df34x',hash_including(:host, :user)).and_return(true)
+        actor.remove_remote_package('t0bc12df34x','collection')
+      end
+    end
+  end
 
   describe "#iiif_package_unstatified" do
     let(:enum) { actor.iiif_package_unstatified }
@@ -109,6 +133,16 @@ RSpec.describe Trifle::StaticIIIFActor do
         expect(iiif).to be_a(IIIF::Presentation::Collection)
       end
     end
+    
+    context "with a parameter object" do
+      let(:enum) { actor.iiif_package_unstatified(other_object) }
+      let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests) }
+      let(:other_object) { FactoryGirl.create(:iiifcollection,:with_manifests) }
+      it "can take an object as a parameter" do
+        expect(entries.map(&:path)).to include("collection/#{other_object.id}")
+        expect(entries.map(&:path)).not_to include("collection/#{manifest.id}")
+      end
+    end
   end
   
   describe "#iiif_package" do
@@ -117,12 +151,19 @@ RSpec.describe Trifle::StaticIIIFActor do
     let(:unstatified) { Enumerator.new do |y| y << file_entry1 ; y << file_entry2 ; end }
     let(:statified1) { double('statified_1') }
     let(:statified2) { double('statified_2') }
-    it "statifies package and enumerates it" do
+    before {
       allow(actor).to receive(:statify_file).and_raise('unexpected file')
       expect(actor).to receive(:statify_file).with(file_entry1).and_return(statified1)
-      expect(actor).to receive(:statify_file).with(file_entry2).and_return(statified2)
+      expect(actor).to receive(:statify_file).with(file_entry2).and_return(statified2)      
+    }
+    it "statifies package and enumerates it" do
       expect(actor).to receive(:iiif_package_unstatified).and_return(unstatified)
       expect(actor.iiif_package.to_a).to eql([statified1, statified2])
+    end
+    let(:other_object) { double('other_object') }
+    it "passes the parameter" do
+      expect(actor).to receive(:iiif_package_unstatified).with(other_object).and_return(unstatified)
+      expect(actor.iiif_package(other_object).to_a).to eql([statified1, statified2])
     end
   end
   

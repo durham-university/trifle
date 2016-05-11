@@ -7,6 +7,61 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
   let(:deposit_items) { [{'source_path' => 'http://localhost/dummy1', 'title' => '1'}, {'source_path' => 'http://localhost/dummy2', 'title' => '2'}] }
 
   routes { Trifle::Engine.routes }
+
+  before {
+    allow(Trifle.queue).to receive(:push).and_return(true)
+  }
+  
+  describe "iiif statification" do
+    before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
+    let(:user) { FactoryGirl.create(:user,:admin) }
+    before { sign_in user }
+    let(:collection) {
+      FactoryGirl.create(:iiifcollection).tap do |c|
+        c.ordered_members << manifest
+        c.save
+      end
+    }
+    let(:collection2) {
+      FactoryGirl.create(:iiifcollection).tap do |c|
+        c.ordered_members << manifest
+        c.save
+      end
+    }
+    let(:manifest) { FactoryGirl.create(:iiifmanifest) }
+    it "statifies after create" do
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+        expect(job.resource.title).to eql('created manifest')
+        expect(job.resource_id).to be_present
+      end
+      post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest' }
+    end
+    it "statifies after update" do
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+        expect(job.resource_id).to eql(manifest.id)
+      end
+      post :update, id: manifest.id, iiif_manifest: { title: 'new title' }
+    end
+    it "removes static iiif after destroy" do
+      collection ; collection2 # create by reference
+      expected_parent_jobs = manifest.parent_ids.to_a
+      expect(expected_parent_jobs.length).to eql(2)
+      expect_remove = true
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)).twice do |job|
+        expect(expected_parent_jobs).to include(job.resource_id)
+        expected_parent_jobs.delete(job.resource_id)
+        if expect_remove
+          expect(job.remove_id).to eql(manifest.local_ark)
+          expect(job.remove_type).to eql('manifest')
+          expect_remove = false
+        end
+      end
+      expect(manifest.local_ark).to be_present
+      delete :destroy, id: manifest.id
+      expect(expected_parent_jobs).to be_empty
+      expect(expect_remove).to eql(false)
+    end
+  end
   
   context "with anonymous user" do
     before {
@@ -166,8 +221,11 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
           end)
         end
       }
-      it "refreshes resource from source" do
+      it "refreshes resource from source and starts statify job" do
         expect(Schmit::API::Catalogue).to receive(:try_find).with('ark:/12345/testid').and_return(manifest_api)
+        expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+          expect(job.resource_id).to eql(manifest.id)
+        end
         post :refresh_from_source, id: manifest.id
         manifest.reload
         expect(manifest.title).to eql('new title')

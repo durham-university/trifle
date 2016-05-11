@@ -31,6 +31,14 @@ module Trifle
     def parent
       ordered_by.to_a.find do |m| m.is_a? IIIFCollection end
     end
+    
+    def parents
+      Array.wrap(parent)
+    end
+    
+    def parent_ids
+      parents.map(&:id)
+    end
          
     def root_collection
       parent.try(:root_collection) || self

@@ -39,6 +39,10 @@ module Trifle
       ordered_by.to_a.select do |m| m.is_a? IIIFCollection end
     end
     
+    def parent_ids
+      parents.map(&:id)
+    end
+    
     def manifest
       self
     end
