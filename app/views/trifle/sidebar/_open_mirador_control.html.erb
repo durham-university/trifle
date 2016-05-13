@@ -1,11 +1,13 @@
 <li><a href="#" data-target="#mirador_modal" data-toggle="modal" onclick="$('#mirador_modal iframe')[0].contentWindow.windowLoaded()">Open Mirador</a></li>
 
-<div id="mirador_modal" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <button type="button" class="ajax-modal-close close" data-dismiss="modal" aria-hidden="true">&times;</button>
-      <iframe src="<%= trifle.mirador_manifest_embed_path(resource) %>" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true">
-      </iframe>
+<% content_for :modal_dialogs do %>
+  <div id="mirador_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <button type="button" class="ajax-modal-close close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <iframe src="<%= trifle.mirador_manifest_embed_path(resource) %>" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true">
+        </iframe>
+      </div>
     </div>
   </div>
-</div>
+<% end %>
