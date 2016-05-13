@@ -19,6 +19,13 @@ module Trifle
         sftp_rm_rf(remote_path, connection_params)
       end
     end
+    
+    def mark_clean
+      if @model_object.respond_to?(:set_clean)
+        @model_object.set_clean
+        @model_object.save
+      end
+    end
 
     def upload_package(package=nil, connection_params=nil, remote_path=nil)
       log!("Uploading static iiif")
@@ -30,6 +37,7 @@ module Trifle
         log!("Sending file #{full_path}")
         return false unless send_file(StringIO.new(file_entry.content), full_path, connection_params)
       end
+      mark_clean
       true
     end
     
@@ -45,6 +53,7 @@ module Trifle
           file.write(file_entry.content)
         end
       end
+      mark_clean
       true
     end
               

@@ -4,6 +4,7 @@ module Trifle
     include Trifle::ModelBase
     include DurhamRails::NoidBehaviour
     include DurhamRails::DestroyFromContainers
+    include Trifle::TrackDirtyParentBehaviour
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
 #    has_and_belongs_to_many :canvases, predicate: ::RDF::Vocab::IIIF.hasCanvases, class_name: 'Trifle::IIIFImage'

@@ -5,6 +5,7 @@ module Trifle
     include DurhamRails::NoidBehaviour
     include DurhamRails::ArkBehaviour
     include DurhamRails::DestroyFromContainers
+    include Trifle::TrackDirtyParentBehaviour
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
     property :image_location, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_location')

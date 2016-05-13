@@ -4,6 +4,7 @@ module Trifle
     include Trifle::ModelBase
     include DurhamRails::NoidBehaviour
     include DurhamRails::DestroyFromContainers
+    include Trifle::TrackDirtyParentBehaviour
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
     property :format, multiple:false, predicate: ::RDF::Vocab::DC.format

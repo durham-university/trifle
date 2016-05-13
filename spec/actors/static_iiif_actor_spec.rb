@@ -43,17 +43,31 @@ RSpec.describe Trifle::StaticIIIFActor do
       }
     } }
     
-    it "uploads all files" do
+    before {
       expect(actor).to receive(:iiif_package).and_return(package)
+      allow(actor).to receive(:send_file).and_return(true)
+    }
+    
+    it "uploads all files" do
       sent_files = []
       expect(actor).to receive(:send_file).at_least(:once) do |file,path,params|
         sent_files << path
         expect(file.read).to eql("#{path.split('/').last} content")
         expect(params[:host]).to eql('example.com')
         expect(params[:user]).to eql('testuser')
+        true
       end
       actor.upload_package
       expect(sent_files).to match_array(['/iiif/123/manifest','/iiif/123/sequence/default'])
+    end
+    
+    context "dirty_state" do
+      let(:manifest) {full_manifest}
+      it "marks object clean" do
+        expect(manifest).to be_dirty
+        actor.upload_package
+        expect(manifest.reload).to be_clean
+      end
     end
   end
   

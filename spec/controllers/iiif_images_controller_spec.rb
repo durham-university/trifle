@@ -29,6 +29,8 @@ RSpec.describe Trifle::IIIFImagesController, type: :controller do
   context "with admin user" do
     let(:user) { FactoryGirl.create(:user,:admin) }
     before { sign_in user }
+    let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_images) }
+    let(:image) { manifest.images.first }
         
     describe "GET #all_annotations" do
       let(:list) { FactoryGirl.create(:iiifannotationlist,:with_annotations,:with_manifest) }
@@ -40,7 +42,24 @@ RSpec.describe Trifle::IIIFImagesController, type: :controller do
         expect(JSON.parse(response.body)).to be_a(Array)
         expect(response.body).to include(list.annotations.first.content)
       end
-      
     end
+    
+    describe "PUT #update" do
+      it "marks containing manifest dirty" do
+        manifest.set_clean
+        manifest.save
+        put :update, id: image.id, iiif_image: {title: 'changed'}, iiif_manifest_id: 'dummy'
+        expect(manifest.reload).to be_dirty
+      end
+    end
+    describe "POST #create" do
+      it "marks containing manifest dirty" do
+        manifest.set_clean
+        manifest.save
+        post :create, iiif_manifest_id: manifest.id, iiif_image: {title: 'new image'}
+        expect(manifest.reload).to be_dirty
+      end
+    end
+    
   end
 end

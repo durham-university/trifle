@@ -23,6 +23,14 @@ RSpec.describe Trifle::IIIFAnnotationsController, type: :controller do
         expect(json['resource']).to be_present
         expect(json['resource']['chars']).to eql('test content')
       end      
+      
+      it "marks containing manifest dirty" do
+        manifest = annotation.manifest
+        manifest.set_clean
+        manifest.save
+        put :update, reply_iiif: 'true', id: annotation.id, iiif_annotation: annotation_params, iiif_manifest_id: 'dummy'
+        expect(manifest.reload).to be_dirty
+      end
     end
     
     describe "POST #create" do
@@ -32,6 +40,14 @@ RSpec.describe Trifle::IIIFAnnotationsController, type: :controller do
         expect(json['@type']).to eql('oa:Annotation')
         expect(json['on']).to be_present
         expect(json['resource']).to be_present
+      end
+      
+      it "marks containing manifest dirty" do
+        manifest = annotation_list.manifest
+        manifest.set_clean
+        manifest.save
+        post :create, reply_iiif: 'true', iiif_annotation: annotation_params, iiif_annotation_list_id: annotation_list.id, iiif_manifest_id: 'dummy'
+        expect(manifest.reload).to be_dirty
       end
       
       context "with annotation_list" do
