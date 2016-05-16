@@ -47,12 +47,11 @@ module Trifle
     
     def refresh_from_schmit_source
       schmit_id, item_id = source_identifier.split('#',2)
-      raise("Source identifier doesn't contain an item_id: #{source_identifier}") unless item_id.present?
       
       record = Schmit::API::Catalogue.try_find(schmit_id) || raise("Couldn't find Schmit record #{schmit_id}") 
       
       xml_record = record.xml_record || raise("Couldn't get xml_record for #{schmit_id}")
-      item = xml_record.sub_item(item_id) || raise("Couldn't find sub item #{item_id} for #{schmit_id}")
+      item = item_id.nil? ? xml_record : (xml_record.sub_item(item_id) || raise("Couldn't find sub item #{item_id} for #{schmit_id}"))
       
       self.title = item.title_path if item.title_path.present?
       self.date_published = item.date if item.date.present?
