@@ -6,6 +6,7 @@ module Trifle
     include DurhamRails::ArkBehaviour
     include DurhamRails::WithBackgroundJobs
     include DurhamRails::DestroyFromContainers
+    include DurhamRails::DestroyDependentMembers
     include Trifle::TrackDirtyStateBehaviour
     include Trifle::SourceRecord
 

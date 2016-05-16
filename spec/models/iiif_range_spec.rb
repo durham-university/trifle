@@ -2,6 +2,25 @@ require 'rails_helper'
 
 RSpec.describe Trifle::IIIFRange do
   let(:range) { FactoryGirl.build(:iiifrange)}
+  
+  describe "#destroy" do
+    let!(:range) { FactoryGirl.create(:iiifrange, :with_manifest, :with_canvases, :with_sub_range)}
+    let!(:canvases) { range.canvases.to_a }
+    let!(:sub_ranges) { range.sub_ranges.to_a }
+    it "destroys also sub_ranges" do
+      expect(sub_ranges).not_to be_empty
+      range.destroy
+      expect {
+        Trifle::IIIFRange.find(sub_ranges.first.id)
+      }.to raise_error(Ldp::Gone)
+    end
+    it "doesn't destroy canvases" do
+      expect(canvases).not_to be_empty
+      range.destroy
+      expect(Trifle::IIIFImage.find(canvases.first.id)).to be_a(Trifle::IIIFImage)
+    end
+  end
+  
   describe "#as_json" do
     let(:json) { range.as_json }
     it "sets properties" do

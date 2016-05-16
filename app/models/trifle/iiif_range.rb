@@ -4,6 +4,7 @@ module Trifle
     include Trifle::ModelBase
     include DurhamRails::NoidBehaviour
     include DurhamRails::DestroyFromContainers
+    include DurhamRails::DestroyDependentMembers
     include Trifle::TrackDirtyParentBehaviour
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
@@ -87,6 +88,14 @@ module Trifle
     def to_iiif
       iiif_range
     end    
+    
+    private
+    
+      def dependent_members
+        # We don't want to destroy canvases as dependent objects
+        sub_ranges
+      end
+    
     
   end
 end
