@@ -47,7 +47,7 @@ RSpec.describe Trifle::API::IIIFCollection do
   
   describe ".all_in_collection" do
     it "parses the response" do
-      expect(Trifle::API::IIIFCollection).to receive(:get).with("/iiif_collections/#{collection.id}.json?full_collection_list=1").and_return(OpenStruct.new(body: all_json_s, code: 200))
+      expect(Trifle::API::IIIFCollection).to receive(:get).with("/collection/#{collection.id}.json?full_collection_list=1").and_return(OpenStruct.new(body: all_json_s, code: 200))
       resp = Trifle::API::IIIFCollection.all_in_collection(collection)
       expect(resp).to be_a Array
       expect(resp.size).to eql 2
