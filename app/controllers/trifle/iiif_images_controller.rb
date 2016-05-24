@@ -22,7 +22,11 @@ module Trifle
     end    
 
     def self.presenter_terms
-      super + [:identifier, :image_location]
+      super + [:identifier, :image_location, :image_source]
+    end
+    
+    def self.form_terms
+      super - [:image_source]
     end
 
     def set_parent

@@ -24,6 +24,7 @@ module Trifle
     def create_image_object(metadata={})
       Trifle::IIIFImage.new.tap do |image|
         image.image_location = @logical_path
+        image.image_source = metadata['source_path'] if metadata['source_path'].present?
         image.title = metadata['title'] if metadata['title'].present?
         image.width = "#{@image_analysis[:width]}"
         image.height = "#{@image_analysis[:height]}"
@@ -81,6 +82,7 @@ module Trifle
     def deposit_from_oubliette(oubliette_url,metadata={})
       id = oubliette_url
       id = id[10..-1] if id.start_with?('oubliette:')
+      metadata = metadata.merge({'source_path' => oubliette_url})
 
       log!(:info,"Downloading from Oubliette #{id}")
       ofile = Oubliette::API::PreservedFile.try_find(id)
@@ -95,6 +97,7 @@ module Trifle
 
     def deposit_from_url(source_url,metadata={})
       log!(:info,"Downloading #{source_url}")
+      metadata = metadata.merge({'source_path' => source_url})
       Net::HTTP.get_response(URI(source_url)) do |resp|
         deposit_from_response(resp, metadata)
       end
@@ -124,6 +127,8 @@ module Trifle
         convert_file.close
         convert_path = convert_file.path
         
+        metadata = metadata.stringify_keys.reverse_merge({'source_path' => source_path})
+        
         convert_image(source_path, convert_path) && analyse_image(convert_path) &&
           send_file(convert_path, dest_path, connection_params) && 
           add_to_image_container(metadata)
@@ -137,9 +142,10 @@ module Trifle
       status = true
       index_offset = @model_object.ordered_members.to_a.count
       image_data.each_with_index do |hash,i|
-        hash = {source_path: hash.to_s} unless hash.is_a? Hash
+        hash = {'source_path' => hash.to_s} unless hash.is_a? Hash
+        hash = hash.stringify_keys
         hash['title'] ||= "#{index_offset+i+1}"
-        status &= deposit_image(hash[:source_path],hash.except(:source_path))
+        status &= deposit_image(hash['source_path'],hash.except('source_path'))
       end
       status
     end

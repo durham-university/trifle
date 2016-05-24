@@ -38,7 +38,7 @@ RSpec.describe Trifle::ImageDepositActor do
       actor.instance_variable_set(:@logical_path,'folder/foo.ptif')
       actor.instance_variable_set(:@image_analysis, { width: 1234, height: 4567})
     }
-    let(:metadata) { { 'title' => 'Foo title' } }
+    let(:metadata) { { 'title' => 'Foo title', 'source_path' => 'oubliette:b0ab12cd34x' } }
     let(:image) { actor.create_image_object(metadata) }
     it "creates an IIIFImage and sets metadata" do
       expect(image).to be_a Trifle::IIIFImage
@@ -46,6 +46,7 @@ RSpec.describe Trifle::ImageDepositActor do
       expect(image.width).to eql('1234')
       expect(image.height).to eql('4567')
       expect(image.image_location).to eql('folder/foo.ptif')
+      expect(image.image_source).to eql('oubliette:b0ab12cd34x')
     end
   end
 
@@ -114,7 +115,8 @@ RSpec.describe Trifle::ImageDepositActor do
     }
     it "downloads the file, uses file extension and calls #deposit_image" do
       expect(actor).to receive(:deposit_image) { |_source_path,_metadata|
-        expect(_metadata).to eql(metadata)
+        # it needs to add source_path in metadata
+        expect(_metadata).to eql(metadata.merge({'source_path' => source_url}))
         expect(File.exists?(_source_path)).to eql(true)
         expect(_source_path).to end_with('.tiff')
         expect(File.read(_source_path, binmode: true) == image).to eql(true)
@@ -142,7 +144,8 @@ RSpec.describe Trifle::ImageDepositActor do
     }    
     it "downloads file from oubliette" do
       expect(actor).to receive(:deposit_image) { |_source_path,_metadata|
-        expect(_metadata).to eql(metadata)
+        # it needs to add source_path in metadata
+        expect(_metadata).to eql(metadata.merge({'source_path' => source_url}))
         expect(File.exists?(_source_path)).to eql(true)
         expect(_source_path).to end_with('.tiff')
         expect(File.read(_source_path, binmode: true) == image).to eql(true)
@@ -173,7 +176,8 @@ RSpec.describe Trifle::ImageDepositActor do
       allow(actor).to receive(:add_to_image_container).and_return(true)
     }
     let(:source_path) { '/tmp/source' }
-    let(:metadata) { { 'basename' => 'foo' } }
+    let(:metadata) { { 'basename' => 'foo', dummy: 'dummy' } }
+    let(:metadata_with_source) { metadata.merge('source_path' => source_path)}
     
     context "with http:// path" do
       let(:source_path) { 'http://www.example.com/dummy' }
@@ -216,8 +220,13 @@ RSpec.describe Trifle::ImageDepositActor do
         expect(dest_path).to eql('/tmp/base/folder/foo.ptif')
         true
       end
-      expect(actor).to receive(:add_to_image_container).with(metadata).and_return(true)
+      expect(actor).to receive(:add_to_image_container).with(metadata_with_source.stringify_keys).and_return(true)
       expect(actor.deposit_image(source_path,metadata)).to eql(true)
+    end
+    
+    it "doesn't overwrite source_path" do
+      expect(actor).to receive(:add_to_image_container).with({'source_path' => 'moo'})
+      actor.deposit_image(source_path, {'source_path' => 'moo'})
     end
 
     context "with malicious data" do
@@ -233,13 +242,14 @@ RSpec.describe Trifle::ImageDepositActor do
   describe "#deposit_image_batch" do
     it "calls deposit_image with matadata" do
       expect(actor).to receive(:deposit_image).with('/tmp/source',{'dummy' => 'dummy', 'title' => '1'}).and_return true
-      ret_val = actor.deposit_image_batch([{source_path: '/tmp/source', 'dummy' => 'dummy'}])
+      # note mixed use of string and symbol keys to test that both work
+      ret_val = actor.deposit_image_batch([{'source_path' => '/tmp/source', dummy: 'dummy'}])
       expect(ret_val).to eql(true)
     end
 
     it "calls deposit_image once for each image" do
       expect(actor).to receive(:deposit_image).exactly(3).times.and_return(false)
-      ret_val = actor.deposit_image_batch([{source_path: '1'},{source_path: '2'},{source_path: '3'}])
+      ret_val = actor.deposit_image_batch([{'source_path' => '1'},{'source_path' => '2'},{'source_path' => '3'}])
       expect(ret_val).to eql(false)
     end
   end

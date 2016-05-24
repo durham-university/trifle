@@ -10,6 +10,7 @@ module Trifle
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
     property :image_location, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_location')
+    property :image_source, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_source')
     property :identifier, predicate: ::RDF::DC.identifier do |index|
       index.as :symbol
     end
