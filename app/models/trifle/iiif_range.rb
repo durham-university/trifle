@@ -28,16 +28,18 @@ module Trifle
       return nil
     end
 
-    def parent
-      ordered_by.to_a.find do |m| m.is_a?(IIIFManifest) || m.is_a?(IIIFRange) end
+    def parent(reload=false)
+      @parent = nil if reload
+      @parent ||= ordered_by.to_a.find do |m| m.is_a?(IIIFManifest) || m.is_a?(IIIFRange) end
     end
     
     def sub_ranges
-      ordered_members.to_a.select do |m| m.is_a? IIIFRange end      
+      ordered_members.to_a.select do |m| m.is_a? IIIFRange end .map do |m| m.has_parent!(self) end
     end
     
     def canvases
-      ordered_members.to_a.select do |m| m.is_a? IIIFImage end      
+      _manifest = manifest
+      ordered_members.to_a.select do |m| m.is_a? IIIFImage end .map do |m| m.has_parent!(_manifest) end
     end
     
     def canvas_ids
@@ -70,6 +72,7 @@ module Trifle
     end
         
     def iiif_range(with_children=true)
+      self.ordered_members.from_solr!
       IIIF::Presentation::Resource.new.tap do |structure|
         structure['@id'] = Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(self, host: Trifle.iiif_host)
         structure['@context'] = nil

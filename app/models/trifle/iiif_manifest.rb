@@ -33,6 +33,10 @@ module Trifle
       end
     end    
 
+    def has_parent!(parent)
+      raise 'Can\'t set parent of IIIF Manifest. It can have multiple parents'
+    end
+
     def parent
       ordered_by.to_a.find do |m| m.is_a? IIIFCollection end
     end    
@@ -54,11 +58,11 @@ module Trifle
     end
 
     def images
-      ordered_members.to_a.select do |m| m.is_a? IIIFImage end
+      ordered_members.to_a.select do |m| m.is_a? IIIFImage end .map do |m| m.has_parent!(self) end
     end
     
     def ranges
-      ordered_members.to_a.select do |m| m.is_a? IIIFRange end
+      ordered_members.to_a.select do |m| m.is_a? IIIFRange end .map do |m| m.has_parent!(self) end
     end
     
     def traverse_ranges
@@ -66,6 +70,7 @@ module Trifle
       ret=[]
       while todo.any?
         s = todo.shift
+        s.ordered_members.from_solr!
         ret << s
         todo += s.sub_ranges.to_a
       end
@@ -118,6 +123,7 @@ module Trifle
     end
         
     def iiif_manifest
+      self.ordered_members.from_solr!
       iiif_manifest_stub.tap do |manifest|
         manifest.description = self.description if self.description.present?
         

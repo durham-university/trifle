@@ -9,8 +9,9 @@ module Trifle
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
 
-    def parent
-      ordered_by.to_a.find do |m| m.is_a? IIIFImage end
+    def parent(reload=false)
+      @parent = nil if reload
+      @parent ||= ordered_by.to_a.find do |m| m.is_a? IIIFImage end
     end
     
     def manifest
@@ -18,10 +19,11 @@ module Trifle
     end
 
     def annotations
-      ordered_members.to_a.select do |m| m.is_a? IIIFAnnotation end
+      ordered_members.to_a.select do |m| m.is_a? IIIFAnnotation end .map do |m| m.has_parent!(self) end
     end
         
     def iiif_annotation_list(with_children=true)
+      self.ordered_members.from_solr!
       IIIF::Presentation::AnnotationList.new.tap do |annotation_list|
         annotation_list['@id'] = Trifle::Engine.routes.url_helpers.iiif_annotation_list_iiif_url(self, host: Trifle.iiif_host)
         annotation_list.label = title if title.present?

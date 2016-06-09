@@ -26,8 +26,9 @@ module Trifle
       end
     end    
 
-    def parent
-      ordered_by.to_a.find do |m| m.is_a? IIIFManifest end
+    def parent(reload=false)
+      @parent = nil if reload
+      @parent ||= ordered_by.to_a.find do |m| m.is_a? IIIFManifest end
     end
     
     def manifest
@@ -39,7 +40,7 @@ module Trifle
     end
 
     def annotation_lists
-      ordered_members.to_a.select do |m| m.is_a? IIIFAnnotationList end
+      ordered_members.to_a.select do |m| m.is_a? IIIFAnnotationList end .map do |m| m.has_parent!(self) end
     end
     
     def image_url(crop: 'full', size: 'full', width: nil, height: nil)
@@ -73,6 +74,7 @@ module Trifle
     end
     
     def iiif_canvas(opts={})
+      self.ordered_members.from_solr!
       IIIF::Presentation::Canvas.new.tap do |canvas|
         canvas['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(self, host: Trifle.iiif_host)
         canvas.label = title

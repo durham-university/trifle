@@ -28,8 +28,9 @@ module Trifle
       end
     end
     
-    def parent
-      ordered_by.to_a.find do |m| m.is_a? IIIFCollection end
+    def parent(reload=false)
+      @parent = nil if reload
+      @parent ||= ordered_by.to_a.find do |m| m.is_a? IIIFCollection end
     end
     
     def parents

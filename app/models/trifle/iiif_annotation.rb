@@ -12,8 +12,9 @@ module Trifle
     property :content, multiple:false, predicate: ::RDF::URI.new('http://www.w3.org/2011/content#chars')
     property :selector, multiple:false, predicate: ::RDF::Vocab::OA.hasSelector
     
-    def parent
-      ordered_by.to_a.find do |m| m.is_a? IIIFAnnotationList end
+    def parent(reload=false)
+      @parent = nil if reload
+      @parent ||= ordered_by.to_a.find do |m| m.is_a? IIIFAnnotationList end
     end
     
     def manifest
