@@ -1,6 +1,6 @@
-<% Array(record.model.send(key)).each do |v| %>
+<% Array(record.model.send(key)).each_with_index do |v,ind| %>
+  <% if ind>0 %><span class="inline_delimiter">|</span><% end %>
   <span itemprop="<%= key %>" itemscope itemtype="http://schema.org/Thing">
     <%= link_to(v.title, engine_paths.polymorphic_path(v)) %>
   </span>
-  <br />
 <% end %>

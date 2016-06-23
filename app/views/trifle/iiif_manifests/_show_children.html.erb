@@ -4,7 +4,7 @@
   <% end %>
 </h2>
 
-<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.images %>
+<%= render 'durham_rails/base_shared/inline_item_list', items: @presenter.to_model.images %>
 
 <h2>Ranges
   <% if can? :edit, @resource %>
