@@ -108,7 +108,7 @@ module Trifle
       def self.deposit_new(parent, deposit_items,manifest_metadata={})
         return deposit_new_local(parent, deposit_items,manifest_metadata) if local_mode?
         parent = parent.id if parent.respond_to?(:id)
-        response = self.post("/collection/#{CGI.escape parent}/manifest/deposit.json", {query: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
+        response = self.post("/collection/#{CGI.escape parent}/manifest/deposit.json", {body: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,
@@ -120,7 +120,7 @@ module Trifle
       def self.deposit_into(manifest, deposit_items)
         return deposit_into_local(manifest, deposit_items) if local_mode?
         manifest = manifest.id if manifest.respond_to?(:id)
-        response = self.post("/manifest/#{CGI.escape manifest}/deposit.json", {query: {deposit_items: deposit_items}})
+        response = self.post("/manifest/#{CGI.escape manifest}/deposit.json", {body: {deposit_items: deposit_items}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,
