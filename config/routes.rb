@@ -55,5 +55,8 @@ Trifle::Engine.routes.draw do
   get '/mirador', to: 'mirador#index', as: :mirador_index
   get '/mirador/:id', to: 'mirador#show', as: :mirador_manifest
   get '/mirador/:id/embed', to: 'mirador#show', as: :mirador_manifest_embed, defaults: { no_auto_load: 'true' }
+    
+  resources :background_job_containers, as: :durham_rails_background_job_containers
+  get '/background_job_containers/:resource_id/background_jobs', to: 'background_jobs#index', as: :durham_rails_background_job_container_background_jobs
   
 end

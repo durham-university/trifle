@@ -22,13 +22,14 @@ module Trifle
     
     def mark_clean
       if @model_object.respond_to?(:set_clean)
+        log!("Marking manifest clean")
         @model_object.set_clean
         @model_object.save
       end
     end
 
     def upload_package(package=nil, connection_params=nil, remote_path=nil)
-      log!("Uploading static iiif")
+      log!("Uploading static iiif of #{model_object.title} (#{model_object.id})")
       package ||= iiif_package
       connection_params ||= Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)
       remote_path ||= "#{Trifle.config['image_server_ssh']['iiif_root']}"
@@ -38,11 +39,12 @@ module Trifle
         return false unless send_file(StringIO.new(file_entry.content), full_path, connection_params)
       end
       mark_clean
+      log!("Done")
       true
     end
     
     def write_package(root_dir, package=nil)
-      log!("Writing static iiif")
+      log!("Writing static iiif of #{model_object.title} (#{model_object.id})")
       package ||= iiif_package
       package.each do |file_entry|
         full_path = File.join(root_dir, file_entry.path)
@@ -54,6 +56,7 @@ module Trifle
         end
       end
       mark_clean
+      log!("Done")
       true
     end
               
