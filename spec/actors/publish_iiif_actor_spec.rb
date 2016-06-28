@@ -1,7 +1,7 @@
 require 'rails_helper'
 
-RSpec.describe Trifle::StaticIIIFActor do
-  let(:trifle_config) { { 'ark_naan' => '12345', 'static_iiif_url' => 'http://www.example.com/iiif/'} }
+RSpec.describe Trifle::PublishIIIFActor do
+  let(:trifle_config) { { 'ark_naan' => '12345', 'published_iiif_url' => 'http://www.example.com/iiif/'} }
   before {
     config = Trifle.config.merge(trifle_config)
     allow(Trifle).to receive(:config).and_return(config)
@@ -27,7 +27,7 @@ RSpec.describe Trifle::StaticIIIFActor do
   let(:manifest) { fast_manifest }
   let(:user) {nil}
   let(:options) { { } }
-  let(:actor) { Trifle::StaticIIIFActor.new(manifest,user,options) }
+  let(:actor) { Trifle::PublishIIIFActor.new(manifest,user,options) }
 
   describe "#upload_package" do
     let(:package) { [double('entry1', path: '123/manifest', content: 'manifest content'), 
@@ -35,7 +35,7 @@ RSpec.describe Trifle::StaticIIIFActor do
                     ].to_enum }
     let(:trifle_config) { { 
       'ark_naan' => '12345',
-      'static_iiif_url' => 'http://www.example.com/iiif/',
+      'published_iiif_url' => 'http://www.example.com/iiif/',
       'image_server_ssh' => {
         'host' => 'example.com',
         'user' => 'testuser',
@@ -92,7 +92,7 @@ RSpec.describe Trifle::StaticIIIFActor do
   describe "#remove_remote_package" do
     let(:trifle_config) { { 
       'ark_naan' => '12345',
-      'static_iiif_url' => 'http://www.example.com/iiif/',
+      'published_iiif_url' => 'http://www.example.com/iiif/',
       'image_server_ssh' => {
         'host' => 'example.com',
         'user' => 'testuser',

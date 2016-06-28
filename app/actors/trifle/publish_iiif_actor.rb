@@ -1,5 +1,5 @@
 module Trifle
-  class StaticIIIFActor < Trifle::BaseActor
+  class PublishIIIFActor < Trifle::BaseActor
     include DurhamRails::Actors::SFTPUploader
 
     def initialize(model_object, user=nil, attributes={})
@@ -8,7 +8,7 @@ module Trifle
     
     # target_id should be ark for manifests, and fedora id for collections
     def remove_remote_package(target_id, target_type, connection_params=nil, remote_path=nil)
-      log!("Removing static iiif of #{target_type} #{target_id}")
+      log!("Removing published iiif of #{target_type} #{target_id}")
       connection_params ||= Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)
       case target_type.to_sym
       when :manifest
@@ -29,7 +29,7 @@ module Trifle
     end
 
     def upload_package(package=nil, connection_params=nil, remote_path=nil)
-      log!("Uploading static iiif of #{model_object.title} (#{model_object.id})")
+      log!("Uploading iiif of #{model_object.title} (#{model_object.id})")
       package ||= iiif_package
       connection_params ||= Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)
       remote_path ||= "#{Trifle.config['image_server_ssh']['iiif_root']}"
@@ -44,7 +44,7 @@ module Trifle
     end
     
     def write_package(root_dir, package=nil)
-      log!("Writing static iiif of #{model_object.title} (#{model_object.id})")
+      log!("Writing iiif of #{model_object.title} (#{model_object.id})")
       package ||= iiif_package
       package.each do |file_entry|
         full_path = File.join(root_dir, file_entry.path)
@@ -136,14 +136,14 @@ module Trifle
       end
       
       def treeified_prefix
-        @treeified_prefix ||= Trifle.config['static_iiif_url'] + treeify_id + '/'
+        @treeified_prefix ||= Trifle.config['published_iiif_url'] + treeify_id + '/'
       end
     
       def convert_id(id)
         if id.start_with?(rails_manifest_prefix)
           treeified_prefix + id[(rails_manifest_prefix.length)..-1]
         elsif id.start_with?(rails_collection_prefix)
-          Trifle.config['static_iiif_url'] + "collection/" + id[(rails_collection_prefix.length)..-1]
+          Trifle.config['published_iiif_url'] + "collection/" + id[(rails_collection_prefix.length)..-1]
         else
           id
         end

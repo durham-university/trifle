@@ -4,7 +4,7 @@ module Trifle
     include Trifle::ImageDepositBehaviour
     include Trifle::ServeIIIFBehaviour
     include Trifle::RefreshFromSourceBehaviour
-    include Trifle::StatifyResourceBehaviour
+    include Trifle::PublishResourceBehaviour
     include Trifle::AllowCorsBehaviour # Keep this last
 
     helper 'trifle/application'

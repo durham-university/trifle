@@ -11,7 +11,7 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
     allow(Trifle.queue).to receive(:push).and_return(true)
   }
   
-  describe "iiif statification" do
+  describe "iiif publishing" do
     before { allow(Trifle::IIIFCollection).to receive(:ark_naan).and_return('12345') }
     let(:user) { FactoryGirl.create(:user,:admin) }
     before { sign_in user }
@@ -19,32 +19,32 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
     let(:collection2) { FactoryGirl.create(:iiifcollection, :with_parent) }
     let(:collection3) { FactoryGirl.create(:iiifcollection) }
     let(:collection4) { FactoryGirl.create(:iiifcollection) }
-    it "statifies after create" do
-      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+    it "publishes after create" do
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
         expect(job.resource.title).to eql('created collection')
         expect(job.resource_id).to be_present
       end
       post :create, iiif_collection_id: collection.id, iiif_collection: { title: 'created collection' }
     end
-    it "statifies after update" do
-      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+    it "publishes after update" do
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
         expect(job.resource_id).to eql(collection.id)
       end
       post :update, id: collection.id, iiif_collection: { title: 'new title' }
     end
-    it "removes static iiif after destroy" do
+    it "removes published iiif after destroy" do
       collection ; collection2 # create by reference
-      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
         expect(job.resource_id).to eql(collection.id)
         expect(job.remove_id).to eql(collection2.id)
         expect(job.remove_type).to eql('collection')
       end
       delete :destroy, id: collection2.id
     end
-    it "removes static iiif after destroying top level collection" do
+    it "removes published iiif after destroying top level collection" do
       collection3 ; collection4 # create by reference
       expect(Trifle::IIIFCollection.count).to eql(2)
-      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
         expect(job.resource_id).to eql(collection3.id)
         expect(job.remove_id).to eql(collection4.id)
         expect(job.remove_type).to eql('collection')

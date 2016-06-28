@@ -1,5 +1,5 @@
 module Trifle
-  class StatifyJob
+  class PublishJob
     include DurhamRails::Jobs::JobBase
     include DurhamRails::Jobs::WithResource
 #    include DurhamRails::Jobs::WithUser
@@ -37,7 +37,7 @@ module Trifle
     end
         
     def run_job
-      iiif_actor = Trifle::StaticIIIFActor.new(resource)
+      iiif_actor = Trifle::PublishIIIFActor.new(resource)
       iiif_actor.instance_variable_set(:@log,log)
       iiif_actor.upload_package
       if remove_id.present?

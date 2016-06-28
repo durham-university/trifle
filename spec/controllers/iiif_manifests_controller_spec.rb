@@ -12,7 +12,7 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
     allow(Trifle.queue).to receive(:push).and_return(true)
   }
   
-  describe "iiif statification" do
+  describe "iiif publishing" do
     before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
     let(:user) { FactoryGirl.create(:user,:admin) }
     before { sign_in user }
@@ -29,25 +29,25 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
       end
     }
     let(:manifest) { FactoryGirl.create(:iiifmanifest) }
-    it "statifies after create" do
-      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+    it "pubishes after create" do
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
         expect(job.resource.title).to eql('created manifest')
         expect(job.resource_id).to be_present
       end
       post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest' }
     end
-    it "statifies after update" do
-      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+    it "publishes after update" do
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
         expect(job.resource_id).to eql(manifest.id)
       end
       post :update, id: manifest.id, iiif_manifest: { title: 'new title' }
     end
-    it "removes static iiif after destroy" do
+    it "removes published iiif after destroy" do
       collection ; collection2 # create by reference
       expected_parent_jobs = manifest.parent_ids.to_a
       expect(expected_parent_jobs.length).to eql(2)
       expect_remove = true
-      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)).twice do |job|
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)).twice do |job|
         expect(expected_parent_jobs).to include(job.resource_id)
         expected_parent_jobs.delete(job.resource_id)
         if expect_remove
@@ -221,9 +221,9 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
           end)
         end
       }
-      it "refreshes resource from source and starts statify job" do
+      it "refreshes resource from source and starts a publish job" do
         expect(Schmit::API::Catalogue).to receive(:try_find).with('ark:/12345/testid').and_return(manifest_api)
-        expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::StatifyJob)) do |job|
+        expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
           expect(job.resource_id).to eql(manifest.id)
         end
         post :refresh_from_source, id: manifest.id
