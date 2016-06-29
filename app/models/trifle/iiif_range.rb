@@ -1,8 +1,8 @@
 module Trifle
   class IIIFRange < ActiveFedora::Base
     include Hydra::Works::WorkBehavior
+    include DurhamRails::NoidBehaviour # ModelBase overrides NoidBehaviour, keep this line before include ModelBase
     include Trifle::ModelBase
-    include DurhamRails::NoidBehaviour
     include DurhamRails::DestroyFromContainers
     include DurhamRails::DestroyDependentMembers
     include Trifle::TrackDirtyParentBehaviour

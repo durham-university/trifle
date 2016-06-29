@@ -20,5 +20,12 @@ module Trifle
       @parent ||= parent
       self
     end
+    
+    private 
+    
+      def noid_minter
+        @noid_minter ||= noid_minter_with_prefix('t', 'other')
+      end
+    
   end
 end

@@ -1,8 +1,8 @@
 module Trifle
   class IIIFCollection < ActiveFedora::Base
     include Hydra::Works::CollectionBehavior
+    include DurhamRails::NoidBehaviour # ModelBase overrides NoidBehaviour, keep this line before include ModelBase
     include Trifle::ModelBase
-    include DurhamRails::NoidBehaviour
     include DurhamRails::ArkBehaviour
     include DurhamRails::WithBackgroundJobs
     include DurhamRails::DestroyFromContainers
@@ -95,6 +95,12 @@ module Trifle
       c = c.id if c.is_a?(Trifle::IIIFCollection)
       self.where(Solrizer.solr_name('root_collection_id', type: :symbol) => c)
     end
+  
+    private 
     
+      def noid_minter
+        @noid_minter ||= noid_minter_with_prefix('c', 'collection')
+      end
+  
   end
 end

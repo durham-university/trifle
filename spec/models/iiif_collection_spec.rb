@@ -70,4 +70,12 @@ RSpec.describe Trifle::IIIFCollection do
       expect(all.map(&:id)).to match_array([col1.id,col2.id])
     end
   end
+  
+  describe "id minting" do
+    before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'identifier_template' => 't0.reeddeeddk'}) }
+    let(:id) { collection.assign_id }
+    it "uses collection minter" do
+      expect(id).to start_with('t0c')
+    end
+  end  
 end

@@ -178,4 +178,12 @@ RSpec.describe Trifle::IIIFManifest do
       expect(all.map(&:id)).to match_array([man1.id,man2.id])
     end
   end  
+  
+  describe "id minting" do
+    before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'identifier_template' => 't0.reeddeeddk'}) }
+    let(:id) { manifest.assign_id }
+    it "uses manifest minter" do
+      expect(id).to start_with('t0m')
+    end
+  end
 end

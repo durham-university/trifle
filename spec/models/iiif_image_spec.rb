@@ -21,4 +21,13 @@ RSpec.describe Trifle::IIIFImage do
     end
   end
 
+  describe "id minting" do
+    before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'identifier_template' => 't0.reeddeeddk'}) }
+    let(:image) { FactoryGirl.build(:iiifimage)}
+    let(:id) { image.assign_id }
+    it "uses generic minter" do
+      expect(id).to start_with('t0t')
+    end
+  end  
+
 end
