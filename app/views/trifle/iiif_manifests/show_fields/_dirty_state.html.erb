@@ -1,0 +1,8 @@
+<span itemprop="<%= key %>" itemscope itemtype="http://schema.org/Thing">
+  <% if record[key]=='clean' %>
+    <span class="publish_status_published">Published</span>
+  <% else %>
+    <span class="publish_status_not_published">Not published</span>
+    &dash; <%= link_to("Publish now", engine_paths.polymorphic_path([@resource,:publish]), method: "POST") %>
+  <% end %>
+</span>

@@ -5,20 +5,50 @@ module Trifle
     included do
       before_action :validate_publish_job!, only: [:update] # don't try to validate before create, the resource won't exist at that point
       before_action :validate_remove_publish_job!, only: [:destroy]
+      before_action :set_publish_resource, only: [:publish]
       around_action :remove_published_hook, only: [:destroy]
     end
-
+    
+    def publish
+      # queue_publish_job authorizes! action
+      success = queue_publish_job
+      
+      respond_to do |format|
+        if success
+          format.html { redirect_to @resource, notice: "Publish job was successfully queued." }
+          format.json { render json: { resource: @resource.as_json, status: 'ok'} }
+        else
+          format.html { 
+            flash[:error] = "Unable to queue publish iiif job."
+            redirect_to @resource
+          }
+          format.json { render json: { resource: @resource.as_json, status: 'error', message: "Unable to queue publish job."} }
+        end
+      end      
+    end
+    
+    protected
+    
     def create_reply(success)
-      queue_publish_job if success
-      super(success)
+      queue_publish_job if success && publish?
+      super(success) 
     end
     
     def update_reply(success)
-      queue_publish_job if success
+      queue_publish_job if success && publish?
       super(success)
-    end
-    
+    end    
+        
     private 
+    
+      def publish?
+        params[:publish]=='true'
+      end
+    
+      def set_publish_resource
+        set_resource
+      end
+    
       def publish_job
         @publish_job ||= Trifle::PublishJob.new(resource: @resource)
       end
@@ -44,6 +74,7 @@ module Trifle
       end
     
       def validate_publish_job!
+        return unless publish?
         publish_job.validate_job!
       end
       
@@ -60,10 +91,12 @@ module Trifle
       end
     
       def queue_publish_job
+        authorize!(:publish, @resource)
         begin
           publish_job.queue_job
+          true
         rescue StandardError => e
-          flash[:error] = "Unable to queue publish iiif job. #{error_message}" if error_message
+          false
         end
       end
   end

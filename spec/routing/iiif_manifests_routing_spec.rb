@@ -57,4 +57,8 @@ RSpec.describe Trifle::IIIFManifestsController, type: :routing do
   it "routes to #refresh_from_source via POST" do
     expect(post: "/manifest/1/refresh_from_source").to route_to("trifle/iiif_manifests#refresh_from_source", id: "1")
   end  
+  
+  it "routes to #publish via POST" do
+    expect(post: "/manifest/1/publish").to route_to("trifle/iiif_manifests#publish", id: "1")
+  end  
 end

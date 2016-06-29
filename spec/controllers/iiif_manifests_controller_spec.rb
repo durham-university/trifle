@@ -29,18 +29,32 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
       end
     }
     let(:manifest) { FactoryGirl.create(:iiifmanifest) }
-    it "pubishes after create" do
+    it "does not auto-publish after create" do
+      expect(Trifle.queue).not_to receive(:push)
+      post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest' }
+    end
+    it "does not auto-publish after update" do
+      expect(Trifle.queue).not_to receive(:push)
+      post :update, id: manifest.id, iiif_manifest: { title: 'new title' }
+    end
+    it "publishes after create if publish==true" do
       expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
         expect(job.resource.title).to eql('created manifest')
         expect(job.resource_id).to be_present
       end
-      post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest' }
+      post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest' }, publish: 'true'
     end
-    it "publishes after update" do
+    it "publishes after update if publish==true" do
       expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
         expect(job.resource_id).to eql(manifest.id)
       end
-      post :update, id: manifest.id, iiif_manifest: { title: 'new title' }
+      post :update, id: manifest.id, iiif_manifest: { title: 'new title' }, publish: 'true'
+    end
+    it "publishes with publish action" do
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
+        expect(job.resource_id).to eql(manifest.id)
+      end
+      post :publish, id: manifest.id
     end
     it "removes published iiif after destroy" do
       collection ; collection2 # create by reference
@@ -113,6 +127,13 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
         expect(JSON.parse(response.body)).to be_a(Hash)
         expect(response.body).to include(manifest.images.first.image_location)
       end
+    end
+    
+    describe "post #publish" do
+      it "fails authentication" do
+        expect(Trifle.queue).not_to receive(:push)
+        post :publish, id: manifest.id
+      end    
     end
   end
   

@@ -3,5 +3,6 @@ en:
       labels:
         iiif_manifest:
           image_container_location: 'Image location'
+          dirty_state: 'Publish status'
         iiif_structure:
           canvas_ids: 'Canvases'

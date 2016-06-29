@@ -1,0 +1,16 @@
+<div class="actions">
+  <%= f.submit class: 'btn btn-primary' %>
+  
+  <input id="publish_field" type="hidden" name="publish" value="false"/>
+  <%= f.submit 'Update and Publish', class: 'btn btn-warning', onclick: "$('#publish_field').val('true')" %>
+
+  <% if @resource.new_record? %>
+    <% if @parent %>
+      <%= link_to('Cancel', engine_paths.polymorphic_path(@parent), { class: 'btn btn-link' }) %>
+    <% else %>
+    <%= link_to('Cancel', engine_paths.polymorphic_path(@resource), { class: 'btn btn-link' }) %>
+    <% end %>
+  <% else %>
+    <%= link_to('Cancel', engine_paths.polymorphic_path(@resource), { class: 'btn btn-link' }) %>
+  <% end %>
+</div>
