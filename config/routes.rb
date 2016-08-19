@@ -37,6 +37,7 @@ Trifle::Engine.routes.draw do
   post '/manifest/:id/refresh_from_source', to: 'iiif_manifests#refresh_from_source', as: :iiif_manifest_refresh_from_source
   post '/manifest/:id/publish', to: 'iiif_manifests#publish', as: :iiif_manifest_publish
   get '/manifest/:iiif_manifest_id/canvas/:id/all_annotations', to: 'iiif_images#all_annotations', as: :iiif_manifest_iiif_image_all_annotations
+  post '/manifest/:id/update_ranges', to: 'iiif_manifests#update_ranges', as: :iiif_manifest_update_ranges
   
   scope 'iiif' do
     get 'collection/:id', to: 'iiif_collections#show_iiif', as: :iiif_collection_iiif

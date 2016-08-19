@@ -70,8 +70,14 @@ module Trifle
         Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(canvas, host: Trifle.iiif_host)
       end
     end
+    
+    def iiif_subranges
+      sub_ranges.map do |range|
+        Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(range, host: Trifle.iiif_host)
+      end
+    end
         
-    def iiif_range(with_children=true)
+    def iiif_range(with_children=true,version=1)
       self.ordered_members.from_solr!
       IIIF::Presentation::Resource.new.tap do |structure|
         structure['@id'] = Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(self, host: Trifle.iiif_host)
@@ -80,16 +86,17 @@ module Trifle
         _parent = parent_range
         if _parent.nil?
           structure['viewingHint'] = 'top'
-        else
+        elsif version==1
           structure['within'] = Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(_parent, host: Trifle.iiif_host)
         end
         structure['label'] = title
         structure['canvases'] = iiif_canvases if with_children
+        structure['ranges'] =  iiif_subranges if version==2 && with_children
       end
     end
-
-    def to_iiif
-      iiif_range
+    
+    def to_iiif(version=1)
+      iiif_range(true,version)
     end    
     
     private

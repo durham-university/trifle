@@ -40,9 +40,16 @@
              "options": {
                "trifleUrlBase": "<%= trifle.root_url %>",
                "trifleManifestId": "<%= @manifest.id %>"
-             }
+             },
            <% end %>
-         }
+         },
+         <% if @use_toc %>
+          "tocEndpoint": { 
+            "name": "IIIF Toc Endpoint", 
+            "module": "IIIFTocEndpoint", 
+            "options": { "url": "<%= trifle.iiif_manifest_update_ranges_url(@manifest) %>", "addCsrf": true } 
+          }           
+         <% end %>         
        };
        if(manifest){
          options["windowObjects"]=[{

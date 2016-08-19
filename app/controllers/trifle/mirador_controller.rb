@@ -21,6 +21,7 @@ module Trifle
           raise 'Resource must be either a collection, a manifest or an image'
       end
       @use_annotations = @manifest && can?(:update,@manifest)
+      @use_toc = @manifest && can?(:update_ranges,@manifest)
       @no_auto_load = true if params['no_auto_load']
       render :show, layout: false
     end

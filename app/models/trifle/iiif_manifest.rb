@@ -101,8 +101,8 @@ module Trifle
       self.image_container_location = treeify_id
     end
 
-    def iiif_ranges
-      traverse_ranges.map(&:to_iiif)
+    def iiif_ranges(version=1)
+      traverse_ranges.map do |r| r.to_iiif(version) end
     end
 
     def iiif_sequences
@@ -122,7 +122,7 @@ module Trifle
       end
     end
         
-    def iiif_manifest
+    def iiif_manifest(version=1)
       self.ordered_members.from_solr!
       iiif_manifest_stub.tap do |manifest|
         manifest.description = self.description if self.description.present?
@@ -139,14 +139,14 @@ module Trifle
         metadata << {"label" => "Published", "value" => self.date_published} if self.date_published.present?
         manifest.metadata = metadata
         
-        manifest.structures = iiif_ranges
+        manifest.structures = iiif_ranges(version)
         
         manifest.sequences = iiif_sequences        
       end
     end
     
-    def to_iiif
-      iiif_manifest
+    def to_iiif(version=1)
+      iiif_manifest(version)
     end
     
     def to_solr(solr_doc={})

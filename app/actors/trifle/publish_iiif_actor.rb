@@ -36,7 +36,7 @@ module Trifle
       package.each do |file_entry|
         full_path = File.join(remote_path,file_entry.path)
         log!("Sending file #{full_path}")
-        return false unless send_file(StringIO.new(file_entry.content), full_path, connection_params)
+        return false unless send_file(StringIO.new(file_entry.content), full_path, connection_params.reverse_merge(create_dirs: true))
       end
       mark_clean
       log!("Done")

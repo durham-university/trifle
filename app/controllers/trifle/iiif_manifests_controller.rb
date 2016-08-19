@@ -5,6 +5,7 @@ module Trifle
     include Trifle::ServeIIIFBehaviour
     include Trifle::RefreshFromSourceBehaviour
     include Trifle::PublishResourceBehaviour
+    include Trifle::UpdateRangesBehaviour
     include Trifle::AllowCorsBehaviour # Keep this last
 
     helper 'trifle/application'
