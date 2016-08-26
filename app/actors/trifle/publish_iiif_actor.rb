@@ -69,42 +69,43 @@ module Trifle
     end
     
     def iiif_package_unstatified(target=nil)
+      opts = {iiif_version: '2.0'}
       target ||= model_object
       Enumerator.new do |yielder|
         case target
         when Trifle::IIIFManifest
           prefix = treeify_id
-          yielder << FileEntry.new("#{prefix}/manifest", target.to_iiif )
-          target.iiif_sequences.each do |seq|
+          yielder << FileEntry.new("#{prefix}/manifest", target.to_iiif(opts) )
+          target.iiif_sequences(opts).each do |seq|
             raise "Sequence label contains invalid characters #{seq.label}" unless /^[a-zA-Z0-9_-]+$/ =~ seq.label
             yielder << FileEntry.new("#{prefix}/sequence/#{seq.label}", seq )
           end
           target.traverse_ranges.each do |range|
             raise "Range id contains invalid characters #{range.id}" unless /^[a-zA-Z0-9_-]+$/ =~ range.id
-            yielder << FileEntry.new("#{prefix}/range/#{range.id}", range.to_iiif )
+            yielder << FileEntry.new("#{prefix}/range/#{range.id}", range.to_iiif(opts) )
           end
           target.images.each do |image|
             raise "Image id contains invalid characters #{image.id}" unless /^[a-zA-Z0-9_-]+$/ =~ image.id
-            yielder << FileEntry.new("#{prefix}/canvas/#{image.id}", image.to_iiif )
-            yielder << FileEntry.new("#{prefix}/annotation/canvas_#{image.id}", image.iiif_annotation )
+            yielder << FileEntry.new("#{prefix}/canvas/#{image.id}", image.to_iiif(opts) )
+            yielder << FileEntry.new("#{prefix}/annotation/canvas_#{image.id}", image.iiif_annotation(opts) )
 
             image.annotation_lists.each do |list|
               raise "Annotation list id contains invalid characters #{list.id}" unless /^[a-zA-Z0-9_-]+$/ =~ list.id
-              yielder << FileEntry.new("#{prefix}/list/#{list.id}", list.to_iiif )
+              yielder << FileEntry.new("#{prefix}/list/#{list.id}", list.to_iiif(opts) )
               
               list.annotations.each do |annotation|
                 raise "Annotation id contains invalid characters #{annotation.id}" unless /^[a-zA-Z0-9_-]+$/ =~ annotation.id
-                yielder << FileEntry.new("#{prefix}/annotation/#{annotation.id}", annotation.to_iiif )
+                yielder << FileEntry.new("#{prefix}/annotation/#{annotation.id}", annotation.to_iiif(opts) )
               end
             end
           end
           target.parents.select do |o| o.is_a?(Trifle::IIIFCollection) end .each do |collection|
-            yielder << FileEntry.new("collection/#{collection.id}", collection.to_iiif)
+            yielder << FileEntry.new("collection/#{collection.id}", collection.to_iiif(opts))
           end
         when Trifle::IIIFCollection
-          yielder << FileEntry.new("collection/#{target.id}", target.to_iiif)
+          yielder << FileEntry.new("collection/#{target.id}", target.to_iiif(opts))
           parent = target.parent
-          yielder << FileEntry.new("collection/#{parent.id}", parent.to_iiif) if parent
+          yielder << FileEntry.new("collection/#{parent.id}", parent.to_iiif(opts)) if parent
         end
       end
     end

@@ -101,30 +101,30 @@ module Trifle
       self.image_container_location = treeify_id
     end
 
-    def iiif_ranges(version=1)
-      traverse_ranges.map do |r| r.to_iiif(version) end
+    def iiif_ranges(opts={})
+      traverse_ranges.map do |r| r.to_iiif(opts) end
     end
 
-    def iiif_sequences
+    def iiif_sequences(opts={})
       [IIIF::Presentation::Sequence.new.tap do |sequence|
         sequence['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_sequence_iiif_url(self, 'default', host: Trifle.iiif_host)
         sequence.label = 'default'
         sequence.viewing_direction = 'left-to-right'
         sequence.viewing_hint = 'paged'
-        sequence.canvases = images.map do |img| img.iiif_canvas end
+        sequence.canvases = images.map do |img| img.iiif_canvas(opts) end
       end]
     end
     
-    def iiif_manifest_stub
+    def iiif_manifest_stub(opts={})
       IIIF::Presentation::Manifest.new.tap do |manifest|
         manifest['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_iiif_url(self, host: Trifle.iiif_host)
         manifest.label = self.title
       end
     end
         
-    def iiif_manifest(version=1)
+    def iiif_manifest(opts={})
       self.ordered_members.from_solr!
-      iiif_manifest_stub.tap do |manifest|
+      iiif_manifest_stub(opts).tap do |manifest|
         manifest.description = self.description if self.description.present?
         
         # TODO: Move hard coded lincence text to config
@@ -139,14 +139,14 @@ module Trifle
         metadata << {"label" => "Published", "value" => self.date_published} if self.date_published.present?
         manifest.metadata = metadata
         
-        manifest.structures = iiif_ranges(version)
+        manifest.structures = iiif_ranges(opts)
         
-        manifest.sequences = iiif_sequences        
+        manifest.sequences = iiif_sequences(opts)
       end
     end
     
-    def to_iiif(version=1)
-      iiif_manifest(version)
+    def to_iiif(opts={})
+      iiif_manifest(opts.reverse_merge({iiif_version: '2.0'}))
     end
     
     def to_solr(solr_doc={})

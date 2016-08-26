@@ -25,7 +25,7 @@ module Trifle
       parent.try(:parent)
     end
     
-    def iiif_resource
+    def iiif_resource(opts={})
       IIIF::Presentation::Resource.new.tap do |resource|
         resource['@id'] = nil
         resource['@type'] = 'dctypes:Text'
@@ -36,7 +36,7 @@ module Trifle
       end
     end
     
-    def iiif_on
+    def iiif_on(opts={})
       {
         '@type' => 'oa:SpecificResource',
         'full' => Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(on_image, host: Trifle.iiif_host),
@@ -45,16 +45,16 @@ module Trifle
       end
     end
     
-    def iiif_annotation
+    def iiif_annotation(opts={})
       IIIF::Presentation::Annotation.new.tap do |annotation|
         annotation['@id'] = Trifle::Engine.routes.url_helpers.iiif_annotation_iiif_url(self, host: Trifle.iiif_host)
-        annotation['on'] = iiif_on
-        annotation.resource = iiif_resource
+        annotation['on'] = iiif_on(opts)
+        annotation.resource = iiif_resource(opts)
       end
     end
     
-    def to_iiif
-      iiif_annotation
+    def to_iiif(opts={})
+      iiif_annotation(opts.reverse_merge({iiif_version: '2.0'}))
     end
     
     def self.fragment_selector(value)

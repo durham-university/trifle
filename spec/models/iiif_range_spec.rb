@@ -63,17 +63,34 @@ RSpec.describe Trifle::IIIFRange do
   
   describe "#to_iiif" do
     let(:range) { FactoryGirl.create(:iiifrange, :with_manifest, :with_canvases, :with_sub_range)}
-    let(:json) { range.to_iiif.to_ordered_hash }
-    let(:sub_json) { range.sub_ranges.first.to_iiif.to_ordered_hash }
-    it "sets properties" do
-      expect(json['label']).to eql(range.title)
-      expect(json['@type']).to eql('sc:Range')
-      expect(json['viewingHint']).to eql('top')
-      expect(json['canvases']).to be_a(Array)
-      expect(json['canvases']).not_to be_empty
-      
-      expect(sub_json['@type']).to eql('sc:Range')
-      expect(sub_json['within']).to be_present
+    let(:json) { range.to_iiif(iiif_version: version).to_ordered_hash }
+    let(:sub_json) { range.sub_ranges.first.to_iiif(iiif_version: version).to_ordered_hash }
+    describe "version 1" do
+      let(:version){'1.0'}
+      it "sets properties" do
+        expect(json['label']).to eql(range.title)
+        expect(json['@type']).to eql('sc:Range')
+        expect(json['viewingHint']).to eql('top')
+        expect(json['canvases']).to be_a(Array)
+        expect(json['canvases']).not_to be_empty
+        
+        expect(sub_json['@type']).to eql('sc:Range')
+        expect(sub_json['within']).to be_present
+      end
+    end
+    describe "version 2" do
+      let(:version){'2.0'}
+      it "sets properties" do
+        expect(json['label']).to eql(range.title)
+        expect(json['@type']).to eql('sc:Range')
+        expect(json['viewingHint']).to eql('top')
+        expect(json['canvases']).to be_a(Array)
+        expect(json['canvases']).not_to be_empty
+        expect(json['ranges']).to be_a(Array)
+        expect(json['ranges']).not_to be_empty
+        
+        expect(sub_json['@type']).to eql('sc:Range')
+      end
     end
   end
   

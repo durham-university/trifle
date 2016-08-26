@@ -19,7 +19,7 @@ RSpec.describe Trifle::UpdateRangesActor do
   let(:range12) { range1.sub_ranges[1] }
   let(:range2) { top_range.sub_ranges[1] }
 
-  let(:ranges_json) { manifest.iiif_ranges(2).map do |r| JSON.parse(r.to_json) end }
+  let(:ranges_json) { manifest.iiif_ranges(iiif_version: '2.0').map do |r| JSON.parse(r.to_json) end }
   let(:top_range_json) {ranges_json.find do |r| r['@id'].end_with?("/#{top_range.id}") end}
   let(:range1_json) {ranges_json.find do |r| r['@id'].end_with?("/#{range1.id}") end}
   let(:range11_json) {ranges_json.find do |r| r['@id'].end_with?("/#{range11.id}") end}

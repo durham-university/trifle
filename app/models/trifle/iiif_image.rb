@@ -48,27 +48,27 @@ module Trifle
       "#{Trifle.iiif_service}/#{image_location}/#{crop}/#{size}/0/default.jpg"
     end
 
-    def iiif_service
+    def iiif_service(opts={})
       IIIF::Service.new.tap do |service|
         service['@id'] = "#{Trifle.iiif_service}/#{image_location}"
         service['profile'] = "http://iiif.io/api/image/2/level1.json"
       end
     end
     
-    def iiif_resource
+    def iiif_resource(opts={})
       IIIF::Presentation::ImageResource.new.tap do |image|
         image['@id'] = image_url
         image.format = 'image/jpeg'
         image.width = width.to_i
         image.height = height.to_i
-        image.service = iiif_service
+        image.service = iiif_service(opts)
       end
     end
     
-    def iiif_annotation
+    def iiif_annotation(opts={})
       IIIF::Presentation::Annotation.new.tap do |annotation|
         annotation['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_annotation_iiif_url(self, host: Trifle.iiif_host)
-        annotation.resource = iiif_resource
+        annotation.resource = iiif_resource(opts)
         annotation['on'] = Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(self, host: Trifle.iiif_host)
       end
     end
@@ -80,16 +80,16 @@ module Trifle
         canvas.label = title
         canvas.width = width.to_i
         canvas.height = height.to_i
-        canvas.images = [iiif_annotation]
+        canvas.images = [iiif_annotation(opts)]
 
         unless opts[:no_annotations]
-          canvas.other_content = annotation_lists.map do |al| al.iiif_annotation_list(false) end  if annotation_lists.any?
+          canvas.other_content = annotation_lists.map do |al| al.iiif_annotation_list(opts.merge(with_children: false)) end  if annotation_lists.any?
         end
       end
     end
 
     def to_iiif(opts={})
-      iiif_canvas(opts)
+      iiif_canvas(opts.reverse_merge({iiif_version: '2.0'}))
     end
 
   end

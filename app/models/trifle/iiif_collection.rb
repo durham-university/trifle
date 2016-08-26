@@ -53,29 +53,29 @@ module Trifle
       ordered_members.to_a.select do |m| m.is_a? IIIFManifest end
     end
     
-    def iiif_collection_stub
+    def iiif_collection_stub(opts={})
       IIIF::Presentation::Collection.new.tap do |collection|
         collection['@id'] = Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url(self, host: Trifle.iiif_host)
         collection.label = self.title
       end
     end
     
-    def iiif_collection
-      iiif_collection_stub.tap do |collection|
+    def iiif_collection(opts={})
+      iiif_collection_stub(opts).tap do |collection|
         collection.description = self.description if self.description.present?
         collection.license = self.licence if self.licence.present?
         collection.attribution = self.attribution if self.attribution.present?
         
-        collection.collections = sub_collections.to_a.map(&:iiif_collection_stub)
-        collection.manifests = manifests.to_a.map(&:iiif_manifest_stub)
+        collection.collections = sub_collections.to_a.map do |c| c.iiif_collection_stub(opts) end
+        collection.manifests = manifests.to_a.map do |m| m.iiif_manifest_stub(opts) end
         
         parent_collection = self.parent
         collection.within = Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url(parent_collection, host: Trifle.iiif_host) if parent_collection.present?
       end
     end
     
-    def to_iiif
-      iiif_collection
+    def to_iiif(opts={})
+      iiif_collection(opts.reverse_merge({iiif_version: '2.0'}))
     end
     
     def to_solr(solr_doc={})

@@ -77,7 +77,8 @@ module Trifle
       end
     end
         
-    def iiif_range(with_children=true,version=1)
+    def iiif_range(opts={})
+      version = opts.fetch(:iiif_version,'2.0').to_f 
       self.ordered_members.from_solr!
       IIIF::Presentation::Resource.new.tap do |structure|
         structure['@id'] = Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(self, host: Trifle.iiif_host)
@@ -86,17 +87,17 @@ module Trifle
         _parent = parent_range
         if _parent.nil?
           structure['viewingHint'] = 'top'
-        elsif version==1
+        elsif version < 2.0
           structure['within'] = Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(_parent, host: Trifle.iiif_host)
         end
         structure['label'] = title
-        structure['canvases'] = iiif_canvases if with_children
-        structure['ranges'] =  iiif_subranges if version==2 && with_children
+        structure['canvases'] = iiif_canvases if opts[:with_children]
+        structure['ranges'] = iiif_subranges if version >= 2.0 && opts[:with_children]
       end
     end
     
-    def to_iiif(version=1)
-      iiif_range(true,version)
+    def to_iiif(opts={})
+      iiif_range(opts.reverse_merge({iiif_version: '2.0', with_children: true}))
     end    
     
     private
