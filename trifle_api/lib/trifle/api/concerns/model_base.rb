@@ -7,6 +7,7 @@ module Trifle
         include ::HTTParty
         include DurhamRails::API::Authentication
         base_uri Trifle::API.config.fetch('base_url','http://localhost:3000/trifle')
+        read_timeout 300 # seconds
 
         class << self
           def local_mode?
