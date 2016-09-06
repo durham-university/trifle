@@ -2,6 +2,7 @@ module Trifle
   class ImageDepositActor < Trifle::BaseActor
     include DurhamRails::Actors::ShellRunner
     include DurhamRails::Actors::SFTPUploader
+    include DurhamRails::Actors::FileCopier
 
     def initialize(model_object, user=nil, attributes={})
       super(model_object, user, attributes)
@@ -120,7 +121,7 @@ module Trifle
         return false
       end
       
-      connection_params = Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)      
+      connection_params = Trifle.config['image_server_config'].symbolize_keys.except(:root, :iiif_root, :images_root)
       
       convert_file = Tempfile.new(['trifle_convert',".#{image_format}"])
       begin
@@ -130,10 +131,18 @@ module Trifle
         metadata = metadata.stringify_keys.reverse_merge({'source_path' => source_path})
         
         convert_image(source_path, convert_path) && analyse_image(convert_path) &&
-          send_file(convert_path, dest_path, connection_params) && 
+          send_or_copy_file(convert_path, dest_path, connection_params) && 
           add_to_image_container(metadata)
       ensure
         convert_file.unlink if convert_file
+      end
+    end
+    
+    def send_or_copy_file(source, dest_path, connection_params)
+      if connection_params[:local_copy].to_s == 'true'
+        return copy_file_local(source, dest_path, connection_params)
+      else
+        return send_file(source, dest_path, connection_params.except(:local_copy))
       end
     end
     
@@ -161,7 +170,7 @@ module Trifle
       end
 
       def image_base_path
-        Trifle.config['image_server_ssh']['images_root']
+        Trifle.config['image_server_config']['images_root']
       end
 
       def image_format

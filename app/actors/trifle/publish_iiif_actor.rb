@@ -1,6 +1,7 @@
 module Trifle
   class PublishIIIFActor < Trifle::BaseActor
     include DurhamRails::Actors::SFTPUploader
+    include DurhamRails::Actors::FileCopier
 
     def initialize(model_object, user=nil, attributes={})
       super(model_object, user, attributes)
@@ -9,13 +10,15 @@ module Trifle
     # target_id should be ark for manifests, and fedora id for collections
     def remove_remote_package(target_id, target_type, connection_params=nil, remote_path=nil)
       log!("Removing published iiif of #{target_type} #{target_id}")
-      connection_params ||= Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)
+      connection_params ||= Trifle.config['image_server_config'].symbolize_keys.except(:root, :iiif_root, :images_root)
+      # TODO: remove_remote_package not implemented for local copy 
+      raise 'remove_remote_package not implemented for local copy' if connection_params[:local_copy].to_s == 'true'
       case target_type.to_sym
       when :manifest
-        remote_path ||= File.join("#{Trifle.config['image_server_ssh']['iiif_root']}", "#{treeify_id(target_id)}")
+        remote_path ||= File.join("#{Trifle.config['image_server_config']['iiif_root']}", "#{treeify_id(target_id)}")
         sftp_rm_rf(remote_path, connection_params)
       when :collection
-        remote_path ||= File.join("#{Trifle.config['image_server_ssh']['iiif_root']}", "collection/#{target_id}")
+        remote_path ||= File.join("#{Trifle.config['image_server_config']['iiif_root']}", "collection/#{target_id}")
         sftp_rm_rf(remote_path, connection_params)
       end
     end
@@ -27,16 +30,24 @@ module Trifle
         @model_object.save
       end
     end
+    
+    def send_or_copy_file(source, dest_path, connection_params)
+      if connection_params[:local_copy].to_s == 'true'
+        return copy_file_local(source, dest_path, connection_params)
+      else
+        return send_file(source, dest_path, connection_params.except(:local_copy))
+      end
+    end    
 
     def upload_package(package=nil, connection_params=nil, remote_path=nil)
       log!("Uploading iiif of #{model_object.title} (#{model_object.id})")
       package ||= iiif_package
-      connection_params ||= Trifle.config['image_server_ssh'].symbolize_keys.except(:root, :iiif_root, :images_root)
-      remote_path ||= "#{Trifle.config['image_server_ssh']['iiif_root']}"
+      connection_params ||= Trifle.config['image_server_config'].symbolize_keys.except(:root, :iiif_root, :images_root)
+      remote_path ||= "#{Trifle.config['image_server_config']['iiif_root']}"
       package.each do |file_entry|
         full_path = File.join(remote_path,file_entry.path)
         log!("Sending file #{full_path}")
-        return false unless send_file(StringIO.new(file_entry.content), full_path, connection_params.reverse_merge(create_dirs: true))
+        return false unless send_or_copy_file(StringIO.new(file_entry.content), full_path, connection_params.reverse_merge(create_dirs: true))
       end
       mark_clean
       log!("Done")

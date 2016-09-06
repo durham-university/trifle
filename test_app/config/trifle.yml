@@ -23,7 +23,7 @@ development:
   # base url where mirador viewer can be found
   mirador_base_url: 'http://localhost/mirador/' 
   # settings for uploading iiif and images to image server
-  image_server_ssh:
+  image_server_config:
     host: 'localhost'
     user: <%= ENV['USER'] %>
     iiif_root: <%= File.join(Dir.home,'mock_iiif') %>/

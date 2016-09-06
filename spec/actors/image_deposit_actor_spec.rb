@@ -157,8 +157,9 @@ RSpec.describe Trifle::ImageDepositActor do
   describe "#deposit_image" do
     before {
       allow(Trifle).to receive(:config).and_return({
-          'image_server_ssh' => {
-            'images_root' => 'dummy_iipi_dir'
+          'image_server_config' => {
+            'images_root' => 'dummy_iipi_dir',
+            'local_copy' => true
           }
         })
     }
@@ -172,7 +173,7 @@ RSpec.describe Trifle::ImageDepositActor do
 
       allow(actor).to receive(:convert_image).and_return(true)
       allow(actor).to receive(:analyse_image).and_return(true)
-      allow(actor).to receive(:send_file).and_return(true)
+      allow(actor).to receive(:send_or_copy_file).and_return(true)
       allow(actor).to receive(:add_to_image_container).and_return(true)
     }
     let(:source_path) { '/tmp/source' }
@@ -215,15 +216,16 @@ RSpec.describe Trifle::ImageDepositActor do
         true
       end
       expect(actor).to receive(:analyse_image).and_return(true)
-      expect(actor).to receive(:send_file) do |convert_path,dest_path|
+      expect(actor).to receive(:send_or_copy_file) do |convert_path,dest_path, params|
         expect(convert_path).to eql(convert_temp)
         expect(dest_path).to eql('/tmp/base/folder/foo.ptif')
+        expect(params[:local_copy]).to eql(true)
         true
       end
       expect(actor).to receive(:add_to_image_container).with(metadata_with_source.stringify_keys).and_return(true)
       expect(actor.deposit_image(source_path,metadata)).to eql(true)
     end
-    
+        
     it "doesn't overwrite source_path" do
       expect(actor).to receive(:add_to_image_container).with({'source_path' => 'moo'})
       actor.deposit_image(source_path, {'source_path' => 'moo'})
@@ -236,6 +238,23 @@ RSpec.describe Trifle::ImageDepositActor do
         expect(actor.log.last.level).to eql(:error)
         expect(actor.log.last.message).to start_with("Suspicious container_dir")
       end
+    end
+  end
+  
+  describe "#send_or_copy_file" do
+    let(:connection_params) { { 'test' => 'dummy' } }
+    let(:source) { double('source') }
+    let(:dest) { double('dest') }
+    it "sends over ssh" do
+      expect(actor).to receive(:send_file).with(source, dest, hash_including('test'=>'dummy'))
+      expect(actor).not_to receive(:copy_file_local)
+      actor.send_or_copy_file(source, dest, connection_params)
+    end
+    it "copies locally" do
+      connection_params[:local_copy] = true
+      expect(actor).to receive(:copy_file_local).with(source, dest, hash_including('test'=>'dummy'))
+      expect(actor).not_to receive(:send_file)
+      actor.send_or_copy_file(source, dest, connection_params)
     end
   end
 
@@ -275,7 +294,7 @@ RSpec.describe Trifle::ImageDepositActor do
           'image_convert_format' => 'dummy_format',
           'image_convert_command' => ['dummy_convert_command'],
           'image_convert_temp_dir' => '/tmp/dummy',
-          'image_server_ssh' => {
+          'image_server_config' => {
             'images_root' => 'dummy_iipi_dir'
           }
         })

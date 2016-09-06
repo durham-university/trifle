@@ -36,7 +36,7 @@ RSpec.describe Trifle::PublishIIIFActor do
     let(:trifle_config) { { 
       'ark_naan' => '12345',
       'published_iiif_url' => 'http://www.example.com/iiif/',
-      'image_server_ssh' => {
+      'image_server_config' => {
         'host' => 'example.com',
         'user' => 'testuser',
         'iiif_root' => '/iiif'
@@ -45,12 +45,12 @@ RSpec.describe Trifle::PublishIIIFActor do
     
     before {
       expect(actor).to receive(:iiif_package).and_return(package)
-      allow(actor).to receive(:send_file).and_return(true)
+      allow(actor).to receive(:send_or_copy_file).and_return(true)
     }
     
     it "uploads all files" do
       sent_files = []
-      expect(actor).to receive(:send_file).at_least(:once) do |file,path,params|
+      expect(actor).to receive(:send_or_copy_file).at_least(:once) do |file,path,params|
         sent_files << path
         expect(file.read).to eql("#{path.split('/').last} content")
         expect(params[:host]).to eql('example.com')
@@ -68,6 +68,23 @@ RSpec.describe Trifle::PublishIIIFActor do
         actor.upload_package
         expect(manifest.reload).to be_clean
       end
+    end
+  end
+  
+  describe "#send_or_copy_file" do
+    let(:connection_params) { { 'test' => 'dummy' } }
+    let(:source) { double('source') }
+    let(:dest) { double('dest') }
+    it "sends over ssh" do
+      expect(actor).to receive(:send_file).with(source, dest, hash_including('test'=>'dummy'))
+      expect(actor).not_to receive(:copy_file_local)
+      actor.send_or_copy_file(source, dest, connection_params)
+    end
+    it "copies locally" do
+      connection_params[:local_copy] = true
+      expect(actor).to receive(:copy_file_local).with(source, dest, hash_including('test'=>'dummy'))
+      expect(actor).not_to receive(:send_file)
+      actor.send_or_copy_file(source, dest, connection_params)
     end
   end
   
@@ -93,7 +110,7 @@ RSpec.describe Trifle::PublishIIIFActor do
     let(:trifle_config) { { 
       'ark_naan' => '12345',
       'published_iiif_url' => 'http://www.example.com/iiif/',
-      'image_server_ssh' => {
+      'image_server_config' => {
         'host' => 'example.com',
         'user' => 'testuser',
         'iiif_root' => '/iiif'
