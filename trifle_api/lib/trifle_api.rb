@@ -21,7 +21,7 @@ module Trifle
         if defined?(Rails) && Rails.root
           path = Rails.root.join('config','trifle_api.yml')
           if File.exists?(path)
-            config = YAML.load(ERB.new(File.read(path)).result)[Rails.env]
+            config = YAML.load(ERB.new(File.read(path)).tap do |erb| erb.filename = path.to_s end .result)[Rails.env] || {}
           end
         end
         config
