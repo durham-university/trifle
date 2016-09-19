@@ -9,7 +9,11 @@ RSpec.describe Trifle::PublishIIIFActor do
   let(:full_manifest) { 
     FactoryGirl.create(:iiifmanifest, :with_images, :with_parent, identifier: ['ark:/12345/t0bc12df34x']).tap do |man| 
       range = FactoryGirl.create(:iiifrange)
+      sub_range = FactoryGirl.create(:iiifrange)
+      sub_range.ordered_members << man.images[0]
+      sub_range.save
       range.ordered_members += man.images
+      range.ordered_members << sub_range
       range.save
       man.ordered_members << range
       man.save
@@ -140,7 +144,9 @@ RSpec.describe Trifle::PublishIIIFActor do
       it "adds all the entries" do
         expect(enum).to be_a(Enumerator)
         expect(entries.map(&:path)).to match_array([
-            "#{prefix}/manifest", "#{prefix}/sequence/default", "#{prefix}/range/#{manifest.ranges.first.id}",
+            "#{prefix}/manifest", "#{prefix}/sequence/default",
+            "#{prefix}/range/#{manifest.ranges.first.id}",
+            "#{prefix}/range/#{manifest.ranges.first.sub_ranges.first.id}",
             *(manifest.images.map do |img| "#{prefix}/canvas/#{img.id}" end),
             *(manifest.images.map do |img| "#{prefix}/annotation/canvas_#{img.id}" end),
             "#{prefix}/list/#{manifest.images.first.annotation_lists.first.id}",

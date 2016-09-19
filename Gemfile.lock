@@ -38,7 +38,7 @@ PATH
 PATH
   remote: /home/qgkb58/hydra/durham_rails
   specs:
-    durham_rails (0.0.14)
+    durham_rails (0.0.15)
       active-fedora (~> 9.13)
       httparty
       net-sftp
@@ -513,3 +513,6 @@ DEPENDENCIES
   sqlite3
   trifle!
   web-console (~> 2.0)
+
+BUNDLED WITH
+   1.12.5

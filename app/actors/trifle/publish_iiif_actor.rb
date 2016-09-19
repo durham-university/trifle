@@ -165,8 +165,9 @@ module Trifle
         iiif['@id'] = convert_id(iiif['@id']) if iiif['@id'].present?
         iiif['on'] = convert_id(iiif['on']) if iiif['on'].present? && iiif['on'].is_a?(String)
         iiif['within'] = convert_id(iiif['within']) if iiif['within'].present? && iiif['within'].is_a?(String)
-        if iiif['@type'] == 'sc:Range' && iiif['canvases']
-          iiif['canvases'].map! do |id| convert_id(id) end
+        if iiif['@type'] == 'sc:Range'
+          iiif['canvases'].map! do |id| convert_id(id) end if iiif['canvases']
+          iiif['ranges'].map! do |id| convert_id(id) end if iiif['ranges']
         end
         iiif.each do |key,value|
           if value.is_a?(Array)
