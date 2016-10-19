@@ -37,8 +37,9 @@ RSpec.describe Trifle::ImageDepositActor do
     before {
       actor.instance_variable_set(:@logical_path,'folder/foo.ptif')
       actor.instance_variable_set(:@image_analysis, { width: 1234, height: 4567})
+      allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222']})      
     }
-    let(:metadata) { { 'title' => 'Foo title', 'source_path' => 'oubliette:b0ab12cd34x' } }
+    let(:metadata) { { 'title' => 'Foo title', 'source_path' => 'oubliette:b0ab12cd34x', 'ark_naan' => '22222' } }
     let(:image) { actor.create_image_object(metadata) }
     it "creates an IIIFImage and sets metadata" do
       expect(image).to be_a Trifle::IIIFImage
@@ -47,6 +48,7 @@ RSpec.describe Trifle::ImageDepositActor do
       expect(image.height).to eql('4567')
       expect(image.image_location).to eql('folder/foo.ptif')
       expect(image.image_source).to eql('oubliette:b0ab12cd34x')
+      expect(image.instance_variable_get(:@ark_naan)).to eql('22222')
     end
   end
 

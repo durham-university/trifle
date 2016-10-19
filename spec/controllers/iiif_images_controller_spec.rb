@@ -62,4 +62,20 @@ RSpec.describe Trifle::IIIFImagesController, type: :controller do
     end
     
   end
+  
+  describe "#set_new_resource" do
+    let(:manifest) { FactoryGirl.create(:iiifmanifest) }
+    let(:user) { FactoryGirl.create(:user,:admin) }
+    before {
+      allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222','33333']})
+      manifest.identifier = ['ark:/22222/manifest']
+      manifest.save
+      sign_in user
+    }
+    it "sets parent naan" do
+      post :create, iiif_manifest_id: manifest.id, iiif_image: { title: 'created manifest' }      
+      expect(assigns(:resource).local_ark_naan).to eql('22222')
+    end
+  end
+  
 end

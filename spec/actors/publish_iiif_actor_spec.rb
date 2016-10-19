@@ -160,12 +160,12 @@ RSpec.describe Trifle::PublishIIIFActor do
     context "with a collection" do
       # variable manifest is really a collection!
       let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests, :with_parent)}
-      let(:iiif) { entries.find do |e| e.path.ends_with?("collection/#{manifest.id}") end .content }
+      let(:iiif) { entries.find do |e| e.path.ends_with?("collection/12345/#{manifest.id}") end .content }
       it "works with a collection object" do
         expect(enum).to be_a(Enumerator)
         expect(entries.map(&:path)).to match_array([
-            "collection/#{manifest.id}",
-            "collection/#{manifest.parent.id}"
+            "collection/12345/#{manifest.id}",
+            "collection/12345/#{manifest.parent.id}"
           ])
         expect(iiif).to be_a(IIIF::Presentation::Collection)
       end
@@ -176,8 +176,8 @@ RSpec.describe Trifle::PublishIIIFActor do
       let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests) }
       let(:other_object) { FactoryGirl.create(:iiifcollection,:with_manifests) }
       it "can take an object as a parameter" do
-        expect(entries.map(&:path)).to include("collection/#{other_object.id}")
-        expect(entries.map(&:path)).not_to include("collection/#{manifest.id}")
+        expect(entries.map(&:path)).to include("collection/12345/#{other_object.id}")
+        expect(entries.map(&:path)).not_to include("collection/12345/#{manifest.id}")
       end
     end
   end

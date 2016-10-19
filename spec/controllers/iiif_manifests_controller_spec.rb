@@ -12,6 +12,18 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
     allow(Trifle.queue).to receive(:push).and_return(true)
   }
   
+  describe "#create" do
+    let(:user) { FactoryGirl.create(:user,:admin) }
+    before {
+      allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222']})
+      sign_in user
+    }
+    it "accepts ark_naan in params" do
+      post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'test title', ark_naan: '22222' }
+      expect(assigns(:resource).local_ark_naan).to eql('22222')
+    end
+  end
+  
   describe "iiif publishing" do
     before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
     let(:user) { FactoryGirl.create(:user,:admin) }
@@ -256,5 +268,22 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
     end    
   end
   
+  describe "#set_new_resource" do
+    let(:user) { FactoryGirl.create(:user,:admin) }
+    before {
+      allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222','33333']})
+      collection.identifier = ['ark:/22222/collection']
+      collection.save
+      sign_in user
+    }
+    it "sets parent naan" do
+      post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest' }      
+      expect(assigns(:resource).local_ark_naan).to eql('22222')
+    end
+    it "allows overriding naan" do
+      post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest', ark_naan: '33333' }
+      expect(assigns(:resource).local_ark_naan).to eql('33333')
+    end    
+  end
 
 end

@@ -33,6 +33,15 @@ module Trifle
       @parent = IIIFManifest.find(params[:iiif_manifest_id])
     end
 
+    protected
+    
+      def new_resource(params={})
+        super(params).tap do |res|
+          res.set_ark_naan(@parent.local_ark_naan) if @parent
+        end
+      end
+
+
     private
       def set_all_annotations_resource
         set_resource

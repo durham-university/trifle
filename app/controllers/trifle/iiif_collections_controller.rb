@@ -45,6 +45,21 @@ module Trifle
         
     protected
     
+      def new_resource(params={})
+        super(params).tap do |res|
+          res.set_ark_naan(@parent.local_ark_naan) if @parent && !params[:ark_naan]
+        end
+      end
+
+      def resource_params
+        super.tap do |ret|
+          if params[:action].to_sym == :create
+            ark_naan = params[self.class.model_name.param_key.to_sym].try(:[],:ark_naan)
+            ret.merge!(ark_naan: ark_naan) if ark_naan.present?
+          end
+        end
+      end
+          
       def index_resources
         if @parent.present?
           @parent.sub_collections

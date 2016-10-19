@@ -24,6 +24,7 @@ module Trifle
 
     def create_image_object(metadata={})
       Trifle::IIIFImage.new.tap do |image|
+        image.set_ark_naan(metadata['ark_naan'])
         image.image_location = @logical_path
         image.image_source = metadata['source_path'] if metadata['source_path'].present?
         image.title = metadata['title'] if metadata['title'].present?
@@ -52,6 +53,7 @@ module Trifle
 
     def add_to_image_container(metadata={})
       log!(:info, "Adding to image container #{@model_object.id}")
+      metadata = metadata.reverse_merge(ark_naan: @model_object.local_ark_naan) if @model_object.local_ark_naan
       image_obj = create_image_object(metadata)
       return false unless image_obj
       ret_val = @model_object.add_deposited_image(image_obj)

@@ -105,6 +105,7 @@ module Trifle
         'Trifle::IIIFManifest'.constantize
       end
 
+      # NOTE: can give :ark_naan in manifest_metadata to set the naan used for ark
       def self.deposit_new(parent, deposit_items,manifest_metadata={})
         return deposit_new_local(parent, deposit_items,manifest_metadata) if local_mode?
         parent = parent.id if parent.respond_to?(:id)

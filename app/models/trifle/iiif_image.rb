@@ -3,7 +3,7 @@ module Trifle
     include Hydra::Works::WorkBehavior
     include DurhamRails::NoidBehaviour # ModelBase overrides NoidBehaviour, keep this line before include ModelBase
     include Trifle::ModelBase
-    include DurhamRails::ArkBehaviour
+    include Trifle::ArkNaanOptionsBehaviour
     include DurhamRails::DestroyFromContainers
     include DurhamRails::DestroyDependentMembers
     include Trifle::TrackDirtyParentBehaviour

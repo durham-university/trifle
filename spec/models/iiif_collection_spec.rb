@@ -72,7 +72,8 @@ RSpec.describe Trifle::IIIFCollection do
   end
   
   describe "id minting" do
-    before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'identifier_template' => 't0.reeddeeddk'}) }
+    before { File.unlink('/tmp/test-minter-state_collection') if File.exists?('/tmp/test-minter-state_collection') }
+    before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'identifier_template' => 't0.reeddeeddk', 'identifier_statefile' => '/tmp/test-minter-state'}) }
     let(:id) { collection.assign_id }
     it "uses collection minter" do
       expect(id).to start_with('t0c')

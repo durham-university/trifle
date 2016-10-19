@@ -114,9 +114,13 @@ module Trifle
             yielder << FileEntry.new("collection/#{collection.id}", collection.to_iiif(opts))
           end
         when Trifle::IIIFCollection
-          yielder << FileEntry.new("collection/#{target.id}", target.to_iiif(opts))
+          raise "Target has no local_ark" unless target.local_ark.present?
+          yielder << FileEntry.new("collection/#{target.local_ark.split('/')[1..2].join('/')}", target.to_iiif(opts))
           parent = target.parent
-          yielder << FileEntry.new("collection/#{parent.id}", parent.to_iiif(opts)) if parent
+          if parent
+            raise "Parent has no local_ark" unless parent.local_ark.present?
+            yielder << FileEntry.new("collection/#{parent.local_ark.split('/')[1..2].join('/')}", parent.to_iiif(opts))
+          end
         end
       end
     end
