@@ -4,10 +4,9 @@ defaults: &defaults
   identifier_statefile: '/tmp/trifle-minter-state'
   image_convert_command: ['scripts/convert_ptif.sh']
 #  image_convert_command: ['scripts/convert_jp2.sh']
-  image_size_command: ['scripts/image_size.sh']
-#  image_size_command: ['scripts/image_size_jp2.sh']
   image_convert_format: 'ptif'
 #  image_convert_format: 'jp2'
+  fits_path: '/home/qgkb58/hydra/fits-0.8.6/fits.sh'
 
 development:
   <<: *defaults

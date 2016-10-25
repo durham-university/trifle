@@ -3,14 +3,16 @@ module Trifle
     include DurhamRails::Actors::ShellRunner
     include DurhamRails::Actors::SFTPUploader
     include DurhamRails::Actors::FileCopier
+    include DurhamRails::Actors::FitsRunner
 
     def initialize(model_object, user=nil, attributes={})
       super(model_object, user, attributes)
     end
 
     def convert_image(source_path,dest_path)
-      log!(:info,"Converting image #{source_path} to #{dest_path}")
-      stdout, stderr, exit_status = shell_exec('',*(convert_command+[source_path,dest_path]))
+      log!(:info,"Converting image #{source_path} to #{dest_path} (colour space #{@image_analysis.try(:[],:colour_space)})")
+      cs = (@image_analysis.try(:[],:colour_space) == 'BlackIsZero' ? 'BW' : 'RGB')
+      stdout, stderr, exit_status = shell_exec('',*(convert_command+[source_path,dest_path,cs]))
       if exit_status!=0
         log!(:error,"Error converting image. (#{exit_status})")
         log!(:error, stderr) if stderr.present?
@@ -33,20 +35,26 @@ module Trifle
       end
     end
 
-    def analyse_image(dest_path)
+    def analyse_image(source_path)
       log!(:info, "Structural analysis of image")
-
-      stdout, stderr, exit_status = shell_exec('',*(image_size_command+[dest_path]))
-      scan = stdout.scan(/(\d+)x(\d+)/)
-      unless scan.present?
-        log!(:error, "Unable determine image size. (#{exit_status})")
-        log!(:error, stderr) if stderr.present?
-        log!(:error, stdout) if stdout.present?
+      
+      (fits_xml, error_out, exit_code) = run_fits(source_path)
+      unless exit_code == 0
+        log!(:error, "Unable to run Fits. #{error_out}")
         return false
       end
+      
+      width = fits_xml.xpath('/xmlns:fits/xmlns:metadata/xmlns:image/xmlns:imageWidth[@toolname="Jhove"]/text()').first.to_s.to_i
+      height = fits_xml.xpath('/xmlns:fits/xmlns:metadata/xmlns:image/xmlns:imageHeight[@toolname="Jhove"]/text()').first.to_s.to_i
+      colour_space = fits_xml.xpath('/xmlns:fits/xmlns:metadata/xmlns:image/xmlns:colorSpace[@toolname="Jhove"]/text()').first.to_s
 
-      @image_analysis ||= {}
-      @image_analysis.merge!( width: scan[0][0].to_i, height: scan[0][1].to_i )
+      unless width.present? && height.present?
+        log!(:error, "Unable determine image size.")
+        log!(:error, error_out) if error_out.present?
+        return false
+      end
+      
+      @image_analysis = {width: width, height: height, colour_space: colour_space}
 
       return true
     end
@@ -132,7 +140,7 @@ module Trifle
         
         metadata = metadata.stringify_keys.reverse_merge({'source_path' => source_path})
         
-        convert_image(source_path, convert_path) && analyse_image(convert_path) &&
+        analyse_image(source_path) && convert_image(source_path, convert_path) &&
           send_or_copy_file(convert_path, dest_path, connection_params) && 
           add_to_image_container(metadata)
       ensure
@@ -181,10 +189,6 @@ module Trifle
 
       def convert_command
         Trifle.config['image_convert_command']
-      end
-
-      def image_size_command
-        Trifle.config['image_size_command']
       end
 
       def temp_dir

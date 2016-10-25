@@ -15,7 +15,7 @@ RSpec.describe Trifle::ImageDepositActor do
     let(:status) { 0 }
     before {
       expect(actor).to receive(:convert_command).and_return(['dummy'])
-      expect(actor).to receive(:shell_exec).with('','dummy',source_path,dest_path).and_return([stdout,stderr,status])
+      expect(actor).to receive(:shell_exec).with('','dummy',source_path,dest_path,'RGB').and_return([stdout,stderr,status])
     }
     context "when things work" do
       it "returns true" do
@@ -36,7 +36,7 @@ RSpec.describe Trifle::ImageDepositActor do
   describe "#create_image_object" do
     before {
       actor.instance_variable_set(:@logical_path,'folder/foo.ptif')
-      actor.instance_variable_set(:@image_analysis, { width: 1234, height: 4567})
+      actor.instance_variable_set(:@image_analysis, { width: 1234, height: 4567, colour_space: 'RGB'})
       allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222']})      
     }
     let(:metadata) { { 'title' => 'Foo title', 'source_path' => 'oubliette:b0ab12cd34x', 'ark_naan' => '22222' } }
@@ -53,27 +53,27 @@ RSpec.describe Trifle::ImageDepositActor do
   end
 
   describe "#analyse_image" do
-    let(:dest_path) { '/tmp/dummy_dest.ptif' }
-    let(:stdout) { '1234x5678' }
+    let(:source_path) { '/tmp/dummy_dest.ptif' }
+    let(:fits_out) { Nokogiri::XML(fixture('fits_out.xml').read) }
     let(:stderr) { '' }
     let(:status) { 0 }
     before {
-      expect(actor).to receive(:image_size_command).and_return(['dummy'])
-      expect(actor).to receive(:shell_exec).with('','dummy',dest_path).and_return([stdout,stderr,status])
+      expect(actor).to receive(:run_fits).with(source_path).and_return([fits_out,stderr,status])
     }
     context "when things work" do
       it "returns true and sets width and height" do
-        expect(actor.analyse_image(dest_path)).to eql(true)
-        expect(actor.instance_variable_get(:@image_analysis)[:width]).to eql(1234)
-        expect(actor.instance_variable_get(:@image_analysis)[:height]).to eql(5678)
+        expect(actor.analyse_image(source_path)).to eql(true)
+        expect(actor.instance_variable_get(:@image_analysis)[:width]).to eql(6600)
+        expect(actor.instance_variable_get(:@image_analysis)[:height]).to eql(8400)
+        expect(actor.instance_variable_get(:@image_analysis)[:colour_space]).to eql('RGB')
       end
     end
     context "when script fails" do
       let(:status) { 1 }
-      let(:stdout) { '' }
+      let(:fits_out) { '' }
       let(:stderr) { "Dummy error message" }
       it "returns false and logs the error" do
-        expect(actor.analyse_image(dest_path)).to eql(false)
+        expect(actor.analyse_image(source_path)).to eql(false)
         expect(actor.log.errors?).to eql(true)
         expect(actor.log.map(&:message).join(' ')).to include('Dummy error message')
       end
@@ -173,8 +173,8 @@ RSpec.describe Trifle::ImageDepositActor do
       allow(actor).to receive(:image_format).and_return('ptif')
       allow(actor).to receive(:image_base_path).and_return('/tmp/base')
 
+      allow(actor).to receive(:analyse_image).with(source_path).and_return(true)
       allow(actor).to receive(:convert_image).and_return(true)
-      allow(actor).to receive(:analyse_image).and_return(true)
       allow(actor).to receive(:send_or_copy_file).and_return(true)
       allow(actor).to receive(:add_to_image_container).and_return(true)
     }
