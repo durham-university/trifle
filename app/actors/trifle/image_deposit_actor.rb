@@ -101,20 +101,34 @@ module Trifle
         log!(:error, "Couldn't find file in Oubliette")
         return false
       end
+      status = false
       ofile.download do |resp|
-        deposit_from_response(resp, metadata)
+        status = deposit_from_response(resp, metadata)
       end
+      status
     end
 
     def deposit_from_url(source_url,metadata={})
       log!(:info,"Downloading #{source_url}")
       metadata = metadata.merge({'source_path' => source_url})
+      status = false
       Net::HTTP.get_response(URI(source_url)) do |resp|
-        deposit_from_response(resp, metadata)
+        status = deposit_from_response(resp, metadata)
+      end
+      status
+    end
+    
+    def deposit_tempfile(source_path,metadata={})
+      if metadata['temp_file'] && File.exists?(metadata['temp_file'])
+        log!(:info,"Depositing from temp_file #{metadata['temp_file']}, original source #{source_path}")
+        deposit_image(metadata['temp_file'],metadata.merge('source_path' => source_path).except('temp_file'))
+      else
+        false
       end
     end
 
     def deposit_image(source_path,metadata={})
+      return true if deposit_tempfile(source_path,metadata)
       return deposit_from_oubliette(source_path,metadata) if source_path.start_with?('oubliette:')
       return deposit_from_url(source_path,metadata) if source_path.start_with?('http://') || source_path.start_with?('https://')
 

@@ -155,6 +155,40 @@ RSpec.describe Trifle::ImageDepositActor do
       expect(actor.deposit_from_oubliette(source_url,metadata)).to eql('test value')
     end
   end
+  
+  describe "#deposit_tempfile" do
+    let(:source_path) { '/tmp/source' }
+    let(:metadata) { { 'basename' => 'foo', dummy: 'dummy' } }
+    it "returns false when no temp_file set" do
+      metadata.delete('temp_file')
+      expect(actor).not_to receive(:deposit_image)
+      expect(actor.deposit_tempfile(source_path, metadata)).to eql(false)
+    end
+    it "returns false if temp_file doesn't exist" do
+      metadata['temp_file'] = '/tmp/non_existing_file'
+      expect(actor).not_to receive(:deposit_image)
+      expect(actor.deposit_tempfile(source_path, metadata)).to eql(false)
+    end
+    it "returns false if temp_file importing fails" do
+      metadata['temp_file'] = '/tmp/dummy_file'
+      expect(File).to receive(:exists?).with('/tmp/dummy_file').and_return(true)
+      expect(actor).to receive(:deposit_image).and_return(false)
+      expect(actor.deposit_tempfile(source_path, metadata)).to eql(false)
+    end
+    it "imports temp_file" do
+      metadata['temp_file'] = '/tmp/dummy_file'
+      expect(File).to receive(:exists?).with('/tmp/dummy_file').and_return(true)
+      expect(actor).to receive(:deposit_image) do |source_arg, metadata_arg|
+        expect(source_arg).to eql('/tmp/dummy_file')
+        # must set metadata source_path to original source_path
+        expect(metadata_arg['source_path']).to eql(source_path)
+        # must not have temp_file in metadata, infinite loop otherwise
+        expect(metadata_arg.key?('temp_file')).to eql(false)
+        true
+      end
+      expect(actor.deposit_tempfile(source_path, metadata)).to eql(true)
+    end
+  end
 
   describe "#deposit_image" do
     before {
@@ -195,6 +229,13 @@ RSpec.describe Trifle::ImageDepositActor do
         expect(actor).to receive(:deposit_from_url).with(source_path, metadata).and_return('test value')
         expect(actor.deposit_image(source_path, metadata)).to eql('test value')
       end
+    end
+    
+    it "tries to import temp_file first" do
+      expect(actor).to receive(:deposit_tempfile).with(source_path, metadata).and_return(true);
+      expect(actor).not_to receive(:file_path)
+      expect(actor).not_to receive(:analyse_image)
+      expect(actor.deposit_image(source_path, metadata)).to eql(true)
     end
 
     it "fails if no container_dir" do
