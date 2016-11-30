@@ -38,7 +38,7 @@ module Trifle
     @config ||= begin
       path = Rails.root.join('config','trifle.yml')
       if File.exists?(path)
-        YAML.load(ERB.new(File.read(path)).result)[Rails.env]
+        YAML.load(ERB.new(File.read(path)).tap do |erb| erb.filename = path.to_s end .result)[Rails.env]
       else
         {}
       end
