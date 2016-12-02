@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'rsolr', '~> 1.0'
   s.add_dependency 'active-fedora'
-  s.add_dependency 'active_fedora-noid'
+  s.add_dependency 'active_fedora-noid', '< 2.0.0'
 
   s.add_dependency 'hydra-pcdm', '0.6.0'
   s.add_dependency 'hydra-works', '0.8.1'
