@@ -111,7 +111,8 @@ module Trifle
             end
           end
           target.parents.select do |o| o.is_a?(Trifle::IIIFCollection) end .each do |collection|
-            yielder << FileEntry.new("collection/#{collection.id}", collection.to_iiif(opts))
+            raise "Collection has no local_ark" unless collection.local_ark.present?
+            yielder << FileEntry.new("collection/#{collection.local_ark.split('/')[1..2].join('/')}", collection.to_iiif(opts))
           end
         when Trifle::IIIFCollection
           raise "Target has no local_ark" unless target.local_ark.present?

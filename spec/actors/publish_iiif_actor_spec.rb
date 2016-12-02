@@ -151,7 +151,7 @@ RSpec.describe Trifle::PublishIIIFActor do
             *(manifest.images.map do |img| "#{prefix}/annotation/canvas_#{img.id}" end),
             "#{prefix}/list/#{manifest.images.first.annotation_lists.first.id}",
             *(manifest.images.first.annotation_lists.first.annotations.map do |ann| "#{prefix}/annotation/#{ann.id}" end),
-            "collection/#{manifest.parent.id}"
+            "collection/12345/#{manifest.parent.id}"
           ])
         expect(iiif).to be_a(IIIF::Presentation::Manifest)
       end
