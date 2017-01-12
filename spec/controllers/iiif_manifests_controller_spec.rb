@@ -190,6 +190,28 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
           } .and_return(true)
         post :deposit_images, id: manifest.id, deposit_items: deposit_items        
       end
+      it "sanitises temp_paths" do
+        expect(Trifle).to receive(:config).at_least(:once).and_return({
+            'ingestion_path' => '/tmp/ingestion'
+          })
+        deposit_items.last[:temp_file] = '/tmp/dummy/test.tiff'
+        expect {
+          post :deposit_images, id: manifest.id, deposit_items: deposit_items
+        } .to raise_exception("Not allowed to ingest from /tmp/dummy/test.tiff")
+        
+      end
+      it "allows ingestion from temp_path" do
+        expect(Trifle).to receive(:config).at_least(:once).and_return({
+            'ingestion_path' => '/tmp/ingestion'
+          })
+        deposit_items.last[:temp_file] = '/tmp/ingestion/test.tiff'
+        expect_any_instance_of(Trifle::DepositJob).to receive(:queue_job) { |job|
+            expect(job.deposit_items.last[:temp_file]).to eql('/tmp/ingestion/test.tiff')
+          } .and_return(true)
+        expect {
+          post :deposit_images, id: manifest.id, deposit_items: deposit_items
+        } .not_to raise_exception
+      end
       it "returns json" do
         expect_any_instance_of(Trifle::DepositJob).to receive(:queue_job).and_return(true)
         post :deposit_images, id: manifest.id, deposit_items: deposit_items, format: 'json'

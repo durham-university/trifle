@@ -77,6 +77,17 @@ module Trifle
         params['deposit_items'].select do |item|
           next false unless item.is_a?(Hash)
           next false unless item[:source_path].present?
+          
+          if item[:temp_file].present?
+            path = item[:temp_file]
+            ingestion_path = Trifle.config['ingestion_path']
+            raise 'Ingestion from disk not supported' unless ingestion_path
+            ingestion_path += File::SEPARATOR unless ingestion_path.ends_with? File::SEPARATOR
+            unless File.absolute_path(path).start_with?(ingestion_path) && path.length > ingestion_path.length
+              raise "Not allowed to ingest from #{path}"
+            end            
+          end
+          
           (item[:source_path].start_with?('oubliette:') || item[:source_path].start_with?('http://') || item[:source_path].start_with?('https://'))
         end
       end
