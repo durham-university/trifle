@@ -4,7 +4,23 @@
   <% end %>
 </h2>
 
-<%= render 'durham_rails/base_shared/inline_item_list', items: @presenter.to_model.images %>
+<% # This is essentially 
+   # render 'durham_rails/base_shared/inline_item_list', items: @presenter.to_model.images 
+   # but optimised for large number of children to render quickly. It makes some
+   # assumptions about routes.
+%>
+<% resource_path = trifle.iiif_manifest_path(@resource) %>
+<div class="inline_list">
+  <% @presenter.to_model.images.each_with_index do |item,counter| %>
+    <% if counter>0 %><span class="inline_delimiter">|</span><% end %>
+    <span class="inline_list_item">
+      <a href="<%= resource_path %>/canvas/<%= item.id %>"><%= item.title %></a>
+    </span>    
+  <% end %>
+</div>
+
+<%= 
+%>
 
 <h2>Ranges
   <% if can? :edit, @resource %>

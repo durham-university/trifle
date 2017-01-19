@@ -8,6 +8,7 @@ module Trifle
     helper 'trifle/application'
         
     before_action :set_annotation_iiif_resource, only: [:show_annotation_iiif]
+    before_action :set_show_parent, only: [:show]
         
     def all_annotations
       annotations = @resource.annotation_lists.map(&:annotations).flatten
@@ -31,6 +32,12 @@ module Trifle
 
     def set_parent
       @parent = IIIFManifest.find(params[:iiif_manifest_id])
+    end
+    def set_show_parent
+      set_parent
+      # the previous/next links require parent.ordered_members, getting them from
+      # solr dramatically improves performance
+      @parent.ordered_members.from_solr!
     end
 
     protected

@@ -4,4 +4,9 @@
   <%= render 'trifle/sidebar/publish_resource', resource: @resource %>
 <% end %>
 
-<%= render 'durham_rails/base_shared/show', next_prev: get_next_prev(method: :manifests)  %>
+<%= 
+# next/prev probably not needed for manifests. If enabled, consider optimising
+# parent.ordered_members similarly to what's done in iiif_images_controller
+# render 'durham_rails/base_shared/show', next_prev: get_next_prev(method: :manifests)  
+render 'durham_rails/base_shared/show'
+%>
