@@ -1,6 +1,9 @@
 module Trifle
   class IIIFImage < ActiveFedora::Base
     include Hydra::Works::WorkBehavior
+    include DurhamRails::FastContainerItem
+#    fast_container_item_pcdm_compatibility
+    
     include DurhamRails::NoidBehaviour # ModelBase overrides NoidBehaviour, keep this line before include ModelBase
     include Trifle::ModelBase
     include Trifle::ArkNaanOptionsBehaviour
@@ -28,7 +31,8 @@ module Trifle
 
     def parent(reload=false)
       @parent = nil if reload
-      @parent ||= ordered_by.to_a.find do |m| m.is_a? IIIFManifest end
+      #@parent ||= ordered_by.to_a.find do |m| m.is_a? IIIFManifest end
+      @parent ||= ordered_item_containers.first
     end
     
     def manifest

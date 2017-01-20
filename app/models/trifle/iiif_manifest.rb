@@ -1,6 +1,9 @@
 module Trifle
   class IIIFManifest < ActiveFedora::Base
-    include Hydra::Works::WorkBehavior
+#    include Hydra::Works::WorkBehavior
+    include DurhamRails::FastContainer
+    fast_container_pcdm_compatibility
+    
     include DurhamRails::NoidBehaviour # ModelBase overrides NoidBehaviour, keep this line before include ModelBase
     include Trifle::ModelBase
     include Trifle::ArkNaanOptionsBehaviour
