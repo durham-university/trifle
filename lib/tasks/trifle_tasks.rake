@@ -39,17 +39,17 @@ namespace :trifle do
     else
       (1..(front_count)).each do |n|
         r = roman(n)
-        puts("f.#{r}.r")
-        puts("f.#{r}.v")
+        puts("f.#{r} r")
+        puts("f.#{r} v")
       end
       (1..(main_count)).each do |n|
-        puts("f.#{n}.r")
-        puts("f.#{n}.v")
+        puts("f.#{n}r")
+        puts("f.#{n}v")
       end
       (1..(back_count)).each do |n|
         r = roman(n+front_count)
-        puts("f.#{r}.r")
-        puts("f.#{r}.v")
+        puts("f.#{r} r")
+        puts("f.#{r} v")
       end
     end
   end
