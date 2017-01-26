@@ -8,17 +8,19 @@ RSpec.describe Trifle::PublishIIIFActor do
   }
   let(:full_manifest) { 
     FactoryGirl.create(:iiifmanifest, :with_images, :with_parent, identifier: ['ark:/12345/t0bc12df34x']).tap do |man| 
-      range = FactoryGirl.create(:iiifrange)
-      sub_range = FactoryGirl.create(:iiifrange)
-      sub_range.ordered_members << man.images[0]
-      sub_range.save
-      range.ordered_members += man.images
-      range.ordered_members << sub_range
-      range.save
-      man.ordered_members << range
+      range = FactoryGirl.create(:iiifrange, manifest: man)
+      range.assign_id!
+      man.ranges << range
+      sub_range = FactoryGirl.create(:iiifrange, manifest: man)
+      sub_range.canvases = [man.images[0]]
+      sub_range.assign_id!
+      range.canvases = man.images
+      range.sub_ranges << sub_range
+      man.serialise_ranges
       man.save
       image = man.images.first
-      image.ordered_members << FactoryGirl.create(:iiifannotationlist, :with_annotations)
+      image.annotation_lists.push(FactoryGirl.create(:iiifannotationlist, :with_annotations, parent: image))
+      image.serialise_annotations
       image.save
     end
   }

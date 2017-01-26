@@ -4,25 +4,30 @@ FactoryGirl.define do
     sequence(:title) { |n| "Annotation list #{n}" }
 
     trait :with_image do
-      after :create do |al, evaluator|
+      before :create do |al, evaluator|
         image = FactoryGirl.create(:iiifimage)
-        image.ordered_members << al
-        image.save
+        image.annotation_lists.push(al)
+        al.parent = image
       end
     end
     
     trait :with_manifest do
-      after :create do |al, evaluator|
+      before :create do |al, evaluator|
         image = FactoryGirl.create(:iiifimage, :with_manifest)
-        image.ordered_members << al
-        image.save
+        image.annotation_lists.push(al)
+        al.parent = image
       end
     end
         
     trait :with_annotations do
-      ordered_members {
-        [ FactoryGirl.build(:iiifannotation), FactoryGirl.build(:iiifannotation) ]
-      }
+      after :create do |al, evaluator|
+        a = FactoryGirl.build(:iiifannotation, parent: al)
+        al.annotations.push(a)
+        a.save
+        a = FactoryGirl.build(:iiifannotation, parent: al)
+        al.annotations.push(a)
+        a.save        
+      end
     end
   end
 end

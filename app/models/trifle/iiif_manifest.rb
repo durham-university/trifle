@@ -23,6 +23,8 @@ module Trifle
     property :licence, multiple: false, predicate: ::RDF::Vocab::DC.rights
     property :attribution, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#attribution')
 
+    has_subresource "ranges_iiif", class_name: 'ActiveFedora::File'
+
     def as_json(*args)
       super(*args).tap do |json|
         json.merge!({
@@ -32,7 +34,14 @@ module Trifle
         json.merge!({'parent_id' => parent_id}) if parent_id.present?
       end
     end    
-
+    
+    def reload
+      super
+      @ranges = nil
+      @ranges_flat = nil
+      self
+    end
+    
     def has_parent!(parent)
       raise 'Can\'t set parent of IIIF Manifest. It can have multiple parents'
     end
@@ -61,16 +70,51 @@ module Trifle
       ordered_members.to_a.select do |m| m.is_a? IIIFImage end .map do |m| m.has_parent!(self) end
     end
     
+    def ranges_flat
+      @ranges_flat ||= []
+    end
+    
     def ranges
-      ordered_members.to_a.select do |m| m.is_a? IIIFRange end .map do |m| m.has_parent!(self) end
+      @ranges ||= begin
+        @ranges_flat ||= []
+        iiif = @solr_ranges || ranges_iiif.try(:content)
+        if iiif.present?
+          ret = []
+          json = JSON.parse(iiif)
+          json.each do |range_json| 
+            range = Trifle::IIIFRange.new(self, range_json) 
+            @ranges_flat << range
+            ret << range if range_json['viewingHint'] == 'top'
+          end
+          ret
+        else
+          []
+        end
+      end
+    end
+    def ranges=(rs)
+      @ranges ||= []
+      @ranges.replace(rs)
+    end
+        
+    def serialise_ranges
+      # traverse_ranges below will need access to parsed ranges. Make sure
+      # that they have been deserialised before resetting ranges_iiif.content
+      ranges 
+      self.ranges_iiif ||= ActiveFedora::File.new
+      self.ranges_iiif.content = '['
+      traverse_ranges.each_with_index do |range,index|
+        self.ranges_iiif.content << ",\n" if index > 0
+        self.ranges_iiif.content << range.to_iiif.to_json(pretty: true)
+      end
+      self.ranges_iiif.content << ']'      
     end
     
     def traverse_ranges
-      todo=self.ranges.to_a
+      todo=self.ranges.dup
       ret=[]
       while todo.any?
         s = todo.shift
-        s.ordered_members.from_solr!
         ret << s
         todo += s.sub_ranges.to_a
       end
@@ -162,6 +206,19 @@ module Trifle
       c = c.id if c.is_a?(Trifle::IIIFCollection)
       self.where(Solrizer.solr_name('root_collection_id', type: :symbol) => c)
     end    
+
+    
+    def serializable_hash(*args)
+      super(*args).merge({'serialised_ranges' => (ranges_iiif.try(:content) || '[]')})
+    end    
+    
+    def init_with_json(json)
+      super(json)
+      parsed = JSON.parse(json)
+      @solr_ranges = parsed['serialised_ranges']
+      self
+    end
+    
     
     private 
     

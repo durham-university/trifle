@@ -9,26 +9,30 @@ FactoryGirl.define do
     
 
     trait :with_annotation_list do
-      after :create do |annotation, evaluator|
-        annotation_list = FactoryGirl.create(:iiifannotationlist)
-        annotation_list.ordered_members << annotation
-        annotation_list.save
+      # This is same as with_image. Since annotations and annotaion lists are
+      # now entirely stored in the image, you can't really create an annotation
+      # and its annotation list alone. For historical reasons there's still the
+      # two traits.
+      before :create do |annotation, evaluator|
+        annotation_list = FactoryGirl.create(:iiifannotationlist,:with_image)
+        annotation_list.annotations.push(annotation)
+        annotation.parent = annotation_list
       end
     end
     
     trait :with_image do
-      after :create do |annotation, evaluator|
+      before :create do |annotation, evaluator|
         annotation_list = FactoryGirl.create(:iiifannotationlist,:with_image)
-        annotation_list.ordered_members << annotation
-        annotation_list.save
+        annotation_list.annotations.push(annotation)
+        annotation.parent = annotation_list
       end
     end
     
     trait :with_manifest do
-      after :create do |annotation, evaluator|
+      before :create do |annotation, evaluator|
         annotation_list = FactoryGirl.create(:iiifannotationlist,:with_manifest)
-        annotation_list.ordered_members << annotation
-        annotation_list.save
+        annotation_list.annotations.push(annotation)
+        annotation.parent = annotation_list
       end
     end
   end

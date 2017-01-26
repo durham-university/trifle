@@ -54,9 +54,9 @@ RSpec.describe Trifle::IIIFAnnotationsController, type: :controller do
         it "adds to the annotation list" do
           expect(annotation_list.annotations.count).to eql(0)
           post :create, iiif_annotation: annotation_params, iiif_annotation_list_id: annotation_list.id, iiif_manifest_id: 'dummy'
-          annotation_list.reload
-          expect(annotation_list.annotations.count).to eql(1)
-          annotation = annotation_list.annotations.first
+          reloaded_list = Trifle::IIIFAnnotationList.find(annotation_list.id)
+          expect(reloaded_list.annotations.count).to eql(1)
+          annotation = reloaded_list.annotations.first
           expect(annotation.title).to eql('new annotation')
           expect(annotation.content).to eql('test content')
           expect(annotation.format).to eql('text/html')
@@ -64,8 +64,8 @@ RSpec.describe Trifle::IIIFAnnotationsController, type: :controller do
           expect(annotation.selector).to include('xywh=1,2,3,4')
           
           post :create, iiif_annotation: annotation_params, iiif_annotation_list_id: annotation_list.id, iiif_manifest_id: 'dummy'
-          annotation_list.reload
-          expect(annotation_list.annotations.count).to eql(2)     
+          reloaded_list = Trifle::IIIFAnnotationList.find(annotation_list.id)
+          expect(reloaded_list.annotations.count).to eql(2)     
         end
       end
       

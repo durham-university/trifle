@@ -7,7 +7,7 @@ module Trifle
     end
     
     def show_iiif
-      render json: @resource.to_iiif.to_json(pretty: true)
+      render json: @resource.to_iiif(use_cached: true).to_json(pretty: true)
     end
     
     private

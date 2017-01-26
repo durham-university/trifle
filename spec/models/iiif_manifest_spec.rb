@@ -91,6 +91,30 @@ RSpec.describe Trifle::IIIFManifest do
     end
   end  
   
+  describe "#ranges" do
+    let(:manifest) { FactoryGirl.create(:iiifmanifest) }
+    let(:range) { FactoryGirl.build(:iiifrange, manifest: manifest) }
+    let(:range2) { FactoryGirl.build(:iiifrange, manifest: manifest) }
+    it "saves and loads ranges" do
+      expect(manifest.ranges.count).to eql(0)
+      manifest.ranges.push(range)
+      range.save
+      
+      reloaded = Trifle::IIIFManifest.find(manifest.id)
+      expect(reloaded.ranges.count).to eql(1)
+      
+      manifest.ranges.push(range2)
+      range2.save
+      
+      reloaded = Trifle::IIIFManifest.find(manifest.id)
+      expect(reloaded.ranges.count).to eql(2)      
+      expect(reloaded.ranges[0].id).to eql(range.id)
+      expect(reloaded.ranges[0].title).to eql(range.title)
+      expect(reloaded.ranges[1].id).to eql(range2.id)
+      expect(reloaded.ranges[1].title).to eql(range2.title)
+    end
+  end
+  
   describe "source record" do
     let(:manifest) { FactoryGirl.build(:iiifmanifest, source_record: 'schmit:ark:/12345/testid#subid') }    
     describe "#source_type" do

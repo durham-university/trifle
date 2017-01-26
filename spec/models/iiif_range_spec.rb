@@ -5,19 +5,11 @@ RSpec.describe Trifle::IIIFRange do
   
   describe "#destroy" do
     let!(:range) { FactoryGirl.create(:iiifrange, :with_manifest, :with_canvases, :with_sub_range)}
-    let!(:canvases) { range.canvases.to_a }
-    let!(:sub_ranges) { range.sub_ranges.to_a }
-    it "destroys also sub_ranges" do
-      expect(sub_ranges).not_to be_empty
+    let!(:manifest) { range.manifest }
+    it "removes range from manifest" do
+      expect(manifest.ranges).not_to be_empty
       range.destroy
-      expect {
-        Trifle::IIIFRange.find(sub_ranges.first.id)
-      }.to raise_error(Ldp::Gone)
-    end
-    it "doesn't destroy canvases" do
-      expect(canvases).not_to be_empty
-      range.destroy
-      expect(Trifle::IIIFImage.find(canvases.first.id)).to be_a(Trifle::IIIFImage)
+      expect(manifest.reload.ranges).to be_empty
     end
   end
   
@@ -130,9 +122,13 @@ RSpec.describe Trifle::IIIFRange do
   describe "id minting" do
     before { File.unlink('/tmp/test-minter-state_other') if File.exists?('/tmp/test-minter-state_other') }
     before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'identifier_template' => 't0.reeddeeddk', 'identifier_statefile' => '/tmp/test-minter-state'}) }
+    let!(:range) { FactoryGirl.create(:iiifrange, :with_manifest)}
     let(:id) { range.assign_id }
-    it "uses generic minter" do
-      expect(id).to start_with('t0t')
+    it "includes manifest id" do
+      s = id.split('_')
+      expect(s.length).to eql(2)
+      expect(s[0]).to eql(range.manifest.id)
+      expect(s[1]).to start_with('t0t')
     end
   end  
 

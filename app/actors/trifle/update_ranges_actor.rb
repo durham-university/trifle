@@ -46,11 +46,9 @@ module Trifle
       ranges_json.each do |range_json|
         range_id = extract_id(range_json['@id'])
         unless existing_ranges.key?(range_id)
-          existing_ranges[range_id] = Trifle::IIIFRange.create(title: (range_json['label'] || 'New range'))
-          if range_json['viewingHint'] == 'top'
-            @model_object.ordered_members << existing_ranges[range_id]
-            @model_object.save
-          end
+          existing_ranges[range_id] = Trifle::IIIFRange.new(@model_object, title: (range_json['label'] || 'New range'))
+          existing_ranges[range_id].assign_id!
+          @model_object.ranges << existing_ranges[range_id] if range_json['viewingHint'] == 'top'
         end
       end
       
@@ -67,24 +65,26 @@ module Trifle
         end
         
         # set range structure
-        structure_changed = false
-        unless (range.ordered_member_ids - new_range_ids) == new_canvas_ids && \
-               (range.ordered_member_ids - new_canvas_ids) == new_range_ids
+        unless range.sub_range_ids == new_canvas_ids && range.canvas_ids == new_range_ids
            new_ranges = new_range_ids.map do |id| existing_ranges[id] end
            new_canvases = new_canvas_ids.map do |id| existing_canvases[id] end
-           range.ordered_members = (new_canvases + new_ranges)
-           structure_changed = true
+           range.canvases = new_canvases
+           range.sub_ranges = new_ranges
         end
-        range.save if range.changed_attributes.any? || structure_changed
       end      
 
       # delete ranges
       delete_ranges.each do |delete_id|
-        existing_ranges[delete_id].destroy
+        # Only need to delete if top range. Other ranges should already be
+        # removed from the tree and won't get serialised and saved
+        @model_object.ranges.delete(existing_ranges[delete_id])
         existing_ranges.delete(delete_id)
       end
       
-      true
+      # save
+      @model_object.serialise_ranges
+      @model_object.save
+      # save returns true or false
     end
     
     private 

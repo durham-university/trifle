@@ -2,16 +2,30 @@ require 'rails_helper'
 
 RSpec.describe Trifle::UpdateRangesActor do
 
-  let(:canvases) { 5.times.map do FactoryGirl.create(:iiifimage) end }
+  let(:canvases) { [
+    FactoryGirl.create(:iiifimage),
+    FactoryGirl.create(:iiifimage), 
+    FactoryGirl.create(:iiifimage),
+    FactoryGirl.create(:iiifimage),
+    FactoryGirl.create(:iiifimage)
+  ] }
   let(:top_range) {
-    FactoryGirl.create(:iiifrange, ordered_members: canvases + [
-      FactoryGirl.create(:iiifrange, ordered_members: [
-        canvases[0], canvases[1], canvases[2],
-        FactoryGirl.create(:iiifrange, ordered_members: [canvases[0], canvases[1]]),
-        FactoryGirl.create(:iiifrange, ordered_members: [canvases[2]])
-      ] ),
-      FactoryGirl.create(:iiifrange, ordered_members: [canvases[3], canvases[4]] ),
+    FactoryGirl.create(:iiifrange, manifest: manifest, canvases: canvases, sub_ranges: [
+      FactoryGirl.create(:iiifrange, manifest: manifest, canvases: [ canvases[0], canvases[1], canvases[2] ],
+        sub_ranges: [
+          FactoryGirl.create(:iiifrange, manifest: manifest, canvases: [canvases[0], canvases[1]]),
+          FactoryGirl.create(:iiifrange, manifest: manifest, canvases: [canvases[2]])
+        ]
+      ),
+      FactoryGirl.create(:iiifrange, manifest: manifest, canvases: [canvases[3], canvases[4]] ),
     ])
+  }
+  
+  let(:manifest) { FactoryGirl.create(:iiifmanifest, ordered_members: canvases ) }
+  before { 
+    manifest.ranges = [top_range] 
+    manifest.serialise_ranges
+    manifest.save
   }
   
   let(:range1) { top_range.sub_ranges[0] }
@@ -27,8 +41,6 @@ RSpec.describe Trifle::UpdateRangesActor do
   let(:range2_json) {ranges_json.find do |r| r['@id'].end_with?("/#{range2.id}") end}
     
   let(:canvas_uris) { top_range_json['canvases'] }
-
-  let(:manifest) { FactoryGirl.create(:iiifmanifest, ordered_members: canvases + [top_range] ) }
   
   let(:actor_options) { {} }
   
@@ -63,6 +75,8 @@ RSpec.describe Trifle::UpdateRangesActor do
   end
 
   it "deletes ranges" do
+    expect { Trifle::IIIFRange.find(range11.id) } .not_to raise_error
+    
     range1_json['ranges'].delete(range11_json['@id'])
     ranges_json.delete(range11_json)
     
@@ -71,7 +85,7 @@ RSpec.describe Trifle::UpdateRangesActor do
     expect(res_range1.canvases.count).to eql(3)
     expect(res_range1.sub_ranges.map(&:id)).to eql([range12.id])
     expect(res_range11).to be_nil
-    expect { Trifle::IIIFRange.find(range11.id) } .to raise_error(Ldp::Gone)
+    expect { Trifle::IIIFRange.find(range11.id) } .to raise_error(ActiveFedora::ObjectNotFoundError)
     expect(res_range12.canvases.count).to eql(1)
     expect(res_range12.sub_ranges.count).to eql(0)
     expect(res_range2.canvases.count).to eql(2)

@@ -11,8 +11,10 @@ FactoryGirl.define do
     end
 
     trait :with_range do
-      after :build do |manifest|
-        manifest.ordered_members += [ FactoryGirl.build(:iiifrange) ]
+      after :create do |manifest|
+        r = FactoryGirl.build(:iiifrange, manifest: manifest)
+        manifest.ranges.push(r)
+        r.save
       end
     end
     

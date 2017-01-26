@@ -18,6 +18,7 @@ module Trifle
     property :width, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_width')
     property :height, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_height')
 
+    has_subresource "annotation_lists_iiif", class_name: 'ActiveFedora::File'
 
     def as_json(*args)
       super(*args).tap do |json|
@@ -25,6 +26,12 @@ module Trifle
         json.merge!({'parent_id' => parent_id}) if parent_id.present?
       end
     end    
+    
+    def reload
+      super
+      @annotation_lists = nil
+      self
+    end
 
     def parent(reload=false)
       @parent = nil if reload
@@ -40,7 +47,25 @@ module Trifle
     end
 
     def annotation_lists
-      ordered_members.to_a.select do |m| m.is_a? IIIFAnnotationList end .map do |m| m.has_parent!(self) end
+      @annotation_lists ||= begin
+        iiif = @solr_annotations || annotation_lists_iiif.try(:content)
+        if iiif.present?
+          json = JSON.parse(iiif)
+          json.map do |list_json| Trifle::IIIFAnnotationList.new(self, list_json) end
+        else
+          []
+        end
+      end
+    end
+    
+    def serialise_annotations
+      self.annotation_lists_iiif ||= ActiveFedora::File.new
+      self.annotation_lists_iiif.content = '['
+      annotation_lists.each_with_index do |list,index|
+        self.annotation_lists_iiif.content << ",\n" if index > 0
+        self.annotation_lists_iiif.content << list.to_iiif.to_json(pretty: true)
+      end
+      self.annotation_lists_iiif.content << ']'      
     end
     
     def image_url(crop: 'full', size: 'full', width: nil, height: nil)
@@ -74,7 +99,6 @@ module Trifle
     end
     
     def iiif_canvas(opts={})
-      self.ordered_members.from_solr!
       IIIF::Presentation::Canvas.new.tap do |canvas|
         canvas['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(self, host: Trifle.iiif_host)
         canvas.label = title
@@ -90,6 +114,17 @@ module Trifle
 
     def to_iiif(opts={})
       iiif_canvas(opts.reverse_merge({iiif_version: '2.0'}))
+    end
+    
+    def serializable_hash(*args)
+      super(*args).merge({'serialised_annotations' => (annotation_lists_iiif.try(:content) || '[]')})
+    end    
+    
+    def init_with_json(json)
+      super(json)
+      parsed = JSON.parse(json)
+      @solr_annotations = parsed['serialised_annotations']
+      self
     end
 
   end

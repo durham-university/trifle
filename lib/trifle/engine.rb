@@ -47,13 +47,12 @@ module Trifle
         }.each do |suffix,prefixes|
           prefixes.each do |prefix|
             ['_url','_path'].each do |mode|
-              define_method(:"#{prefix}#{suffix}#{mode}") do |obj, options={}|
-                send(:"#{prefix}iiif_manifest_#{suffix}#{mode}",obj.manifest,obj,options)
+              define_method(:"#{prefix}#{suffix}#{mode}") do |*objs_and_options|
+                send(:"#{prefix}iiif_manifest_#{suffix}#{mode}",objs_and_options.first.manifest,*objs_and_options)
               end
             end
           end
         end
-        
       end
     end
 
