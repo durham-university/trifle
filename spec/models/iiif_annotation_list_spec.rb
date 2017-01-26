@@ -1,8 +1,18 @@
 require 'rails_helper'
 
 RSpec.describe Trifle::IIIFAnnotationList do
-  let(:annotation_list) { FactoryGirl.build(:iiifannotationlist)}
+  describe "#destroy" do
+    let!(:annotation_list) { FactoryGirl.create(:iiifannotationlist, :with_manifest)}
+    let!(:image) { annotation_list.parent }
+    it "removes list from canvas" do
+      expect(image.annotation_lists).not_to be_empty
+      annotation_list.destroy
+      expect(image.reload.annotation_lists).to be_empty
+    end
+  end
+  
   describe "#as_json" do
+    let(:annotation_list) { FactoryGirl.build(:iiifannotationlist)}
     let(:json) { annotation_list.as_json }
     it "sets properties" do
       expect(json['title']).to be_present
@@ -20,11 +30,15 @@ RSpec.describe Trifle::IIIFAnnotationList do
   end
 
   describe "id minting" do
+    let(:annotation_list) { FactoryGirl.create(:iiifannotationlist, :with_manifest)}
     before { File.unlink('/tmp/test-minter-state_other') if File.exists?('/tmp/test-minter-state_other') }
     before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'identifier_template' => 't0.reeddeeddk', 'identifier_statefile' => '/tmp/test-minter-state'}) }
-    let(:id) { annotation_list.assign_id }
-    it "uses generic minter" do
-      expect(id).to start_with('t0t')
+    let(:id) { annotation_list.id }
+    it "includes image id" do
+      s = id.split('_')
+      expect(s.length).to eql(2)
+      expect(s[0]).to eql(annotation_list.parent.id)
+      expect(s[1]).to start_with('t0t')
     end
   end  
 end

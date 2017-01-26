@@ -3,5 +3,9 @@
     <%= render 'trifle/sidebar/open_mirador_control', resource: @resource.canvases.first %>
   <% end %>
 <% end %>
+<% content_for :sidebar do %>
+  <%= render 'durham_rails/base_shared/sidebar/edit_link_control', resource: @resource, non_af_resource: true %>
+  <%= render 'durham_rails/base_shared/sidebar/destroy_control', resource: @resource, non_af_resource: true %>
+<% end %>
 
 <%= render 'durham_rails/base_shared/show', next_prev: get_next_prev(method: (@resource.parent.respond_to?(:structures) ? :structures : :sub_structures)) %>

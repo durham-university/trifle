@@ -22,10 +22,10 @@ RSpec.describe Trifle::IIIFRangesController, type: :controller do
     describe "PUT #update" do
       it "sets values and canvas ids" do
         put :update, id: range.id, iiif_range: range_params, iiif_manifest_id: 'dummy'
-        range.reload
-        expect(range.title).to eql('new title')
-        expect(range.sub_ranges).not_to be_empty
-        expect(range.canvases.map(&:id)).to eql([new_canvas.id])
+        reloaded = Trifle::IIIFRange.find(range.id)
+        expect(reloaded.title).to eql('new title')
+        expect(reloaded.sub_ranges).not_to be_empty
+        expect(reloaded.canvases.map(&:id)).to eql([new_canvas.id])
       end      
     end
     
@@ -46,9 +46,9 @@ RSpec.describe Trifle::IIIFRangesController, type: :controller do
         it "creates the range with canvas ids" do
           parent_range_count = parent_range.sub_ranges.count
           post :create, iiif_range: range_params, iiif_range_id: parent_range.id, iiif_manifest_id: 'dummy'
-          parent_range.reload
-          expect(parent_range.sub_ranges.count).to eql(parent_range_count+1)
-          new_range = parent_range.sub_ranges.find do |s| s.title==range_params[:title] end
+          reloaded = Trifle::IIIFRange.find(parent_range.id)
+          expect(reloaded.sub_ranges.count).to eql(parent_range_count+1)
+          new_range = reloaded.sub_ranges.find do |s| s.title==range_params[:title] end
           expect(new_range).to be_present
           expect(new_range.canvases).not_to be_empty
         end

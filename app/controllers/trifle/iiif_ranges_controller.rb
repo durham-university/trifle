@@ -5,10 +5,33 @@ module Trifle
 
     helper 'trifle/application'
 
+    def create
+      set_resource( new_resource(resource_params) )
+      if @resource.valid?
+        if @parent.is_a?(Trifle::IIIFManifest)
+          @parent.ranges.push(@resource) if @parent
+        else
+          @parent.sub_ranges.push(@resource) if @parent
+        end
+      end
+
+      saved = false
+      if @resource.valid?
+        saved = @resource.save # this triggers save in manifest
+      end
+
+      create_reply(saved)
+    end    
+
     protected
 
     def new_resource(params={})
-      self.class.model_class.new(params.except(:canvas_ids)).tap do |res|
+      manifest = if @parent.is_a?(Trifle::IIIFManifest)
+        @parent
+      else
+        @parent.manifest
+      end
+      self.class.model_class.new(manifest, params.except(:canvas_ids)).tap do |res|
         res.send(:canvas_ids=,params[:canvas_ids],@parent) if params[:canvas_ids].present?
       end
     end

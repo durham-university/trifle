@@ -12,27 +12,30 @@ module Trifle
     end
     
     def clear_ranges()
-      @model_object.ranges.each do |range|
-        range.destroy
-      end
+      @model_object.ranges = []
+      @model_object.serialise_ranges
+      @model_object.save
     end
     
     def build_new_range(items, parent=nil)
       parent ||= begin
-        r = Trifle::IIIFRange.create
-        @model_object.ordered_members << r
-        @model_object.save
+        r = Trifle::IIIFRange.new(@model_object)
+        @model_object.ranges << r
+        r.assign_id!
         r
       end
       items.each do |item|
-        range = Trifle::IIIFRange.create(title: item.title)
-        parent.ordered_members << range
-        item.refs.each do |ref|
-          range.ordered_members << ref
+        range = Trifle::IIIFRange.new(@model_object, title: item.title)
+        range.assign_id!
+        if parent.is_a?(Trifle::IIIFManifest)
+          parent.ranges << range
+        else
+          parent.sub_ranges << range
         end
+        range.canvases = item.refs
         build_new_range(item.sub_entries, range) # this also saves range
       end
-      parent.save
+      @model_object.save
       parent
     end
     

@@ -5,6 +5,25 @@ module Trifle
 
     helper 'trifle/application'
     
+    def create
+      set_resource( new_resource(resource_params) )
+      if @resource.valid?
+        @parent.annotations.push(@resource) if @parent
+      end
+
+      saved = false
+      if @resource.valid?
+        if !@parent.persisted?
+          @parent.parent.annotation_lists.push(@parent)
+          @parent.assign_id! if @parent && !@parent.persisted?
+        end
+        saved = @resource.save # this triggers save in image
+      end
+
+      create_reply(saved)
+    end    
+    
+    
     protected
     
     def update_reply(success)
@@ -24,26 +43,14 @@ module Trifle
     def set_parent
       if params.key?(:iiif_image_id)
         parent_image = IIIFImage.find(params[:iiif_image_id])
-        @parent = parent_image.annotation_lists.first || begin
-          IIIFAnnotationList.new.tap do |al|
-            al.title = 'Default annotation list'
-            al.instance_variable_set(:@parent_image, parent_image)
-            class << al
-              def save
-                return false unless super
-                unless @parent_image.ordered_members.to_a.include?(self)
-                  @parent_image.ordered_members << self
-                  @parent_image.save
-                else
-                  true
-                end
-              end
-            end
-          end
-        end
+        @parent = parent_image.annotation_lists.first || IIIFAnnotationList.new(parent_image, title: 'Default annotation list')
       else
         @parent = IIIFAnnotationList.find(params[:iiif_annotation_list_id])
       end
+    end
+
+    def new_resource(params={})
+      self.class.model_class.new(@parent, params)
     end
 
   end
