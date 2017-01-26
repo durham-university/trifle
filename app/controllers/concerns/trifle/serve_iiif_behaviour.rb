@@ -12,7 +12,8 @@ module Trifle
     
     private
       def set_iiif_resource
-        set_resource
+        @resource = self.class.model_class.load_instance_from_solr(params[:id])
+        self.instance_variable_set(:"@#{self.class.model_name.element}",@resource)
       end
       
       def authorize_resource!
