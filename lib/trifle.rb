@@ -45,4 +45,7 @@ module Trifle
     end
   end
 
+  def self.cached_url_helpers
+    @cached_url_helpers ||= DurhamRails::CachedURLHelpers.new(Trifle::Engine.routes.url_helpers, self.iiif_host)
+  end
 end

@@ -96,15 +96,15 @@ module Trifle
     
     def iiif_annotation(opts={})
       IIIF::Presentation::Annotation.new.tap do |annotation|
-        annotation['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_annotation_iiif_url(self, host: Trifle.iiif_host)
+        annotation['@id'] = Trifle.cached_url_helpers.iiif_manifest_iiif_image_annotation_iiif_url(self.manifest, self)
         annotation.resource = iiif_resource(opts)
-        annotation['on'] = Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(self, host: Trifle.iiif_host)
+        annotation['on'] = Trifle.cached_url_helpers.iiif_manifest_iiif_image_iiif_url(self.manifest, self)
       end
     end
     
     def iiif_canvas(opts={})
       IIIF::Presentation::Canvas.new.tap do |canvas|
-        canvas['@id'] = Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(self, host: Trifle.iiif_host)
+        canvas['@id'] = Trifle.cached_url_helpers.iiif_manifest_iiif_image_iiif_url(self.manifest, self)
         canvas.label = title
         canvas.width = width.to_i
         canvas.height = height.to_i

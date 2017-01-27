@@ -6,7 +6,7 @@ FactoryGirl.define do
 
     trait :with_images do
       after :build do |manifest|
-        manifest.ordered_members += [ FactoryGirl.build(:iiifimage), FactoryGirl.build(:iiifimage) ]
+        manifest.ordered_members.push(FactoryGirl.build(:iiifimage), FactoryGirl.build(:iiifimage))
       end
     end
 

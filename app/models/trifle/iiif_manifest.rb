@@ -46,10 +46,13 @@ module Trifle
     end
     
     def has_parent!(parent)
-      raise 'Can\'t set parent of IIIF Manifest. It can have multiple parents'
+      # Can't set parent of IIIF Manifest. It can have multiple parents.
+      # We can still cache one parent and return it if only a single one is needed.
+      @one_parent = parent
     end
 
     def parent
+      return @one_parent if @one_parent.present?
       ordered_by.to_a.find do |m| m.is_a? IIIFCollection end
     end    
     

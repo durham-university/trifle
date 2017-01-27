@@ -155,7 +155,7 @@ module Trifle
     def iiif_on(opts={})
       {
         '@type' => 'oa:SpecificResource',
-        'full' => Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(on_image, host: Trifle.iiif_host),
+        'full' => Trifle.cached_url_helpers.iiif_manifest_iiif_image_iiif_url(manifest, on_image),
       } .tap do |on|
         on['selector'] = JSON.parse(selector) if selector.present?
       end
@@ -163,7 +163,7 @@ module Trifle
     
     def iiif_annotation(opts={})
       IIIF::Presentation::Annotation.new.tap do |annotation|
-        annotation['@id'] = Trifle::Engine.routes.url_helpers.iiif_annotation_iiif_url(self, host: Trifle.iiif_host)
+        annotation['@id'] = Trifle.cached_url_helpers.iiif_manifest_iiif_annotation_iiif_url(manifest, self)
         annotation['on'] = iiif_on(opts)
         annotation.resource = iiif_resource(opts)
       end

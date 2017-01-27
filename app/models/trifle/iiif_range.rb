@@ -212,27 +212,27 @@ module Trifle
 
     def iiif_canvases
       canvases.map do |canvas|
-        Trifle::Engine.routes.url_helpers.iiif_image_iiif_url(canvas, host: Trifle.iiif_host)
+        Trifle.cached_url_helpers.iiif_manifest_iiif_image_iiif_url(manifest, canvas)
       end
     end
     
     def iiif_subranges
       sub_ranges.map do |range|
-        Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(range, host: Trifle.iiif_host)
+        Trifle.cached_url_helpers.iiif_manifest_iiif_range_iiif_url(manifest, range)
       end
     end
         
     def iiif_range(opts={})
       version = opts.fetch(:iiif_version,'2.0').to_f 
       IIIF::Presentation::Resource.new.tap do |structure|
-        structure['@id'] = Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(self, host: Trifle.iiif_host)
+        structure['@id'] = Trifle.cached_url_helpers.iiif_manifest_iiif_range_iiif_url(manifest, self)
         structure['@context'] = nil
         structure['@type'] = 'sc:Range'
         _parent = parent_range
         if _parent.nil?
           structure['viewingHint'] = 'top'
         elsif version < 2.0
-          structure['within'] = Trifle::Engine.routes.url_helpers.iiif_range_iiif_url(_parent, host: Trifle.iiif_host)
+          structure['within'] = Trifle.cached_url_helpers.iiif_manifest_iiif_range_iiif_url(manifest, _parent)
         end
         structure['label'] = title
         structure['canvases'] = iiif_canvases if opts[:with_children]

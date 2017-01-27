@@ -120,7 +120,7 @@ module Trifle
 
     def iiif_annotation_list(opts={})
       IIIF::Presentation::AnnotationList.new.tap do |annotation_list|
-        annotation_list['@id'] = Trifle::Engine.routes.url_helpers.iiif_annotation_list_iiif_url(self, host: Trifle.iiif_host)
+        annotation_list['@id'] = Trifle.cached_url_helpers.iiif_manifest_iiif_annotation_list_iiif_url(self.manifest, self)
         annotation_list.label = title if title.present?
         annotation_list.resources = annotations.map(&:to_iiif) if opts[:with_children]
       end
