@@ -143,7 +143,7 @@ RSpec.describe Trifle::IIIFManifest do
         double('manifest_api_mock').tap do |mock|
           expect(mock).to receive(:xml_record).and_return(double('xml_record_mock').tap do |mock|
             expect(mock).to receive(:sub_item).with('subid').and_return(double('sub_record_mock').tap do |mock|
-              allow(mock).to receive(:title_path).and_return('new title')
+              allow(mock).to receive(:title_path).and_return('catalogue of new title')
               allow(mock).to receive(:date).and_return('new date')
               allow(mock).to receive(:scopecontent).and_return('new scopecontent')
             end)
