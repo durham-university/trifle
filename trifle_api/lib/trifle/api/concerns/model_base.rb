@@ -4,7 +4,7 @@ module Trifle
       extend ActiveSupport::Concern
 
       included do
-        include ::HTTParty
+        include ::HTTMultiParty
         include DurhamRails::API::Authentication
         base_uri Trifle::API.config.fetch('base_url','http://localhost:3000/trifle')
         read_timeout 300 # seconds

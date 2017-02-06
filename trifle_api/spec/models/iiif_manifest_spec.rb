@@ -107,9 +107,9 @@ RSpec.describe Trifle::API::IIIFManifest do
     before {
       expect(Trifle::API::IIIFManifest).to receive(:post) { |url,params|
         expect(url).to eql "/collection/#{parent.id}/manifest/deposit.json"
-        query = params[:query]
-        expect(query[:deposit_items]).to eql(deposit_items)
-        expect(query[:iiif_manifest]).to eql(manifest_metadata)
+        body = params[:body]
+        expect(JSON.parse(body[:deposit_items].read)).to eql(deposit_items)
+        expect(body[:iiif_manifest]).to eql(manifest_metadata)
         OpenStruct.new(body: response, code: response_code)
       }
     }
@@ -134,8 +134,8 @@ RSpec.describe Trifle::API::IIIFManifest do
     before {
       expect(Trifle::API::IIIFManifest).to receive(:post) { |url,params|
         expect(url).to eql "/manifest/tajd472w44j/deposit.json"
-        query = params[:query]
-        expect(query[:'deposit_items']).to eql(deposit_items)
+        body = params[:body]
+        expect(JSON.parse(body[:'deposit_items'].read)).to eql(deposit_items)
         OpenStruct.new(body: response, code: response_code)
       }
     }

@@ -1,5 +1,5 @@
 require 'active_support'
-require 'httparty'
+require 'httmultiparty'
 require 'durham_rails'
 
 module Trifle

@@ -74,7 +74,16 @@ module Trifle
     
     private
       def deposit_item_params
-        params['deposit_items'].select do |item|
+        parsed_items = if params['deposit_items'].respond_to?(:read)
+          JSON.parse(params['deposit_items'].read).map do |h|
+            next nil unless h.is_a?(Hash)
+            h.with_indifferent_access
+          end .compact
+        else
+          params['deposit_items']
+        end
+        
+        parsed_items.select do |item|
           next false unless item.is_a?(Hash)
           next false unless item[:source_path].present?
           

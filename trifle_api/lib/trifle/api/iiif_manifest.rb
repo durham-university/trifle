@@ -109,7 +109,8 @@ module Trifle
       def self.deposit_new(parent, deposit_items,manifest_metadata={})
         return deposit_new_local(parent, deposit_items,manifest_metadata) if local_mode?
         parent = parent.id if parent.respond_to?(:id)
-        response = self.post("/collection/#{CGI.escape parent}/manifest/deposit.json", {body: {deposit_items: deposit_items, iiif_manifest: manifest_metadata}})
+        deposit_items_io = MultiPartIO.new(deposit_items.to_json)
+        response = self.post("/collection/#{CGI.escape parent}/manifest/deposit.json", {body: {deposit_items: deposit_items_io, iiif_manifest: manifest_metadata}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,
@@ -121,7 +122,8 @@ module Trifle
       def self.deposit_into(manifest, deposit_items)
         return deposit_into_local(manifest, deposit_items) if local_mode?
         manifest = manifest.id if manifest.respond_to?(:id)
-        response = self.post("/manifest/#{CGI.escape manifest}/deposit.json", {body: {deposit_items: deposit_items}})
+        deposit_items_io = MultiPartIO.new(deposit_items.to_json)
+        response = self.post("/manifest/#{CGI.escape manifest}/deposit.json", {body: {deposit_items: deposit_items_io}})
         json = JSON.parse(response.body)
         {
           resource: json['resource'] ? self.from_json(json['resource']) : nil,
@@ -162,6 +164,24 @@ module Trifle
           status: 'ok',
           message: nil
         }
+      end
+      
+      class MultiPartIO
+        attr_reader :original_filename, :content_type, :length
+        def initialize(content)
+          @content = content.to_s
+          @length = @content.length
+          @io = StringIO.new(@content)
+          @original_filename = 'images.json'
+          @content_type = 'application/json'
+        end
+        def read(*args,&block)
+          # need to actually define this so that respond_to?(:read) returns true
+          @io.read(*args,&block)
+        end
+        def method_missing(method,*args,&block)
+          @io.send(methods,*args,&block)
+        end
       end
 
     end

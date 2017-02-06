@@ -183,6 +183,21 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
           } .and_return(true)
         post :deposit_images, id: manifest.id, deposit_items: deposit_items
       end
+      it "allows deposit items posted as a file" do
+        temp_file = Tempfile.new()
+        begin
+          temp_file.write(deposit_items.to_json)
+          temp_file.close
+
+          expect_any_instance_of(Trifle::DepositJob).to receive(:queue_job) { |job|
+              expect(job.deposit_items).to eql(deposit_items)
+              expect(job.resource.id).to eql(manifest.id)
+            } .and_return(true)
+          post :deposit_images, id: manifest.id, deposit_items: Rack::Test::UploadedFile.new(temp_file.path)       
+        ensure
+          File.unlink(temp_file.path)
+        end
+      end
       it "sanitises deposit_items" do
         deposit_items << '/tmp/testfile'
         expect_any_instance_of(Trifle::DepositJob).to receive(:queue_job) { |job|
