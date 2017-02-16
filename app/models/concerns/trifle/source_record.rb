@@ -23,6 +23,24 @@ module Trifle
       source_record[(ind+1)..-1]
     end
     
+    def source_url
+      if source_record.try(:start_with?,'schmit:')
+        Schmit::API::Catalogue.record_url(source_record.split(':',2).last)
+      else
+        nil
+      end
+    end
+    
+    def public_source_link
+      if source_record.try(:start_with?,'schmit:')
+        return nil unless Schmit::API.config['schmit_xtf_base_url'].present?
+        url = Schmit::API.config['schmit_xtf_base_url']+(source_record.split('/')[1..-1].join('_'))+'.xml'
+        {'@id' => url, 'label' => 'Catalogue record'}
+      else
+        nil
+      end
+    end
+    
     def refresh_from_source
       raise 'Source type not set' unless source_type.present?
       type_method = :"refresh_from_#{source_type.to_s.underscore}_source"
@@ -51,7 +69,7 @@ module Trifle
       record = Schmit::API::Catalogue.try_find(schmit_id) || raise("Couldn't find Schmit record #{schmit_id}") 
       
       xml_record = record.xml_record || raise("Couldn't get xml_record for #{schmit_id}")
-      item = item_id.nil? ? xml_record : (xml_record.sub_item(item_id) || raise("Couldn't find sub item #{item_id} for #{schmit_id}"))
+      item = item_id.nil? ? xml_record.root_item : (xml_record.sub_item(item_id) || raise("Couldn't find sub item #{item_id} for #{schmit_id}"))
       
       self.title = item.title_path.gsub(/(?i)^(catalogue of (the)?\s*)/,'') if item.title_path.present?
       self.date_published = item.date if item.date.present?

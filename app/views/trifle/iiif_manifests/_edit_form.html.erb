@@ -1,0 +1,17 @@
+<% if @resource.source_record.present? %>
+  <div class="alert alert-warning">
+    <p>
+      This manifest has a source record defined. Any mistakes in the fields
+      <b>title</b>, <b>date published</b>, <b>author</b> and <b>description</b>
+      should be fixed in the source record rather than here. Otherwise your changes
+      may later be overwritten with the metadata in the source record. To refresh
+      metadata in Trifle with the values set in the source record, go back to previous
+      page and then click <i>Refresh from source</i> in the sidebar.
+    </p>
+    <p>
+      Fields <b>identifier</b>, <b>licence</b>, <b>attribution</b> and <b>source record</b>
+      can be modified here safely.
+    </p>
+  </div>
+<% end %>
+<%= render 'durham_rails/base_shared/edit_form', item: @resource %>

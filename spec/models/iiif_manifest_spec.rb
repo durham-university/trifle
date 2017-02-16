@@ -46,6 +46,13 @@ RSpec.describe Trifle::IIIFManifest do
       expect(json).to include(manifest.images.first.image_location)
       expect(json).to include(manifest.ranges.first.id)
     end
+    it "includes source link" do
+      allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
+      manifest.source_record = 'schmit:ark:/12345/test'
+      json = manifest.iiif_manifest
+      expect(json['related']['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml')
+      expect(json['related']['label']).to be_present
+    end
   end
   
   describe "#to_iiif" do
@@ -120,6 +127,22 @@ RSpec.describe Trifle::IIIFManifest do
     describe "#source_type" do
       it "returns the source type" do
         expect(manifest.source_type).to eql('schmit')
+      end
+    end
+    describe "#source_url" do
+      it "retuns a schmit link" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_base_url' => 'http://www.example.com/schmit'})
+        manifest.source_record = 'schmit:ark:/12345/test1234'
+        expect(manifest.source_url).to eql('http://www.example.com/schmit/catalogues/test1234')
+      end
+    end
+    describe "#public_source_link" do
+      it "returns a iiif link to xtf" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
+        manifest.source_record = 'schmit:ark:/12345/test'
+        link = manifest.public_source_link
+        expect(link['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml')
+        expect(link['label']).to be_present
       end
     end
     describe "#source_identifier" do

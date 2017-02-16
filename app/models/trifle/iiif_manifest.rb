@@ -169,6 +169,9 @@ module Trifle
       IIIF::Presentation::Manifest.new.tap do |manifest|
         manifest['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_iiif_url(self, host: Trifle.iiif_host)
         manifest.label = self.title
+        
+        source_link = public_source_link
+        manifest['related'] = source_link if source_link
       end
     end
         

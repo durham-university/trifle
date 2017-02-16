@@ -1,6 +1,6 @@
 <span itemprop="<%= key %>" itemscope itemtype="http://schema.org/Thing">
   <% if record[key].try(:start_with?,'schmit:') %>
-    <%= link_to(record[key], Schmit::API::Catalogue.record_url(record[key].split(':',2).last)) %>
+    <%= link_to(record[key], record.to_model.source_url) %>
   <% else %>
     <%= record[key] %>
   <% end %>
