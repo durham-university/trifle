@@ -56,7 +56,10 @@ module Trifle
       item = DurhamRails::LibrarySystems::Adlib.connection.record(source_identifier)
       raise("Couldn't find Adlib record #{source_identifier}") unless item && item.exists?
       
-      self.title = item.title if item.title.present?
+      if item.title.present?
+        self.title = item.title 
+        self.title += self.subtitle if self.subtitle.present?
+      end
       date = item.production_date || item.period
       self.date_published = date if date.present?
       self.description = item.description if item.description.present?
@@ -71,7 +74,11 @@ module Trifle
       xml_record = record.xml_record || raise("Couldn't get xml_record for #{schmit_id}")
       item = item_id.nil? ? xml_record.root_item : (xml_record.sub_item(item_id) || raise("Couldn't find sub item #{item_id} for #{schmit_id}"))
       
-      self.title = item.title_path.gsub(/(?i)^(catalogue of (the)?\s*)/,'') if item.title_path.present?
+      if item.title_path.present?
+        self.title = item.title_path.gsub(/(?i)^(catalogue of (the)?\s*)/,'')
+        self.title += self.subtitle if self.subtitle.present?
+      end      
+      
       self.date_published = item.date if item.date.present?
       self.description = item.scopecontent if item.scopecontent.present?
       true

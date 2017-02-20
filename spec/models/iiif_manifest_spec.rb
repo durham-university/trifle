@@ -39,12 +39,22 @@ RSpec.describe Trifle::IIIFManifest do
   describe "#iiif_manifest" do
     let(:manifest) { FactoryGirl.create(:iiifmanifest,:with_images,:with_range) }
     it "makes a valid iiif_manifest object" do
+      manifest.description = 'test description'
       m = manifest.iiif_manifest
       expect(m).to be_a(IIIF::Presentation::Manifest)
       json = m.to_json
       expect(json).to be_a(String)
       expect(json).to include(manifest.images.first.image_location)
       expect(json).to include(manifest.ranges.first.id)
+      expect(json).to include("\"#{manifest.title}\"")
+      expect(json).to include("\"test description\"")
+    end
+    it "adds digitisation note" do
+      manifest.description = 'description'
+      manifest.digitisation_note = 'digitisation_note'
+      m = manifest.iiif_manifest
+      json = m.to_json
+      expect(json).to include("\"description\\ndigitisation_note\"")      
     end
     it "includes source link" do
       allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
@@ -175,9 +185,10 @@ RSpec.describe Trifle::IIIFManifest do
       }
       
       it "fetches new information from source" do
+        manifest.subtitle = ' test_subtitle'
         expect(Schmit::API::Catalogue).to receive(:try_find).with('ark:/12345/testid').and_return(manifest_api)
         manifest.refresh_from_schmit_source
-        expect(manifest.title).to eql('new title')
+        expect(manifest.title).to eql('new title test_subtitle')
         expect(manifest.date_published).to eql('new date')
         expect(manifest.description).to eql('new scopecontent')
       end

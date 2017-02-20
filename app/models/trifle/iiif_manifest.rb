@@ -16,6 +16,8 @@ module Trifle
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title do |index|
       index.as :stored_searchable
     end
+    property :subtitle, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#subtitle')
+    property :digitisation_note, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#digitisation_note')
     property :image_container_location, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_container_location')
     property :identifier, predicate: ::RDF::DC.identifier do |index|
       index.as :symbol
@@ -178,7 +180,9 @@ module Trifle
     def iiif_manifest(opts={})
       self.ordered_members.from_solr!
       iiif_manifest_stub(opts).tap do |manifest|
-        manifest.description = self.description if self.description.present?
+        if self.description.present? || self.digitisation_note.present?
+          manifest.description = [self.description,self.digitisation_note].select(&:present?).join("\n")
+        end
         
         # TODO: Move hard coded lincence text to config
         manifest.license = "All images of manuscripts on this website are copyright of the respective repositories and are reproduced with permission.<br>"
