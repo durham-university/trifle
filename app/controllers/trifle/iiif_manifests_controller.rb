@@ -35,6 +35,41 @@ module Trifle
       end  
     end
     
+    def reorder_canvases(params_order)
+      split = params_order.split(/[\r\n]+/)
+      new_image_ids = split.uniq
+      return false if new_image_ids.length != split.length
+      
+      new_images = []
+      non_images = []
+      image_index = {}
+      @resource.ordered_members.to_a.each do |m| 
+        if m.is_a?(Trifle::IIIFImage)
+          image_index[m.id] = m
+        else
+          non_images << m
+        end
+      end
+      return false if image_index.length != new_image_ids.length
+      
+      new_image_ids.each do |img_id|
+        img = image_index[img_id]
+        break unless img
+        new_images << img
+      end      
+      return false if new_images.length != image_index.length
+      
+      @resource.ordered_members = new_images + non_images
+      true
+    end
+    
+    def update
+      if params[:iiif_manifest][:canvas_order].present?
+        raise 'Invalid canvas list' unless reorder_canvases(params[:iiif_manifest][:canvas_order])
+      end
+      super
+    end    
+    
     def show_sequence_iiif
       raise 'Sequence name not given' unless params[:sequence_name]
       seq = @resource.iiif_sequences.find do |seq| seq.label==params[:sequence_name] end

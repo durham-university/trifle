@@ -28,6 +28,20 @@ footer {
   font-size: 27px;
 }
 
+ul.inline_list { 
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  margin-bottom: 10px;
+  & > li {
+    line-height: 1;
+    margin-right: 3px;
+    padding-right: 6px;
+    display: inline-block;
+    border-right: 1px solid #888;
+  }
+}
+
 
 table.item-list {
   margin-top: 1em;

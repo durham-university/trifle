@@ -24,6 +24,28 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
     end
   end
   
+  describe "#update" do
+    describe "canvas reordering" do
+      let(:user) { FactoryGirl.create(:user,:admin) }
+      let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_images, :with_range) }
+      let(:canvas_ids) { manifest.images.map(&:id) }
+      before { sign_in user }
+      it "can change ordering of canvases" do
+        post :update, iiif_collection_id: collection.id, id: manifest.id, iiif_manifest: {canvas_order: "#{canvas_ids[1]}\n#{canvas_ids[0]}"}
+        manifest.reload
+        expect(manifest.images.map(&:id)).to eql([canvas_ids[1],canvas_ids[0]])
+        expect(manifest.ranges).not_to be_empty
+      end
+      it "raises error for invalid orderings" do
+        expect {
+          post :update, iiif_collection_id: collection.id, id: manifest.id, iiif_manifest: {canvas_order: "#{canvas_ids[0]}\n#{canvas_ids[0]}"}
+        } .to raise_error('Invalid canvas list')
+        manifest.reload
+        expect(manifest.images.map(&:id)).to eql([canvas_ids[0],canvas_ids[1]])
+      end
+    end
+  end
+  
   describe "iiif publishing" do
     before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
     let(:user) { FactoryGirl.create(:user,:admin) }

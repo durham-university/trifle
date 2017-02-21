@@ -16,5 +16,6 @@
 //= require bootstrap-sprockets
 //= require trifle/blacklight_mock
 //# require trifle/setup_iipmooviewer
+//= require trifle/reordering
 //= require durham_rails/durham_rails
 //# require iipmooviewer

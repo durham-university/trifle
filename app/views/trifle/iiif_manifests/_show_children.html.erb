@@ -1,26 +1,26 @@
 <h2>Images
   <% if can? :edit, @resource %>
     <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_manifest_iiif_image_path(@resource), { class: 'btn btn-default' }) %>
+    <% if @presenter.to_model.images.any? %>
+      <span class="btn btn-default" onclick="enableReordering(this, '#canvasList', '#canvasListForm')"><span class="glyphicon glyphicon-sort" aria-hidden="true"></span></span>    
+      <%= form_for(@resource, url: trifle.iiif_manifest_path(@resource), html: { id: 'canvasListForm'}) do |form| %>
+        <input type="hidden" name="iiif_manifest[canvas_order]" value=""/>
+      <% end %>
+    <% end %>
   <% end %>
 </h2>
 
-<% # This is essentially 
-   # render 'durham_rails/base_shared/inline_item_list', items: @presenter.to_model.images 
-   # but optimised for large number of children to render quickly. It makes some
-   # assumptions about routes.
-%>
-<% resource_path = trifle.iiif_manifest_path(@resource) %>
-<div class="inline_list">
-  <% @presenter.to_model.images.select do |item| can?(:show,item) end .each_with_index do |item,counter| %>
-    <% if counter>0 %><span class="inline_delimiter">|</span><% end %>
-    <span class="inline_list_item">
-      <a href="<%= resource_path %>/canvas/<%= item.id %>"><%= item.title %></a>
-    </span>    
-  <% end %>
-</div>
 
-<%= 
-%>
+<% if @presenter.to_model.images.any? %>
+  <% resource_path = trifle.iiif_manifest_path(@resource) %>
+  <ul class="inline_list jquery_sortable" id="canvasList">
+    <% @presenter.to_model.images.select do |item| can?(:show,item) end .each_with_index do |item,counter| %>
+      <li class="inline_list_item">
+        <a href="<%= resource_path %>/canvas/<%= item.id %>"><%= item.title %></a>
+      </li>    
+    <% end %>
+  </ul>
+<% end %>
 
 <h2>Ranges
   <% if can? :edit, @resource %>
