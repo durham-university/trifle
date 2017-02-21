@@ -133,9 +133,9 @@ module Trifle
       end
       
       def rails_manifest_prefix
-        # This'll be /trifle/iiif/manifest/:manifest_id/
+        # This'll be /trifle/iiif/manifest/
         @rails_manifest_prefix ||= Trifle::Engine.routes.url_helpers.iiif_manifest_iiif_url(model_object, host: Trifle.iiif_host) \
-                            .split("/#{model_object.id}/",2).first+"/#{model_object.id}/"
+                            .split("/#{model_object.id}/",2).first+"/"
       end
       
       def rails_collection_prefix
@@ -143,24 +143,44 @@ module Trifle
         @rails_collection_prefix ||= Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url('', host: Trifle.iiif_host)
       end
       
+      def ark_naan
+        # NOTE: We are assuming here that all objects referenced in the iiif have
+        # the same NAAN as the main model_object.
+        model_object.ark_naan
+      end
+      
+      def to_ark(target)
+        if target.is_a?(String)
+          if target.start_with?("ark:")
+            target
+          else
+            "ark:/#{ark_naan}/#{target}"
+          end
+        else
+          target.local_ark
+        end
+      end
+      
       def treeify_id(target=nil)
         target ||= model_object
-        ark = target.is_a?(String) ? target : target.local_ark
+        ark = to_ark(target)
         @treeify_id = begin
           (naan,id) = ark[5..-1].split('/')
           [naan, *id.match(/(..)(..)(..)/)[1..-1], id].join('/')
         end
       end
       
-      def treeified_prefix
-        @treeified_prefix ||= Trifle.config['published_iiif_url'] + treeify_id + '/'
+      def treeified_prefix(target=nil)
+        Trifle.config['published_iiif_url'] + treeify_id(target) + '/'
       end
     
       def convert_id(id)
         if id.start_with?(rails_manifest_prefix)
-          treeified_prefix + id[(rails_manifest_prefix.length)..-1]
+          # rails_manifest_preix will have manifest_id in it, replace it with treeified prefix
+          (man_id, rest) = id[(rails_manifest_prefix.length)..-1].split('/',2)
+          treeified_prefix(man_id) + rest
         elsif id.start_with?(rails_collection_prefix)
-          Trifle.config['published_iiif_url'] + "collection/" + id[(rails_collection_prefix.length)..-1]
+          "#{Trifle.config['published_iiif_url']}collection/#{ark_naan}/#{id[(rails_collection_prefix.length)..-1]}"
         else
           id
         end

@@ -1,3 +1,3 @@
-<% if can?(:publish, resource) && resource.dirty_state=='dirty' %>
+<% if can?(:publish, resource) %>
   <li><%= link_to("Publish", engine_paths.polymorphic_path([resource,:publish]), method: "POST") %></li>
 <% end %>

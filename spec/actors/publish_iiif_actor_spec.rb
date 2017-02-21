@@ -224,7 +224,7 @@ RSpec.describe Trifle::PublishIIIFActor do
   
   describe "#rails_manifest_prefix" do
     it "returns route prefix to manifest" do
-      expect(actor.send(:rails_manifest_prefix)).to eql("#{Trifle.iiif_host}/trifle/iiif/manifest/#{manifest.id}/")
+      expect(actor.send(:rails_manifest_prefix)).to eql("#{Trifle.iiif_host}/trifle/iiif/manifest/")
     end
   end
   
@@ -248,11 +248,24 @@ RSpec.describe Trifle::PublishIIIFActor do
   end
   
   describe "#convert_id" do
-    let(:uri) { "http://www.example.com/trifle/iiif/manifest/#{manifest.id}/annotation/ttr243b49tvy" }
-    before { allow(actor).to receive(:rails_manifest_prefix).and_return("http://www.example.com/trifle/iiif/manifest/#{manifest.id}/") }
-    it "converts uris that start with the prefix" do
-      expect(actor).to receive(:treeified_prefix).and_return('http://imageserver/iiif/12345/t0/bc/12/t0bc12df34x/')
-      expect(actor.send(:convert_id, uri)).to eql('http://imageserver/iiif/12345/t0/bc/12/t0bc12df34x/annotation/ttr243b49tvy')
+    before {
+      allow(actor).to receive(:rails_manifest_prefix).and_return("http://www.example.com/trifle/iiif/manifest/")
+      allow(actor).to receive(:rails_collection_prefix).and_return("http://www.example.com/trifle/iiif/collection/")
+      allow(Trifle).to receive(:config).and_return({'published_iiif_url' => 'http://imageserver/iiif/'})
+      allow(actor).to receive(:ark_naan).and_return('12345')
+    }
+    context "with manifest uris" do
+      let(:uri) { "http://www.example.com/trifle/iiif/manifest/#{manifest.id}/annotation/ttr243b49tvy" }
+      it "converts uris that start with the prefix" do
+        expect(actor).to receive(:treeified_prefix).and_return('http://imageserver/iiif/12345/t0/bc/12/t0bc12df34x/')
+        expect(actor.send(:convert_id, uri)).to eql('http://imageserver/iiif/12345/t0/bc/12/t0bc12df34x/annotation/ttr243b49tvy')
+      end
+    end
+    context "with collection uris" do
+      let(:uri) { "http://www.example.com/trifle/iiif/collection/ttr243b49tvy" }
+      it "converts uris that start with the prefix" do
+        expect(actor.send(:convert_id, uri)).to eql('http://imageserver/iiif/collection/12345/ttr243b49tvy')
+      end
     end
     it "returns other uris untouched" do
       expect(actor.send(:convert_id,'http://www.somethingelse.com/moo')).to eql('http://www.somethingelse.com/moo')
@@ -265,9 +278,20 @@ RSpec.describe Trifle::PublishIIIFActor do
     let(:source_s) { source.to_json(pretty: true) }
     let(:converted) { actor.send(:convert_ids,source) }
     let(:converted_s) { converted.to_json(pretty: true) }
-    it "converts all ids" do
-      expect(source_s).to include(actor.send(:rails_manifest_prefix))
-      expect(converted_s).not_to include(actor.send(:rails_manifest_prefix))
+    context "with manifest" do
+      it "converts all ids in manifest iiif" do
+        expect(source_s).to include(actor.send(:rails_manifest_prefix))
+        expect(converted_s).not_to include(actor.send(:rails_manifest_prefix))
+      end
+    end
+    context "with collection" do
+      let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests, :with_parent) }
+      it "converts all ids in collection iiif" do
+        expect(source_s).to include(actor.send(:rails_manifest_prefix))
+        expect(source_s).to include(actor.send(:rails_collection_prefix))
+        expect(converted_s).not_to include(actor.send(:rails_manifest_prefix))
+        expect(converted_s).not_to include(actor.send(:rails_collection_prefix))
+      end
     end
   end
 

@@ -199,6 +199,9 @@ module Trifle
         manifest.structures = iiif_ranges(opts)
         
         manifest.sequences = iiif_sequences(opts)
+        
+        _parent = parent
+        manifest.within = Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url(_parent, host: Trifle.iiif_host) if _parent
       end
     end
     
