@@ -64,19 +64,25 @@
          options["openManifestsPage"]=true;
        }
        
-       $.ajax({
-         url: '<%= trifle.iiif_collection_iiif_url(@collection) + "?mirador=true" %>',
-         dataType: 'json',
-         success: function(data, status, xhr){
-           options["data"] = data;
-           Mirador(options);
-         }
-       });         
+       <% if !@manifest %>
+         $.ajax({
+           url: '<%= trifle.iiif_collection_iiif_url(@collection) + "?mirador=true" %>',
+           dataType: 'json',
+           success: function(data, status, xhr){
+             options["data"] = data;
+             Mirador(options);
+           }
+         });         
+       <% else %>
+        options["data"] = [{"manifestUri":"<%= trifle.iiif_manifest_iiif_url(@manifest).html_safe %>"}];
+        Mirador(options);
+       <% end %>
      }
      function windowLoaded(){
-       if(typeof(Mirador.viewer)!='undefined') return;
-       initMirador(<%= @manifest ? "'#{trifle.iiif_manifest_iiif_url(@manifest)}'".html_safe : 'null' %>,
+       if(typeof(miradorInitialized) != 'undefined' && miradorInitialized) return;
+       mirador = initMirador(<%= @manifest ? "'#{trifle.iiif_manifest_iiif_url(@manifest)}'".html_safe : 'null' %>,
                    <%= @image ? "'#{trifle.iiif_image_iiif_url(@image)}'".html_safe : 'null' %>);
+       miradorInitialized = true;
      }
      <% unless @no_auto_load %>
       $(function(){windowLoaded();});
