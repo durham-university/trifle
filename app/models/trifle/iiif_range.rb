@@ -101,6 +101,7 @@ module Trifle
     def self.load_instance_from_solr(id)
       man_id = id.split('_').first
       man = Trifle::IIIFManifest.load_instance_from_solr(man_id)
+      man.ordered_members.from_solr!
       man.traverse_ranges.each do |range|
         return range if range.id == id
       end
@@ -134,9 +135,9 @@ module Trifle
     
     def sub_ranges
       @sub_ranges ||= begin
-        _manifest = manifest
+        _ranges_flat = manifest.ranges_flat
         @sub_range_ids.map do |range_id|
-          _manifest.ranges_flat.find do |r| r.id == range_id end
+          _ranges_flat.find do |r| r.id == range_id end
         end
       end
     end
@@ -147,9 +148,9 @@ module Trifle
     
     def canvases
       @canvases ||= begin
-        _manifest = manifest
+        _images = manifest.images
         @canvas_ids.map do |canvas_id|
-          _manifest.images.find do |i| i.id == canvas_id end
+          _images.find do |i| i.id == canvas_id end
         end
       end
     end
@@ -185,11 +186,15 @@ module Trifle
     end
     
     def sub_range_ids
-      sub_ranges.map(&:id)
+      # don't get full sub_ranges if we don't need to
+      return sub_ranges.map(&:id) if @sub_ranges
+      @sub_range_ids.try(:dup) || []
     end
 
     def canvas_ids
-      canvases.map(&:id)
+      # don't get full canvases if we don't need to
+      return canvases.map(&:id) if @canvases
+      @canvas_ids.try(:dup) || []
     end
     
     def canvas_ids=(ids, parent=nil)
@@ -211,14 +216,14 @@ module Trifle
     end
 
     def iiif_canvases
-      canvases.map do |canvas|
-        Trifle.cached_url_helpers.iiif_manifest_iiif_image_iiif_url(manifest, canvas)
+      canvas_ids.map do |canvas_id|
+        Trifle.cached_url_helpers.iiif_manifest_iiif_image_iiif_url(manifest, canvas_id)
       end
     end
     
     def iiif_subranges
-      sub_ranges.map do |range|
-        Trifle.cached_url_helpers.iiif_manifest_iiif_range_iiif_url(manifest, range)
+      sub_range_ids.map do |range_id|
+        Trifle.cached_url_helpers.iiif_manifest_iiif_range_iiif_url(manifest, range_id)
       end
     end
         
