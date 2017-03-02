@@ -79,12 +79,13 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
     
     describe "GET #show_iiif?mirador=true" do
       let(:manifest) { FactoryGirl.create(:iiifmanifest) }
-      let!(:collection) { FactoryGirl.create(:iiifcollection, ordered_members: [FactoryGirl.create(:iiifcollection, ordered_members: [manifest])]) }
+      let!(:collection) { FactoryGirl.create(:iiifcollection, keeper: 'Test Keeper', ordered_members: [FactoryGirl.create(:iiifcollection, ordered_members: [manifest])]) }
       before { Trifle::IIIFManifest.all.each do |c| c.update_index end }
       it "renders manifest json" do
         get :show_iiif, id: collection.id, mirador: 'true'
         expect(JSON.parse(response.body)).to be_a(Array)
         expect(response.body).to include(manifest.id)
+        expect(response.body).to include('"location":"Test Keeper"')
       end
     end
     

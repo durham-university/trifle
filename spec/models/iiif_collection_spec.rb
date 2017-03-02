@@ -79,4 +79,40 @@ RSpec.describe Trifle::IIIFCollection do
       expect(id).to start_with('t0c')
     end
   end  
+  
+  describe "#inherited_logo" do
+    let(:logo1) { 'http://www.example.com/logo1.png' }
+    let(:logo2) { 'http://www.example.com/logo2.png' }
+    let(:logo3) { 'http://www.example.com/logo3.png' }
+    let(:collection) { FactoryGirl.create(:iiifcollection) }
+    let(:parent) {
+      FactoryGirl.create(:iiifcollection, logo: logo2).tap do |c| 
+        c.ordered_members << collection
+        c.save
+      end
+    }
+    let(:gparent) {
+      FactoryGirl.create(:iiifcollection, logo: logo3).tap do |c| 
+        c.ordered_members << parent
+        c.save
+      end
+    }
+    it "returns logo in self" do
+      collection.logo = logo1
+      expect(collection.inherited_logo).to eql(logo1)
+    end
+    it "returns logo from parent" do
+      parent # create by reference
+      expect(collection.inherited_logo).to eql(logo2)      
+    end
+    it "returns logo from grand parent" do
+      gparent # create by reference
+      parent.logo = nil
+      parent.save
+      expect(collection.inherited_logo).to eql(logo3)
+    end
+    it "returns nil if no parent" do
+      expect(collection.inherited_logo).to be_nil
+    end
+  end
 end

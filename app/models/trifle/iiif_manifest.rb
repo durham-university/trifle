@@ -10,6 +10,7 @@ module Trifle
     include DurhamRails::WithBackgroundJobs
     include DurhamRails::DestroyFromContainers
     include DurhamRails::DestroyDependentMembers
+    include Trifle::InheritLogo
     include Trifle::TrackDirtyStateBehaviour
     include Trifle::SourceRecord
 
@@ -170,9 +171,6 @@ module Trifle
       IIIF::Presentation::Manifest.new.tap do |manifest|
         manifest['@id'] = Trifle::Engine.routes.url_helpers.iiif_manifest_iiif_url(self, host: Trifle.iiif_host)
         manifest.label = self.title
-        
-        source_link = public_source_link
-        manifest['related'] = source_link if source_link
       end
     end
         
@@ -182,6 +180,12 @@ module Trifle
         if self.description.present? || self.digitisation_note.present?
           manifest.description = [self.description,self.digitisation_note].select(&:present?).join("\n")
         end
+        
+        source_link = public_source_link
+        manifest['related'] = source_link if source_link        
+        
+        _inherited_logo = inherited_logo
+        manifest.logo = _inherited_logo if _inherited_logo
         
         # TODO: Move hard coded lincence text to config
         manifest.license = "All images of manuscripts on this website are copyright of the respective repositories and are reproduced with permission.<br>"

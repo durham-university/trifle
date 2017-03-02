@@ -4,6 +4,7 @@ module Trifle
     include DurhamRails::NoidBehaviour # ModelBase overrides NoidBehaviour, keep this line before include ModelBase
     include Trifle::ModelBase
     include Trifle::ArkNaanOptionsBehaviour
+    include Trifle::InheritLogo
     include DurhamRails::WithBackgroundJobs
     include DurhamRails::DestroyFromContainers
     
@@ -16,6 +17,8 @@ module Trifle
     property :description, multiple: false, predicate: ::RDF::Vocab::DC.description
     property :licence, multiple: false, predicate: ::RDF::Vocab::DC.rights
     property :attribution, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#attribution')
+    property :logo, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#logo')
+    property :keeper, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#keeper')
     
     def as_json(*args)
       super(*args).tap do |json|
@@ -65,6 +68,9 @@ module Trifle
         collection.description = self.description if self.description.present?
         collection.license = self.licence if self.licence.present?
         collection.attribution = self.attribution if self.attribution.present?
+        
+        _inherited_logo = inherited_logo
+        collection.logo = _inherited_logo if _inherited_logo
         
         collection.collections = sub_collections.to_a.map do |c| c.iiif_collection_stub(opts) end
         collection.manifests = manifests.to_a.map do |m| m.iiif_manifest_stub(opts) end

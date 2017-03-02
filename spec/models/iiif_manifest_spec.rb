@@ -40,6 +40,7 @@ RSpec.describe Trifle::IIIFManifest do
     let(:manifest) { FactoryGirl.create(:iiifmanifest,:with_images,:with_range) }
     it "makes a valid iiif_manifest object" do
       manifest.description = 'test description'
+      allow(manifest).to receive(:inherited_logo).and_return('http://www.example.com/logo.png')
       m = manifest.iiif_manifest
       expect(m).to be_a(IIIF::Presentation::Manifest)
       json = m.to_json
@@ -48,6 +49,7 @@ RSpec.describe Trifle::IIIFManifest do
       expect(json).to include(manifest.ranges.first.id)
       expect(json).to include("\"#{manifest.title}\"")
       expect(json).to include("\"test description\"")
+      expect(json).to include('http://www.example.com/logo.png')
     end
     it "adds digitisation note" do
       manifest.description = 'description'
@@ -246,4 +248,28 @@ RSpec.describe Trifle::IIIFManifest do
       expect(id).to start_with('t0m')
     end
   end
+  
+  describe "#inherited_logo" do
+    let(:logo2) { 'http://www.example.com/logo2.png' }
+    let(:manifest) { FactoryGirl.create(:iiifmanifest) }
+    let(:collection) { 
+      FactoryGirl.create(:iiifcollection).tap do |c| 
+        c.ordered_members << manifest
+        c.save
+      end 
+    }
+    let(:parent) {
+      FactoryGirl.create(:iiifcollection, logo: logo2).tap do |c| 
+        c.ordered_members << collection
+        c.save
+      end
+    }
+    it "returns logo from parent" do
+      parent # create by reference
+      expect(manifest.inherited_logo).to eql(logo2)
+    end
+    it "returns nil if no parent" do
+      expect(manifest.inherited_logo).to be_nil
+    end
+  end  
 end

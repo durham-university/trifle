@@ -8,7 +8,7 @@ module Trifle
     helper 'trifle/application'
 
     def self.presenter_terms
-      super + [:identifier,  :description, :attribution, :licence]
+      super + [:identifier,  :description, :attribution, :licence, :logo, :keeper]
     end
 
     def set_parent
@@ -21,7 +21,7 @@ module Trifle
       if params['mirador'] == 'true'
         resources = Trifle::IIIFManifest.all_in_collection(@resource)
         render json: (resources.map do |res|
-          {manifestUri: trifle.iiif_manifest_iiif_url(res), location: Trifle.mirador_location }
+          {manifestUri: trifle.iiif_manifest_iiif_url(res), location: @resource.inherited_keeper || Trifle.mirador_location }
         end)
       else
         super

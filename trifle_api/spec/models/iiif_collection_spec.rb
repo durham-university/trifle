@@ -4,12 +4,12 @@ RSpec.describe Trifle::API::IIIFCollection do
 
   let( :all_json_s ) {
     %q|{"resources":[
-      {"id":"tajd472w44j","title":"Test title","identifier":["ark:/12345/tajd472w44j"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"},
+      {"id":"tajd472w44j","title":"Test title","identifier":["ark:/12345/tajd472w44j"],"description":"test description","licence":"All rights reserved","attribution":"part of test items","logo":"http://www.example.com/logo.png","keeper":"Test Keeper"},
       {"id":"tajd472w55j","title":"Test title 2","identifier":["ark:/12345/tajd472w55j"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"}],"page":1,"total_pages":1}|      
   }
   let( :sub_json_s ) { %q|{"id":"tajd472w66j","title":"Test title 3","identifier":["ark:/12345/tajd472w66j"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"}| }
-  let( :manifest_json_s ) { %q|{"id":"tajd472w77j","title":"Test manifest","identifier":["ark:/12345/tajd472w77j"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"}| }
-  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","identifier" => ["ark:/12345/tajd472w44j"],"description" => "test description","licence" => "All rights reserved", "attribution" => "part of test items", "parent_id" => "dummy_collection_id"} }
+  let( :manifest_json_s ) { %q|{"id":"tajd472w77j","title":"Test manifest","identifier":["ark:/12345/tajd472w77j"],"description":"test description","licence":"All rights reserved","attribution":"part of test items","logo":"http://www.example.com/logo.png","keeper":"Test Keeper"}| }
+  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","identifier" => ["ark:/12345/tajd472w44j"],"description" => "test description","licence" => "All rights reserved", "attribution" => "part of test items", "logo" => "http://www.example.com/logo.png", "keeper" => "Test Keeper", "parent_id" => "dummy_collection_id"} }
   let( :collection ) { Trifle::API::IIIFCollection.from_json(json) }
   
   it_behaves_like "model_common"
@@ -106,6 +106,8 @@ RSpec.describe Trifle::API::IIIFCollection do
       expect(json['description']).to eql('test description')
       expect(json['licence']).to eql('All rights reserved')      
       expect(json['attribution']).to eql('part of test items')
+      expect(json['logo']).to eql('http://www.example.com/logo.png')
+      expect(json['keeper']).to eql('Test Keeper')
       expect(json['parent_id']).to eql('dummy_collection_id')
     end
   end
@@ -116,6 +118,8 @@ RSpec.describe Trifle::API::IIIFCollection do
       expect(collection.description).to eql('test description')
       expect(collection.licence).to eql('All rights reserved')      
       expect(collection.attribution).to eql('part of test items')
+      expect(collection.logo).to eql("http://www.example.com/logo.png")
+      expect(collection.keeper).to eql('Test Keeper')
       expect(collection.parent_id).to eql('dummy_collection_id')
     end
   end
