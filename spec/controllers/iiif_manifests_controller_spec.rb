@@ -307,6 +307,7 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
           expect(mock).to receive(:xml_record).and_return(double('xml_record_mock').tap do |mock|
             expect(mock).to receive(:sub_item).with('subid').and_return(double('sub_record_mock').tap do |mock|
               allow(mock).to receive(:title_path).and_return('new title')
+              allow(mock).to receive(:title).and_return('new title')
               allow(mock).to receive(:date).and_return('new date')
               allow(mock).to receive(:scopecontent).and_return('new scopecontent')
             end)
@@ -320,7 +321,7 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
         end
         post :refresh_from_source, id: manifest.id
         manifest.reload
-        expect(manifest.title).to eql('new title')
+        expect(manifest.title).not_to include('new title')
         expect(manifest.date_published).to eql('new date')
         expect(manifest.description).to eql('new scopecontent')
       end

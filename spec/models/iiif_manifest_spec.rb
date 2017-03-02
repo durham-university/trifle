@@ -177,6 +177,7 @@ RSpec.describe Trifle::IIIFManifest do
           expect(mock).to receive(:xml_record).and_return(double('xml_record_mock').tap do |mock|
             expect(mock).to receive(:sub_item).with('subid').and_return(double('sub_record_mock').tap do |mock|
               allow(mock).to receive(:title_path).and_return('catalogue of new title')
+              allow(mock).to receive(:title).and_return('catalogue of new title')
               allow(mock).to receive(:date).and_return('new date')
               allow(mock).to receive(:scopecontent).and_return('new scopecontent')
             end)
@@ -185,10 +186,10 @@ RSpec.describe Trifle::IIIFManifest do
       }
       
       it "fetches new information from source" do
-        manifest.subtitle = ' test_subtitle'
         expect(Schmit::API::Catalogue).to receive(:try_find).with('ark:/12345/testid').and_return(manifest_api)
         manifest.refresh_from_schmit_source
-        expect(manifest.title).to eql('new title test_subtitle')
+        # Title should not be overwritten
+        expect(manifest.title).not_to include('new title')
         expect(manifest.date_published).to eql('new date')
         expect(manifest.description).to eql('new scopecontent')
       end

@@ -16,7 +16,6 @@ module Trifle
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title do |index|
       index.as :stored_searchable
     end
-    property :subtitle, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#subtitle')
     property :digitisation_note, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#digitisation_note')
     property :image_container_location, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_container_location')
     property :identifier, predicate: ::RDF::DC.identifier do |index|
