@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    trifle_api (0.0.3)
+    trifle_api (0.9.0)
       durham_rails
       httmultiparty
       rails

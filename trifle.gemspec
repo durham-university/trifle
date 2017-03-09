@@ -38,7 +38,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'hydra-works', '0.8.1'
 
   s.add_dependency 'durham_rails', '~> 0.0.13'
-  s.add_dependency 'schmit_api', '~> 0.1.1'
+  s.add_dependency 'schmit_api', '~> 0.9.0'
   s.add_dependency 'oubliette_api'
 
   s.add_dependency 'devise'

@@ -10,7 +10,7 @@ GIT
 PATH
   remote: .
   specs:
-    trifle (0.0.3)
+    trifle (0.9.0)
       active-fedora
       active_fedora-noid (< 2.0.0)
       bootstrap-sass (~> 3.3.5)
@@ -32,7 +32,7 @@ PATH
       resque-pool
       rsolr (~> 1.0)
       sass-rails (~> 5.0)
-      schmit_api (~> 0.1.1)
+      schmit_api (~> 0.9.0)
       simple_form (~> 3.1.0)
 
 PATH
@@ -48,7 +48,7 @@ PATH
 PATH
   remote: /home/qgkb58/hydra/oubliette/oubliette_api
   specs:
-    oubliette_api (0.0.1)
+    oubliette_api (0.9.0)
       durham_rails
       httmultiparty
       rails
@@ -56,7 +56,7 @@ PATH
 PATH
   remote: /home/qgkb58/hydra/schmit/schmit_api
   specs:
-    schmit_api (0.1.1)
+    schmit_api (0.9.0)
       durham_rails (~> 0.0.12)
       httparty
       rails
@@ -122,7 +122,7 @@ GEM
       tzinfo (~> 1.1)
     addressable (2.4.0)
     arel (6.0.3)
-    autoprefixer-rails (6.5.3)
+    autoprefixer-rails (6.7.6)
       execjs
     bcp47 (0.3.3)
       i18n
@@ -207,9 +207,9 @@ GEM
       hydra-file_characterization (~> 0.3, >= 0.3.3)
       hydra-pcdm (~> 0.5)
     i18n (0.7.0)
-    iiif-presentation (0.1.0)
+    iiif-presentation (0.2.0)
       activesupport (>= 3.2.18)
-      faraday (~> 0.9.0)
+      faraday (>= 0.9)
       json
     jettywrapper (2.0.3)
       activesupport (>= 3.0.0)
@@ -217,11 +217,11 @@ GEM
       i18n
       logger
       rubyzip
-    jquery-rails (4.2.1)
+    jquery-rails (4.2.2)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
-    jquery-ui-rails (6.0.0)
+    jquery-ui-rails (6.0.1)
       railties (>= 3.2.16)
     json (1.8.3)
     json-ld (1.1.11.1)
@@ -266,8 +266,8 @@ GEM
     mime-types (3.0)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0221)
-    mimemagic (0.3.1)
-    mini_magick (4.5.1)
+    mimemagic (0.3.2)
+    mini_magick (4.6.1)
     mini_portile2 (2.1.0)
     minitest (5.9.0)
     mono_logger (1.1.0)
@@ -421,7 +421,7 @@ GEM
       rspec-support (~> 3.4.0)
     rspec-support (3.4.1)
     rubyzip (1.2.0)
-    sass (3.4.22)
+    sass (3.4.23)
     sass-rails (5.0.6)
       railties (>= 4.0.0, < 6)
       sass (~> 3.1)
