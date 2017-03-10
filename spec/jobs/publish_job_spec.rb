@@ -36,5 +36,43 @@ RSpec.describe Trifle::PublishJob do
       end
     end
   end
+  
+  describe "#queue_job" do
+    let(:m_job) { Trifle::PublishJob.new( {resource: manifest } ) }
+    let(:m_job2) { Trifle::PublishJob.new( {resource: manifest } ) }
+    
+    let(:c_job) { Trifle::PublishJob.new( {resource: collection, remove: destroyed_manifest} ) }
+    let(:c_job2) { Trifle::PublishJob.new( {resource: collection, remove: destroyed_manifest} ) }
+    let(:c_job3) { Trifle::PublishJob.new( {resource: collection} ) }
+    
+    before {
+      allow(Trifle.queue).to receive(:push)
+      allow(DurhamRails::LockManager.instance).to receive(:lock) do |&block|
+        block.call
+      end
+    }
+    
+    it "doesn't queue jobs if one is already queued" do
+      expect(manifest.background_jobs.count).to eql(0)
+      m_job.queue_job
+      expect(manifest.background_jobs.count).to eql(1)
+      m_job2.queue_job
+      expect(manifest.background_jobs.count).to eql(1)
+      m_job.job_finished
+      m_job2.queue_job
+      expect(manifest.background_jobs.count).to eql(2)
+      
+      expect(collection.background_jobs.count).to eql(0)
+      c_job.queue_job
+      expect(collection.background_jobs.count).to eql(1)
+      c_job2.queue_job
+      expect(collection.background_jobs.count).to eql(1)
+      c_job.job_finished
+      c_job2.queue_job
+      expect(collection.background_jobs.count).to eql(2)
+      c_job3.queue_job
+      expect(collection.background_jobs.count).to eql(3)
+    end
+  end
 
 end

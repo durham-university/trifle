@@ -27,6 +27,20 @@ module Trifle
       end
     end
     
+    def queue_job
+      existing_job = resource.queued_jobs.find do |_job| 
+        next false unless _job.job_type == self.class.to_s
+        job = Marshal.load(Base64.decode64(_job.job_data))
+        job.remove_type == self.remove_type && job.remove_id == self.remove_id
+      end
+      if existing_job.present?
+        # Don't queue another publish job if one is already queued. This will
+        # still queue a new one if there's one running already.
+        return true
+      end
+      super
+    end
+    
     def dump_attributes
       super + [:remove_id, :remove_type]
     end        
