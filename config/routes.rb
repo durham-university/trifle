@@ -53,6 +53,7 @@ Trifle::Engine.routes.draw do
   get '/iiif/manifest/:iiif_manifest_id/canvas/:id/all_annotations', to: 'iiif_images#all_annotations', as: :iiif_manifest_iiif_image_all_annotations_iiif
   
   resources :background_jobs, only: [:show]
+  post '/background_jobs/:id/rerun_job', to: 'background_jobs#rerun_job'
   
   get '/mirador', to: 'mirador#index', as: :mirador_index
   get '/mirador/:id', to: 'mirador#show', as: :mirador_manifest
