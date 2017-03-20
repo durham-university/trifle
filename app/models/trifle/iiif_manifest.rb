@@ -31,7 +31,7 @@ module Trifle
     has_subresource "ranges_iiif", class_name: 'ActiveFedora::File'
 
     def as_json(*args)
-      super(*args).tap do |json|
+      super(*args).except('serialised_ranges').tap do |json|
         json.merge!({
           'images' => images.map(&:as_json)
         }) if args.first.try(:fetch,:include_children,false)

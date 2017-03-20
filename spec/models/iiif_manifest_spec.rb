@@ -79,6 +79,7 @@ RSpec.describe Trifle::IIIFManifest do
     let(:json) { manifest.as_json }
     it "sets properties" do
       expect(json['title']).to be_present
+      expect(json['serialised_ranges']).to be_nil
     end
     context "with parent" do
       let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_parent)}
@@ -108,6 +109,18 @@ RSpec.describe Trifle::IIIFManifest do
         expect(solr_doc.key?(Solrizer.solr_name('root_collection_id', type: :symbol))).to eql(false)
       end
     end
+    context "with ranges" do 
+      let(:manifest) { FactoryGirl.create(:iiifmanifest) }
+      let(:range) { FactoryGirl.build(:iiifrange, manifest: manifest) }
+      before {
+        manifest.ranges.push(range)
+        range.save
+      }
+      it "adds ranges to object profile" do
+        profile = JSON.parse(solr_doc['object_profile_ssm'])
+        expect(profile['serialised_ranges']).to be_present
+      end
+    end
   end  
   
   describe "#ranges" do
@@ -126,6 +139,13 @@ RSpec.describe Trifle::IIIFManifest do
       range2.save
       
       reloaded = Trifle::IIIFManifest.find(manifest.id)
+      expect(reloaded.ranges.count).to eql(2)      
+      expect(reloaded.ranges[0].id).to eql(range.id)
+      expect(reloaded.ranges[0].title).to eql(range.title)
+      expect(reloaded.ranges[1].id).to eql(range2.id)
+      expect(reloaded.ranges[1].title).to eql(range2.title)
+      
+      reloaded = Trifle::IIIFManifest.load_instance_from_solr(manifest.id)
       expect(reloaded.ranges.count).to eql(2)      
       expect(reloaded.ranges[0].id).to eql(range.id)
       expect(reloaded.ranges[0].title).to eql(range.title)

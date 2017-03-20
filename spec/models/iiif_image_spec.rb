@@ -6,6 +6,7 @@ RSpec.describe Trifle::IIIFImage do
     let(:json) { image.as_json }
     it "sets properties" do
       expect(json['title']).to be_present
+      expect(json['serialised_annotations']).to be_nil
     end
   end  
   
@@ -18,6 +19,21 @@ RSpec.describe Trifle::IIIFImage do
       expect(json['width']).to be_present
       expect(json['height']).to be_present
       expect(json['images']).to be_a(Array)
+    end
+  end
+  
+  describe "#to_solr" do
+    let(:solr_doc) { image.to_solr }
+    context "with annotations" do
+      let(:annotation_list) { FactoryGirl.build(:iiifannotationlist, :with_annotations, parent: image) }
+      before {
+        image.annotation_lists.push(annotation_list)
+        annotation_list.save
+      }
+      it "adds ranges to object profile" do
+        profile = JSON.parse(solr_doc['object_profile_ssm'])
+        expect(profile['serialised_annotations']).to be_present
+      end
     end
   end
 

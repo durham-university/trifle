@@ -24,7 +24,7 @@ module Trifle
     has_subresource "annotation_lists_iiif", class_name: 'ActiveFedora::File'
 
     def as_json(*args)
-      super(*args).tap do |json|
+      super(*args).except('serialised_annotations').tap do |json|
         parent_id = parent.try(:id)
         json.merge!({'parent_id' => parent_id}) if parent_id.present?
       end
