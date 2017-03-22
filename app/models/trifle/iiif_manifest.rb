@@ -187,10 +187,7 @@ module Trifle
         _inherited_logo = inherited_logo
         manifest.logo = _inherited_logo if _inherited_logo
         
-        # TODO: Move hard coded lincence text to config
-        manifest.license = "All images of manuscripts on this website are copyright of the respective repositories and are reproduced with permission.<br>"
-        manifest.license += "It is permitted to use this work under the conditions of #{self.licence}. The terms of this licence apply only to the contents of the Durham Priory Library Recreated website.<br>" if self.licence.present? && self.licence.downcase!='all rights reserved'
-        manifest.license += "For questions regarding terms of use, requests to purchase reproductions, or further permissions to publish, please contact:<br>Durham Cathedral Library<br>Durham Cathedral<br>The College<br>Durham<br>DH1 3EH<br>library@durhamcathedral.co.uk<br>"
+        manifest.license = self.licence if self.licence.present?
         
         manifest.attribution = self.attribution if self.attribution.present?
         
