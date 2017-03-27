@@ -273,10 +273,10 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
             expect(job.resource.id).to be_present
           } .and_return(true)
         expect(collection.ordered_members.to_a).to be_empty
-        expect_any_instance_of(Trifle::IIIFManifest).to receive(:refresh_from_source) do |instance|
-          expect(instance.source_record).to eql('schmit:ark:/12345/testid#subid')
-          instance.description = 'from source'
-        end
+#        expect_any_instance_of(Trifle::IIIFManifest).to receive(:refresh_from_source) do |instance|
+#          expect(instance.source_record).to eql('schmit:ark:/12345/testid#subid')
+#          instance.description = 'from source'
+#        end
         expect {
           post :create_and_deposit_images, 
                 iiif_collection_id: collection.id, 
@@ -287,11 +287,34 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
         
         parsed = JSON.parse(response.body)
         expect(parsed['resource']['id']).to be_present
-        expect(parsed['resource']['description']).to eql('from source')
+#        expect(parsed['resource']['description']).to eql('from source')
         expect(parsed['status']).to eql('ok')
         
         expect(collection.reload.ordered_members.to_a.map(&:id)).to eql([parsed['resource']['id']])
         expect(Trifle::IIIFManifest.all_in_collection(collection).map(&:id)).to eql([parsed['resource']['id']])
+      end
+      
+      it "doesn't deposit duplicates" do
+        expect_any_instance_of(Trifle::DepositJob).to receive(:queue_job).once
+        expect(collection.ordered_members.to_a).to be_empty
+        expect {
+          post :create_and_deposit_images, 
+                iiif_collection_id: collection.id, 
+                deposit_items: deposit_items, 
+                iiif_manifest: { title: 'manifest title', source_record: 'schmit:ark:/12345/testid#subid' }, 
+                format: 'json'
+        }.to change(Trifle::IIIFManifest, :count).by(1)
+        expect {
+          post :create_and_deposit_images, 
+                iiif_collection_id: collection.id, 
+                deposit_items: deposit_items, 
+                iiif_manifest: { title: 'manifest title', source_record: 'schmit:ark:/12345/testid#subid' }, 
+                format: 'json'
+        }.not_to change(Trifle::IIIFManifest, :count)
+        parsed = JSON.parse(response.body)
+        expect(parsed['resource']['id']).to be_present
+        expect(parsed['status']).to eql('ok')
+        expect(collection.reload.ordered_members.to_a.map(&:id)).to eql([parsed['resource']['id']])
       end
     end    
   end

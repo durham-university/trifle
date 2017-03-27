@@ -19,21 +19,30 @@ module Trifle
         error_message = e.to_s
       end
       
-      respond_to do |format|
-        if success
-          format.html { redirect_to @resource, notice: "Deposit job was successfully queued." }
-          format.json { render json: { resource: @resource.as_json, status: 'ok'} }
-        else
-          format.html { 
-            flash[:error] = "Unable to queue deposit job. #{error_message}" 
-            redirect_to @resource
-          }
-          format.json { render json: { resource: @resource.as_json, status: 'error', message: "Unable to queue deposit job. #{error_message}"} }
-        end
-      end      
+      deposit_reply(success, error_message)
     end
     
     def create_and_deposit_images
+      
+      # This stops the same deposit being processed twice which could otherwise
+      # sometimes happen in some error conditions
+      title = params.try(:[],'iiif_manifest').try(:[],'title')
+      if title.present?
+        duplicates = Trifle::IIIFManifest.all.where(title: title)
+        duplicates = duplicates.select do |d|
+          # to_s equalises nil and "". author is a multi-value field
+          (d.source_record.to_s == params['iiif_manifest']['source_record'].to_s) &&
+            (d.digitisation_note.to_s == params['iiif_manifest']['digitisation_note'].to_s) &&
+            (d.date_published.to_s == params['iiif_manifest']['date_published'].to_s) &&
+            (d.author == (params['iiif_manifest']['author'] || []))
+        end
+        if duplicates.length == 1
+          @resource = duplicates[0]
+          return deposit_reply(true,nil)
+        end
+      end
+      
+      
       # NOTE: This is usually called through Trifle::API::IIIFManifest.deposit_new.
       #       The local version of that does not come to this controller code but instead
       #       duplicates most of this.
@@ -46,7 +55,7 @@ module Trifle
       
       @resource.default_container_location!
       
-      @resource.refresh_from_source if @resource.source_record.present?
+      # @resource.refresh_from_source if @resource.source_record.present?
       
       saved = false
       if @resource.valid?
@@ -73,6 +82,21 @@ module Trifle
     end
     
     private
+      def deposit_reply(success, error_message=nil)
+        respond_to do |format|
+          if success
+            format.html { redirect_to @resource, notice: "Deposit job was successfully queued." }
+            format.json { render json: { resource: @resource.as_json, status: 'ok'} }
+          else
+            format.html { 
+              flash[:error] = "Unable to queue deposit job. #{error_message}" 
+              redirect_to @resource
+            }
+            format.json { render json: { resource: @resource.as_json, status: 'error', message: "Unable to queue deposit job. #{error_message}"} }
+          end
+        end      
+      end
+    
       def deposit_item_params
         parsed_items = if params['deposit_items'].respond_to?(:read)
           JSON.parse(params['deposit_items'].read).map do |h|
