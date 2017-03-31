@@ -4,6 +4,7 @@ module Trifle
     include DurhamRails::FastContainer
     fast_container_pcdm_compatibility
     
+    include DurhamRails::JobTag
     include DurhamRails::NoidBehaviour # ModelBase overrides NoidBehaviour, keep this line before include ModelBase
     include Trifle::ModelBase
     include Trifle::ArkNaanOptionsBehaviour

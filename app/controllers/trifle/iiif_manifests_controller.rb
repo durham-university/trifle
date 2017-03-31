@@ -17,7 +17,7 @@ module Trifle
     end
 
     def self.form_terms
-      super - [:dirty_state]
+      super - [:dirty_state] + [:job_tag]
     end
 
     def set_parent

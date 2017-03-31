@@ -301,14 +301,14 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
           post :create_and_deposit_images, 
                 iiif_collection_id: collection.id, 
                 deposit_items: deposit_items, 
-                iiif_manifest: { title: 'manifest title', source_record: 'schmit:ark:/12345/testid#subid' }, 
+                iiif_manifest: { title: 'manifest title', source_record: 'schmit:ark:/12345/testid#subid', job_tag: 'test_job/1' }, 
                 format: 'json'
         }.to change(Trifle::IIIFManifest, :count).by(1)
         expect {
           post :create_and_deposit_images, 
                 iiif_collection_id: collection.id, 
                 deposit_items: deposit_items, 
-                iiif_manifest: { title: 'manifest title', source_record: 'schmit:ark:/12345/testid#subid' }, 
+                iiif_manifest: { title: 'manifest title', source_record: 'schmit:ark:/12345/testid#subid', job_tag: 'test_job/1' }, 
                 format: 'json'
         }.not_to change(Trifle::IIIFManifest, :count)
         parsed = JSON.parse(response.body)

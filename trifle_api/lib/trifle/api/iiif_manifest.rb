@@ -4,7 +4,7 @@ module Trifle
       include ModelBase
 
       attr_accessor :image_container_location
-      attr_accessor :parent_id, :digitisation_note, :identifier, :date_published, :author, :description, :licence, :attribution, :source_record
+      attr_accessor :parent_id, :digitisation_note, :identifier, :date_published, :author, :description, :licence, :attribution, :source_record, :job_tag
 
       def initialize
         super
@@ -32,6 +32,7 @@ module Trifle
         @licence = json['licence']
         @attribution = json['attribution']
         @parent_id = json['parent_id']
+        @job_tag = json['job_tag']
       end
 
       def as_json(*args)
@@ -46,6 +47,7 @@ module Trifle
         json['licence'] = @licence
         json['attribution'] = @attribution
         json['parent_id'] = @parent_id
+        json['job_tag'] = @job_tag
         json
       end
 

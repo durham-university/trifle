@@ -23,25 +23,11 @@ module Trifle
     end
     
     def create_and_deposit_images
-      
-      # This stops the same deposit being processed twice which could otherwise
-      # sometimes happen in some error conditions
-      title = params.try(:[],'iiif_manifest').try(:[],'title')
-      if title.present?
-        duplicates = Trifle::IIIFManifest.all.where(title: title)
-        duplicates = duplicates.select do |d|
-          # to_s equalises nil and "". author is a multi-value field
-          (d.source_record.to_s == params['iiif_manifest']['source_record'].to_s) &&
-            (d.digitisation_note.to_s == params['iiif_manifest']['digitisation_note'].to_s) &&
-            (d.date_published.to_s == params['iiif_manifest']['date_published'].to_s) &&
-            (d.author == (params['iiif_manifest']['author'] || []))
-        end
-        if duplicates.length == 1
-          @resource = duplicates[0]
-          return deposit_reply(true,nil)
-        end
+      duplicate = Trifle::IIIFManifest.find_job_duplicate(params.try(:[],'iiif_manifest').try(:[],'job_tag'))
+      if duplicate.present?
+        @resource = duplicate
+        return deposit_reply(true, nil)
       end
-      
       
       # NOTE: This is usually called through Trifle::API::IIIFManifest.deposit_new.
       #       The local version of that does not come to this controller code but instead

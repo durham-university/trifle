@@ -8,7 +8,7 @@ RSpec.describe Trifle::API::IIIFManifest do
       {"id":"tajd472w55j","title":"Test title 2","image_container_location":"testimages2","identifier":["ark:/12345/tajd472w55j"],"date_published":"Xth century","author":["various authors"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"},
       {"id":"tajd472w66j","title":"Test title 3","image_container_location":"testimages3","identifier":["ark:/12345/tajd472w66j"],"date_published":"Xth century","author":["various authors"],"description":"test description","licence":"All rights reserved","attribution":"part of test items"}],"page":1,"total_pages":1}|      
   }
-  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","digitisation_note" => "test digitisation note","image_container_location" => "testimages","source_record" => "ark:/12345/test/testid#subid", "identifier" => ["ark:/12345/tajd472w44j"], "date_published" => "Xth century", "author" => ["various authors"], "description" => "test description", "licence" => "All rights reserved", "attribution" => "part of test items", "parent_id" => "dummy_collection_id"} }
+  let( :json ) { {"id" => "tajd472w44j","title" => "Test title","digitisation_note" => "test digitisation note","image_container_location" => "testimages","source_record" => "ark:/12345/test/testid#subid", "identifier" => ["ark:/12345/tajd472w44j"], "date_published" => "Xth century", "author" => ["various authors"], "description" => "test description", "licence" => "All rights reserved", "attribution" => "part of test items", "parent_id" => "dummy_collection_id", "job_tag" => "test_job"} }
   let( :manifest ) { Trifle::API::IIIFManifest.from_json(json) }
   let( :collection ) { Trifle::API::IIIFCollection.from_json('id' => 'colid', 'title' => 'test collection') }
   let( :deposit_items ) { ['http://localhost/dummy1','http://localhost/dummy2'] }
@@ -83,6 +83,7 @@ RSpec.describe Trifle::API::IIIFManifest do
       expect(json['licence']).to eql('All rights reserved')      
       expect(json['attribution']).to eql('part of test items')
       expect(json['parent_id']).to eql('dummy_collection_id')
+      expect(json['job_tag']).to eql('test_job')
     end
   end
 
@@ -98,6 +99,7 @@ RSpec.describe Trifle::API::IIIFManifest do
       expect(manifest.licence).to eql('All rights reserved')      
       expect(manifest.attribution).to eql('part of test items')
       expect(manifest.parent_id).to eql('dummy_collection_id')
+      expect(manifest.job_tag).to eql('test_job')
     end
   end
 
