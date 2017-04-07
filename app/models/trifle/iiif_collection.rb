@@ -49,11 +49,11 @@ module Trifle
     end
     
     def sub_collections
-      ordered_members.to_a.select do |m| m.is_a? IIIFCollection end
+      ordered_members.to_a.select do |m| m.is_a? IIIFCollection end .each do |m| m.has_parent!(self) end
     end
 
     def manifests
-      ordered_members.to_a.select do |m| m.is_a? IIIFManifest end
+      ordered_members.to_a.select do |m| m.is_a? IIIFManifest end .each do |m| m.has_parent!(self) end
     end
     
     def iiif_collection_stub(opts={})
