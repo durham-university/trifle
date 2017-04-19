@@ -13,7 +13,7 @@ module Trifle
     private
       def set_iiif_resource
         @resource = self.class.model_class.load_instance_from_solr(params[:id])
-        @resource.ordered_members.from_solr!
+        @resource.ordered_members.from_solr! if @resource.respond_to?(:ordered_members) && @resource.ordered_members.respond_to?(:from_solr!)
         self.instance_variable_set(:"@#{self.class.model_name.element}",@resource)
       end
       
