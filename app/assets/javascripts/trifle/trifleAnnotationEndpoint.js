@@ -134,8 +134,12 @@
         return;
       }
       
+      var annotation_url = null;
+      if(oaAnnotation['on']['full']) annotation_url = oaAnnotation['on']['full'];
+      else annotation_url = oaAnnotation['on'][0]['full'];
+      
       jQuery.ajax({
-        url: this.canvasUrl(oaAnnotation['on']['full'])+'/annotation',
+        url: this.canvasUrl(annotation_url)+'/annotation',
         beforeSend: this.addCsrf,
         type: 'POST',
         dataType: 'json',
@@ -153,6 +157,7 @@
       record['@id'] = this.annotationId(record['@id']);
       record['resource'] = [record['resource']];
       record['endpoint'] = this;
+      record['on'] = [record['on']];
       return record;
     },
     
@@ -174,11 +179,13 @@
       if(title.startsWith('<')) title = jQuery(content).text();
       if(title.length > 20) title = title.substring(0,20)+"...";
       
-      if(typeof(oaAnnotation['on'])=='string') {
-        var ind = oaAnnotation['on'].indexOf('#');
-        var fragment = oaAnnotation['on'].substring(ind+1);
-        oaAnnotation['on']={value: fragment};
-        oaAnnotation['on']['@type'] = 'oa:FragmentSelector';
+      var annotation_on = oaAnnotation['on'];
+      if(annotation_on.length > 0 && typeof(annotation_on)!='string') annotation_on = annotation_on[0];
+      if(typeof(annotation_on)=='string') {
+        var ind = annotation_on.indexOf('#');
+        var fragment = annotation_on.substring(ind+1);
+        annotation_on={value: fragment};
+        annotation_on['@type'] = 'oa:FragmentSelector';
       }
       
       return {
@@ -186,7 +193,7 @@
         'iiif_annotation[title]' : title,
         'iiif_annotation[content]' : content,
         'iiif_annotation[format]' : contentResource['format'],
-        'iiif_annotation[selector]' : JSON.stringify(oaAnnotation['on']['selector']),
+        'iiif_annotation[selector]' : JSON.stringify(annotation_on['selector']),
         'iiif_annotation[language]' : contentResource['language'],
       };
     },
