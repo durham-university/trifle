@@ -34,7 +34,9 @@ module Trifle
     def public_source_link
       if source_record.try(:start_with?,'schmit:')
         return nil unless Schmit::API.config['schmit_xtf_base_url'].present?
-        url = Schmit::API.config['schmit_xtf_base_url']+(source_record.split('/')[1..-1].join('_'))+'.xml'
+        split = source_record.split('/')[1..-1].join('_').split('#')
+        split[0] += '.xml'
+        url = Schmit::API.config['schmit_xtf_base_url']+(split.join('#'))
         {'@id' => url, 'label' => 'Catalogue record'}
       else
         nil

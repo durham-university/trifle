@@ -64,6 +64,10 @@ RSpec.describe Trifle::IIIFManifest do
       json = manifest.iiif_manifest
       expect(json['related']['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml')
       expect(json['related']['label']).to be_present
+      
+      manifest.source_record = 'schmit:ark:/12345/test#fragment'
+      json = manifest.iiif_manifest
+      expect(json['related']['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml#fragment')
     end
   end
   
