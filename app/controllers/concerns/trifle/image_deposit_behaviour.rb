@@ -83,6 +83,20 @@ module Trifle
         end      
       end
     
+      def validate_ingestion_path(path)
+        ingestion_paths = Array(Trifle.config['ingestion_path'])
+        raise 'Ingestion from disk not supported' unless ingestion_paths.any?
+        ingestion_paths.each do |ingestion_path|
+          ingestion_path += File::SEPARATOR unless ingestion_path.ends_with? File::SEPARATOR
+          abs_path = File.absolute_path(path)
+          next unless abs_path.start_with?(ingestion_path) && abs_path.length > ingestion_path.length
+          raise "Ingestion file #{abs_path} is a directory" if File.directory?(abs_path)
+          return true
+        end
+        
+        raise "Not allowed to ingest from #{path}"
+      end
+    
       def deposit_item_params
         parsed_items = if params['deposit_items'].respond_to?(:read)
           JSON.parse(params['deposit_items'].read).map do |h|
@@ -98,13 +112,8 @@ module Trifle
           next false unless item[:source_path].present?
           
           if item[:temp_file].present?
-            path = item[:temp_file]
-            ingestion_path = Trifle.config['ingestion_path']
-            raise 'Ingestion from disk not supported' unless ingestion_path
-            ingestion_path += File::SEPARATOR unless ingestion_path.ends_with? File::SEPARATOR
-            unless File.absolute_path(path).start_with?(ingestion_path) && path.length > ingestion_path.length
-              raise "Not allowed to ingest from #{path}"
-            end            
+            # validation raises exceptions if any issues
+            next false unless validate_ingestion_path(item[:temp_file])
           end
           
           (item[:source_path].start_with?('oubliette:') || item[:source_path].start_with?('http://') || item[:source_path].start_with?('https://'))

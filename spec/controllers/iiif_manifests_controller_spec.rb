@@ -235,11 +235,10 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
         expect {
           post :deposit_images, id: manifest.id, deposit_items: deposit_items
         } .to raise_exception("Not allowed to ingest from /tmp/dummy/test.tiff")
-        
       end
       it "allows ingestion from temp_path" do
         expect(Trifle).to receive(:config).at_least(:once).and_return({
-            'ingestion_path' => '/tmp/ingestion'
+            'ingestion_path' => ['/aaa/','/tmp/ingestion']
           })
         deposit_items.last[:temp_file] = '/tmp/ingestion/test.tiff'
         expect_any_instance_of(Trifle::DepositJob).to receive(:queue_job) { |job|
