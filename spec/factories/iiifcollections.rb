@@ -4,9 +4,19 @@ FactoryGirl.define do
     sequence(:title) { |n| "Collection #{n}" }
 
     trait :with_manifests do
-      ordered_members {
-        [ FactoryGirl.build(:iiifmanifest), FactoryGirl.build(:iiifmanifest) ]
-      }
+      after :build do |collection|
+        ms = FactoryGirl.build(:iiifmanifest), FactoryGirl.build(:iiifmanifest)
+        ms.each do |m| collection.ordered_members << m end
+        ms.each do |m| m.save end
+      end
+    end
+    
+    trait :with_sub_collections do
+      after :build do |collection|
+        ms = FactoryGirl.build(:iiifcollection), FactoryGirl.build(:iiifcollection)
+        ms.each do |m| collection.ordered_members << m end
+        ms.each do |m| m.save end
+      end
     end
 
     trait :with_parent do

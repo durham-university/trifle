@@ -1,15 +1,27 @@
 <h2>Sub collections
   <% if can? :edit, @resource %>
     <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_collection_iiif_collection_path(@resource), { class: 'btn btn-default' }) %>
+    <% if @presenter.to_model.sub_collections.any? %>
+      <span class="btn btn-default" onclick="enableReordering(this, '#subCollectionList', '#subCollectionOrderField')"><span class="glyphicon glyphicon-sort" aria-hidden="true"></span></span>    
+      <%= form_for(@resource, url: trifle.iiif_collection_path(@resource)) do |form| %>
+        <input type="hidden" id="subCollectionOrderField" name="iiif_collection[sub_collection_order]" value=""/>
+      <% end %>
+    <% end %>    
   <% end %>
 </h2>
 
-<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.sub_collections %>
+<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.sub_collections, list_id: "subCollectionList" %>
 
 <h2>Manifests
   <% if can? :edit, @resource %>
     <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_collection_iiif_manifest_path(@resource), { class: 'btn btn-default' }) %>
+    <% if @presenter.to_model.manifests.any? %>
+      <span class="btn btn-default" onclick="enableReordering(this, '#manifestList', '#manifestOrderField')"><span class="glyphicon glyphicon-sort" aria-hidden="true"></span></span>    
+      <%= form_for(@resource, url: trifle.iiif_collection_path(@resource)) do |form| %>
+        <input type="hidden" id="manifestOrderField" name="iiif_collection[manifest_order]" value=""/>
+      <% end %>
+    <% end %>    
   <% end %>
 </h2>
 
-<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.manifests %>
+<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.manifests, list_id: "manifestList" %>

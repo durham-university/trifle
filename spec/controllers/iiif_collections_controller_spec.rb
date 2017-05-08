@@ -23,6 +23,48 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
     end
   end
   
+  describe "#update" do
+    describe "manifest reordering" do
+      let(:user) { FactoryGirl.create(:user,:admin) }
+      let(:collection) { FactoryGirl.create(:iiifcollection, :with_manifests, :with_sub_collections) }
+      let(:manifest_ids) { collection.manifests.map(&:id) }
+      before { sign_in user }
+      it "can change ordering of manifests" do
+        post :update, id: collection.id, iiif_collection: {manifest_order: "#{manifest_ids[1]}\n#{manifest_ids[0]}"}
+        collection.reload
+        expect(collection.manifests.map(&:id)).to eql([manifest_ids[1],manifest_ids[0]])
+        expect(collection.sub_collections).not_to be_empty
+      end
+      it "raises error for invalid orderings" do
+        expect {
+          post :update, id: collection.id, iiif_collection: {manifest_order: "#{manifest_ids[0]}\n#{manifest_ids[0]}"}
+        } .to raise_error('Invalid manifest list')
+        collection.reload
+        expect(collection.manifests.map(&:id)).to eql([manifest_ids[0],manifest_ids[1]])
+      end
+    end
+    
+    describe "sub collection reordering" do
+      let(:user) { FactoryGirl.create(:user,:admin) }
+      let(:collection) { FactoryGirl.create(:iiifcollection, :with_manifests, :with_sub_collections) }
+      let(:sub_collection_ids) { collection.sub_collections.map(&:id) }
+      before { sign_in user }
+      it "can change ordering of sub collections" do
+        post :update, id: collection.id, iiif_collection: {sub_collection_order: "#{sub_collection_ids[1]}\n#{sub_collection_ids[0]}"}
+        collection.reload
+        expect(collection.sub_collections.map(&:id)).to eql([sub_collection_ids[1],sub_collection_ids[0]])
+        expect(collection.manifests).not_to be_empty
+      end
+      it "raises error for invalid orderings" do
+        expect {
+          post :update, id: collection.id, iiif_collection: {sub_collection_order: "#{sub_collection_ids[0]}\n#{sub_collection_ids[0]}"}
+        } .to raise_error('Invalid sub collection list')
+        collection.reload
+        expect(collection.sub_collections.map(&:id)).to eql([sub_collection_ids[0],sub_collection_ids[1]])
+      end
+    end
+  end
+  
   
   describe "iiif publishing" do
     before { allow(Trifle::IIIFCollection).to receive(:ark_naan).and_return('12345') }
@@ -77,15 +119,27 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
       end
     end
     
-    describe "GET #show_iiif?mirador=true" do
+    describe "GET #show_iiif for mirador" do
       let(:manifest) { FactoryGirl.create(:iiifmanifest) }
       let!(:collection) { FactoryGirl.create(:iiifcollection, keeper: 'Test Keeper', ordered_members: [FactoryGirl.create(:iiifcollection, ordered_members: [manifest])]) }
       before { Trifle::IIIFManifest.all.each do |c| c.update_index end }
-      it "renders manifest json" do
-        get :show_iiif, id: collection.id, mirador: 'true'
-        expect(JSON.parse(response.body)).to be_a(Array)
-        expect(response.body).to include(manifest.id)
-        expect(response.body).to include('"location":"Test Keeper"')
+      let(:json) { JSON.parse(response.body) }
+      describe "using manifestUri" do
+        it "renders json" do
+          get :show_iiif, id: collection.id, mirador: 'true'
+          expect(json).to be_a(Array)
+          expect(json[0]['manifestUri']).to be_present
+          expect(response.body).to include(manifest.id)
+          expect(response.body).to include('"location":"Test Keeper"')
+        end
+      end
+      describe "using collectionContent" do
+        it "renders json" do
+          get :show_iiif, id: collection.id, mirador: 'collection'
+          expect(json).to be_a(Array)
+          expect(json[0]['collectionContent']['@type']).to eql('sc:Collection')
+          expect(json[0]['collectionContent']['label']).to eql(collection.title)
+        end
       end
     end
     

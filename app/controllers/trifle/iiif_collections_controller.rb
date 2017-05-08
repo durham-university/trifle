@@ -3,6 +3,7 @@ module Trifle
     include DurhamRails::ModelControllerBase
     include Trifle::ServeIIIFBehaviour
     include Trifle::AutoPublishResourceBehaviour
+    include Trifle::MemberReordering
     include Trifle::AllowCorsBehaviour # Keep this last
 
     helper 'trifle/application'
@@ -19,10 +20,13 @@ module Trifle
     
     def show_iiif
       if params['mirador'] == 'true'
+        # This doesn't retain ordering
         resources = Trifle::IIIFManifest.all_in_collection(@resource)
         render json: (resources.map do |res|
           {manifestUri: trifle.iiif_manifest_iiif_url(res), location: @resource.inherited_keeper || Trifle.mirador_location }
         end)
+      elsif params['mirador'] == 'collection'
+        render json: [{collectionContent: @resource.to_iiif(use_cached: true).to_ordered_hash}]
       else
         super
       end  
@@ -41,6 +45,16 @@ module Trifle
         super
       end
     end
+    
+    def update
+      if params[:iiif_collection][:manifest_order].present?
+        raise 'Invalid manifest list' unless reorder_members(params[:iiif_collection][:manifest_order], Trifle::IIIFManifest)
+      end
+      if params[:iiif_collection][:sub_collection_order].present?
+        raise 'Invalid sub collection list' unless reorder_members(params[:iiif_collection][:sub_collection_order], Trifle::IIIFCollection)
+      end
+      super
+    end    
     
         
     protected
