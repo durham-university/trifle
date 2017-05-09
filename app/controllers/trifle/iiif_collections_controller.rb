@@ -20,9 +20,8 @@ module Trifle
     
     def show_iiif
       if params['mirador'] == 'true'
-        # This doesn't retain ordering
-        resources = Trifle::IIIFManifest.all_in_collection(@resource)
-        render json: (resources.map do |res|
+        @resource.ordered_members.from_solr!
+        render json: (@resource.manifests.map do |res|
           {manifestUri: trifle.iiif_manifest_iiif_url(res), location: @resource.inherited_keeper || Trifle.mirador_location }
         end)
       elsif params['mirador'] == 'collection'

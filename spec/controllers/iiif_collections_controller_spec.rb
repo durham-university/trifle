@@ -121,7 +121,7 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
     
     describe "GET #show_iiif for mirador" do
       let(:manifest) { FactoryGirl.create(:iiifmanifest) }
-      let!(:collection) { FactoryGirl.create(:iiifcollection, keeper: 'Test Keeper', ordered_members: [FactoryGirl.create(:iiifcollection, ordered_members: [manifest])]) }
+      let!(:collection) { FactoryGirl.create(:iiifcollection, keeper: 'Test Keeper', ordered_members: [manifest]) }
       before { Trifle::IIIFManifest.all.each do |c| c.update_index end }
       let(:json) { JSON.parse(response.body) }
       describe "using manifestUri" do

@@ -11,7 +11,7 @@ function enableReordering(button, selector, formFieldSelector){
       item.disableSelection();      
     }
   });
-  list.before("<p>Reorder images by by dragging and dropping. Click save button after done. </p>")
+  list.before("<p>Reorder items by by dragging and dropping. Click save button after done. </p>")
   
   button.find('.glyphicon-sort').removeClass('glyphicon-sort').addClass('glyphicon-floppy-saved');
   button.attr('onclick','');
