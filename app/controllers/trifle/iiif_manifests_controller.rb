@@ -64,7 +64,7 @@ module Trifle
       return super if @parent || !params['in_source'].present?
       
       from = self.class.model_class.find_from_source(params["in_source"],params.fetch('in_source_prefix','true')=='true')
-      if use_paging?
+      if use_paging? && params['per_page'] != 'all'
         per_page = [[params.fetch('per_page', 20).to_i, 100].min, 5].max
         page = [params.fetch('page', 1).to_i, 1].max
         self.class.resources_for_page(page: page, per_page: per_page, from: from)

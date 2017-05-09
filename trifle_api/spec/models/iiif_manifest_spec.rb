@@ -60,7 +60,7 @@ RSpec.describe Trifle::API::IIIFManifest do
   
   describe ".all_in_source" do
     it "parses the response" do
-      expect(Trifle::API::IIIFManifest).to receive(:get).with("/manifest.json?in_source=moo%23baa&per_page=1000&api_debug=true").and_return(OpenStruct.new(body: all_json_s, code: 200))
+      expect(Trifle::API::IIIFManifest).to receive(:get).with("/manifest.json?in_source=moo%23baa&per_page=all").and_return(OpenStruct.new(body: all_json_s, code: 200))
       resp = Trifle::API::IIIFManifest.all_in_source('moo#baa')
       expect(resp).to be_a Array
       expect(resp.size).to eql 3

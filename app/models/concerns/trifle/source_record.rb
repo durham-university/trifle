@@ -92,9 +92,9 @@ module Trifle
         # one escape for ruby, one for replacement patterns, one for _query_ string and one for v= string
         escaped = source.gsub("\\","\\\\\\\\\\\\\\\\").gsub("\"","\\\\\\\\\\\"")
         if prefix
-          self.all.where("_query_:\"{!prefix f=#{solr_field} v=\\\"#{escaped}\\\"}\"")
+          self.all.from_solr!.where("_query_:\"{!prefix f=#{solr_field} v=\\\"#{escaped}\\\"}\"")
         else
-          self.all.where("_query_:\"{!raw f=#{solr_field} v=\\\"#{escaped}\\\"}\"")
+          self.all.from_solr!.where("_query_:\"{!raw f=#{solr_field} v=\\\"#{escaped}\\\"}\"")
         end
       end
     end

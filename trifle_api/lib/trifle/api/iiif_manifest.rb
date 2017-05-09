@@ -87,7 +87,7 @@ module Trifle
       
       def self.all_in_source(source)
         return all_in_source_local(source) if local_mode?
-        response = self.get("/manifest.json?in_source=#{CGI.escape(source)}&per_page=1000&api_debug=true")
+        response = self.get("/manifest.json?in_source=#{CGI.escape(source)}&per_page=all")
         raise FetchError, "Error fetching manifests in source: #{response.code} - #{response.message}" unless response.code == 200
         json = JSON.parse(response.body)
         json['resources'].map do |resource_json|
