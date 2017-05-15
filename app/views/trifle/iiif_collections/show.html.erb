@@ -2,4 +2,8 @@
   <%= render 'trifle/sidebar/open_mirador_control', resource: @resource %>
 <% end %>
 
+<% content_for :side_components do %>
+  <%= render 'durham_rails/base_shared/show_selection' %>
+<% end %>
+
 <%= render 'durham_rails/base_shared/show' %>

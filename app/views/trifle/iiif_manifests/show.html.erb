@@ -4,6 +4,10 @@
   <%= render 'trifle/sidebar/publish_resource', resource: @resource %>
 <% end %>
 
+<% content_for :side_components do %>
+  <%= render 'durham_rails/base_shared/show_selection' %>
+<% end %>
+
 <%= 
 # next/prev probably not needed for manifests. If enabled, consider optimising
 # parent.ordered_members similarly to what's done in iiif_images_controller

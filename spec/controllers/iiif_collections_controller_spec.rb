@@ -65,6 +65,67 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
     end
   end
   
+  describe "resource moving" do
+    let(:user) { FactoryGirl.create(:user,:admin) }
+    before { sign_in user }
+
+    let!(:collection1) { FactoryGirl.create(:iiifcollection, ordered_members: [collection2]) }
+    let!(:collection2) { FactoryGirl.create(:iiifcollection, ordered_members: [manifest1, manifest2]) }
+    let!(:collection3) { FactoryGirl.create(:iiifcollection, ordered_members: [manifest3, manifest4]) }
+    let!(:collection4) { FactoryGirl.create(:iiifcollection) }
+    let(:manifest1) { FactoryGirl.create(:iiifmanifest) }
+    let(:manifest2) { FactoryGirl.create(:iiifmanifest) }
+    let(:manifest3) { FactoryGirl.create(:iiifmanifest) }
+    let(:manifest4) { FactoryGirl.create(:iiifmanifest) }
+    before {
+      collection1 ; collection2 ; collection3 ; collection4
+      [manifest1,manifest2,manifest3,manifest4].each do |m| m.update_index end
+    }
+    
+    let(:bucket) { [manifest1.id, manifest2.id, collection4.id] }
+    let(:selection) { DurhamRails::SelectionBucket.new(bucket, nil) }
+    before { allow(controller).to receive(:selection_bucket).and_return(selection) }
+    
+    it "moves resources and indexes everything" do
+      expect(Trifle::IIIFManifest.all_in_collection(collection1).map(&:id)).to match_array([manifest1.id,manifest2.id])
+      expect(Trifle::IIIFManifest.all_in_collection(collection3).map(&:id)).to match_array([manifest3.id,manifest4.id])
+      expect(collection3.ordered_members.to_a.map(&:id)).to match_array([manifest3.id,manifest4.id])
+      expect_publish_for = { # These should have PublishJobs queued for them
+        collection2.id => false,
+        manifest1.id => false,
+        manifest2.id => false,
+        collection4.id => false
+      }
+      expect_update_for = { 
+        # These should have UpdateIndexJobs queued for them.
+        # Note that manifests do update_index directly, only collections are done in a job.
+        collection4.id => false
+      }
+      allow_any_instance_of(Trifle::PublishJob).to receive(:queue_job) do |job|
+        expect(expect_publish_for.key?(job.resource.id)).to eql(true)
+        expect_publish_for[job.resource.id] = true
+      end
+      allow_any_instance_of(Trifle::UpdateIndexJob).to receive(:queue_job) do |job|
+        expect(expect_update_for.key?(job.resource.id)).to eql(true)
+        expect_update_for[job.resource.id] = true
+      end
+      
+      post :move_selection_into, id: collection3.id
+      
+      expect(expect_publish_for.values).to all( eql(true) )
+      expect(expect_update_for.values).to all( eql(true) )
+      expect(bucket).to be_empty
+      
+      collection2_reloaded = Trifle::IIIFCollection.find(collection2.id)
+      expect(collection2_reloaded.ordered_members.to_a).to be_empty
+
+      collection3_reloaded = Trifle::IIIFCollection.find(collection3.id)
+      expect(collection3_reloaded.ordered_members.to_a.map(&:id)).to match_array([manifest1.id,manifest2.id,manifest3.id,manifest4.id,collection4.id])
+      
+      expect(Trifle::IIIFManifest.all_in_collection(collection1).map(&:id)).to eql([])
+      expect(Trifle::IIIFManifest.all_in_collection(collection3).map(&:id)).to match_array([manifest1.id,manifest2.id,manifest3.id,manifest4.id])
+    end
+  end
   
   describe "iiif publishing" do
     before { allow(Trifle::IIIFCollection).to receive(:ark_naan).and_return('12345') }

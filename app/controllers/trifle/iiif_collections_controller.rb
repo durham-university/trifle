@@ -1,6 +1,8 @@
 module Trifle
   class IIIFCollectionsController < Trifle::ApplicationController
     include DurhamRails::ModelControllerBase
+    include DurhamRails::SelectableResourceBehaviour
+    include DurhamRails::ReceiveMovesBehaviour
     include Trifle::ServeIIIFBehaviour
     include Trifle::AutoPublishResourceBehaviour
     include Trifle::MemberReordering
@@ -55,8 +57,70 @@ module Trifle
       super
     end    
     
+    def move_selection_into
+      # Need to publish all containers which changed due to resource move and
+      # all moved resources (they link to their container). Also need to update
+      # solr of the moved resources and everything under them 
+      # (links to root container).
+      
+      # This hook will only work if bucket is emptied on successful move.
+      raise 'Assert error, empty_bucket_after_move? must be true' unless empty_bucket_after_move?
+      
+      moved_resources = {}
+      changed = {}
+      
+      selection_bucket.from_fedora!.each do |res|
+        changed[res.id] ||= res
+        moved_resources[res.id] ||= res
+        res.ordered_by.each do |parent|
+          changed[parent.id] ||= parent
+        end
+        # The destination container gets updated as part of the update jobs of the
+        # moved resources.
+      end
+      
+      super
+      
+      if changed.any? && !selection_bucket.any?
+        changed.values.each do |res|
+          job = Trifle::PublishJob.new(resource: res)
+          job.validate_job!
+          job.queue_job
+        end
+        moved_resources.values.each do |res|
+          if res.is_a?(Trifle::IIIFManifest)
+            res.update_index
+          else
+            # Collections need indexes updated recursively, do in a job due to
+            # potentially very large number of updates needed.
+            job = Trifle::UpdateIndexJob.new(resource: res, recursive: true)
+            job.validate_job!
+            job.queue_job
+          end
+        end
+      end
+    end
         
     protected
+    
+      def validate_move
+        return false unless super
+        selection_bucket.each do |res|
+          unless res.is_a?(Trifle::IIIFManifest) || res.is_a?(Trifle::IIIFCollection)
+            error_message = "Can only move manifests in a collection"
+            respond_to do |format|
+              format.html { flash[:error] = error_message ; redirect_to @resource }
+              format.json { render json: { status: 'error', message: error_message } }
+            end          
+            return false
+          end
+        end
+        true
+      end
+    
+      def selection_bucket_key
+        'trifle_all'
+      end    
     
       def new_resource(params={})
         super(params).tap do |res|

@@ -39,6 +39,17 @@ Trifle::Engine.routes.draw do
   get '/manifest/:iiif_manifest_id/canvas/:id/all_annotations', to: 'iiif_images#all_annotations', as: :iiif_manifest_iiif_image_all_annotations
   post '/manifest/:id/update_ranges', to: 'iiif_manifests#update_ranges', as: :iiif_manifest_update_ranges
   
+  post '/manifest/:id/select', to: 'iiif_manifests#select_resource', as: :select_iiif_manifest
+  post '/manifest/:id/deselect', to: 'iiif_manifests#deselect_resource', as: :deselect_iiif_manifest
+  post '/manifest/deselect_all', to: 'iiif_manifests#deselect_all_resources'
+  post '/manifest/:id/deselect_all', to: 'iiif_manifests#deselect_all_resources', as: :deselect_all_iiif_manifest
+  post '/collection/:id/select', to: 'iiif_collections#select_resource', as: :select_iiif_collection
+  post '/collection/:id/deselect', to: 'iiif_collections#deselect_resource', as: :deselect_iiif_collection
+  post '/collection/deselect_all', to: 'iiif_collections#deselect_all_resources'
+  post '/collection/:id/deselect_all', to: 'iiif_collections#deselect_all_resources', as: :deselect_all_iiif_collection
+  post '/collection/:id/move_into', to: 'iiif_collections#move_selection_into', as: :move_into_iiif_collection
+  
+  
   scope 'iiif' do
     get 'collection/:id', to: 'iiif_collections#show_iiif', as: :iiif_collection_iiif
     get 'manifest/:id/manifest', to: 'iiif_manifests#show_iiif', as: :iiif_manifest_iiif

@@ -1,6 +1,7 @@
 module Trifle
   class IIIFManifestsController < Trifle::ApplicationController
     include DurhamRails::ModelControllerBase
+    include DurhamRails::SelectableResourceBehaviour
     include Trifle::ImageDepositBehaviour
     include Trifle::ServeIIIFBehaviour
     include Trifle::RefreshFromSourceBehaviour
@@ -80,6 +81,10 @@ module Trifle
         res.set_ark_naan(@parent.local_ark_naan) if @parent && !params[:ark_naan]
       end
     end
+    
+    def selection_bucket_key
+      'trifle_all'
+    end    
     
     def resource_params
       super.tap do |ret|
