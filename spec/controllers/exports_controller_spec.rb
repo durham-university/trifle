@@ -32,6 +32,18 @@ RSpec.describe Trifle::ExportsController, type: :controller do
     end
   end
   
+  context "with registered user" do
+    let(:user) { FactoryGirl.create(:user) }
+    before { sign_in user }
+    describe "POST export_images" do
+      it "denies access" do
+        expect(controller).not_to receive(:export_params)
+        expect(Oubliette::API::PreservedFile).not_to receive(:export)
+        post :export_images, export_ids: [canvas1.id, canvas2.id]
+      end
+    end
+  end
+  
   describe "#authorize_export_images" do
     let(:image1) { double('image1') }
     let(:image2) { double('image2') }
