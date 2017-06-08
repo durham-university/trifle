@@ -66,6 +66,9 @@ Trifle::Engine.routes.draw do
   resources :background_jobs, only: [:show]
   post '/background_jobs/:id/rerun_job', to: 'background_jobs#rerun_job'
   
+  get '/exports', to: 'exports#show', as: :exports
+  post '/exports', to: 'exports#export_images'
+  
   get '/mirador', to: 'mirador#index', as: :mirador_index
   get '/mirador/:id', to: 'mirador#show', as: :mirador_manifest
   get '/mirador/:id/embed', to: 'mirador#show', as: :mirador_manifest_embed, defaults: { no_auto_load: 'true' }
