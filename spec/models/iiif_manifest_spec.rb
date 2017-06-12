@@ -180,6 +180,24 @@ RSpec.describe Trifle::IIIFManifest do
         expect(link['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml')
         expect(link['label']).to be_present
       end
+      it "returns parent link" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
+        collection = FactoryGirl.create(:iiifcollection, source_record: 'schmit:ark:/12345/parenttest')
+        collection.ordered_members << manifest
+        collection.save
+        manifest.source_record = nil
+        link = manifest.public_source_link
+        expect(link['@id']).to eql('http://www.example.com/xtf/view?docId=12345_parenttest.xml')
+        expect(link['label']).to be_present
+      end
+      it "returns nil if no link" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
+        collection = FactoryGirl.create(:iiifcollection)
+        collection.ordered_members << manifest
+        collection.save
+        manifest.source_record = nil
+        expect(manifest.public_source_link).to be_nil
+      end
     end
     describe "#source_identifier" do
       it "returns source identifier" do

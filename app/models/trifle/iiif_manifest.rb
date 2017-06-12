@@ -153,6 +153,10 @@ module Trifle
       assign_new_ark if id.nil?
       self.image_container_location = treeify_id
     end
+    
+    def public_source_link
+      super || parent.try(:public_source_link)
+    end
 
     def iiif_ranges(opts={})
       traverse_ranges.map do |r| r.to_iiif(opts) end

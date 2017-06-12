@@ -115,4 +115,52 @@ RSpec.describe Trifle::IIIFCollection do
       expect(collection.inherited_logo).to be_nil
     end
   end
+  
+  describe "source record" do
+    # iiif_manifest_spec has more source record tests, manifest and collection share the same concern
+    let(:manifest) { FactoryGirl.build(:iiifcollection, source_record: 'schmit:ark:/12345/testid#subid') }    
+    describe "#source_type" do
+      it "returns the source type" do
+        expect(manifest.source_type).to eql('schmit')
+      end
+    end
+    describe "#source_url" do
+      it "retuns a schmit link" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_base_url' => 'http://www.example.com/schmit'})
+        collection.source_record = 'schmit:ark:/12345/test1234'
+        expect(collection.source_url).to eql('http://www.example.com/schmit/catalogues/test1234')
+      end
+    end
+    describe "#public_source_link" do
+      it "returns a iiif link to xtf" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
+        collection.source_record = 'schmit:ark:/12345/test'
+        link = collection.public_source_link
+        expect(link['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml')
+        expect(link['label']).to be_present
+      end
+      it "returns nil if no link" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
+        collection.source_record = nil
+        expect(collection.public_source_link).to be_nil
+      end
+    end
+    describe "::find_from_source" do
+      let!(:collection1) { FactoryGirl.create(:iiifcollection, source_record: 'schmit:ark:/12345/testid1#subid\\1') }    
+      let!(:collection2) { FactoryGirl.create(:iiifcollection, source_record: 'schmit:ark:/12345/testid1#subid\\2') }    
+      let!(:collection3) { FactoryGirl.create(:iiifcollection, source_record: 'schmit:ark:/12345/testid2#subid"1"') }    
+      
+      context "prefix search" do
+        let(:result1) { Trifle::IIIFCollection.find_from_source('schmit:ark:/12345/testid1#')}
+        let(:result2) { Trifle::IIIFCollection.find_from_source('schmit:ark:/12345/testid2#')}
+        let(:result3) { Trifle::IIIFCollection.find_from_source('schmit:ark:/12345/testid\\2')}
+        it "finds correct manifests" do
+          expect(result1.map(&:id)).to match_array([collection1.id,collection2.id])
+          expect(result2.map(&:id)).to match_array([collection3.id])
+          expect(result3.empty?).to eql(true)
+        end
+      end
+    end
+  end
+  
 end

@@ -7,6 +7,7 @@ module Trifle
     include Trifle::InheritLogo
     include DurhamRails::WithBackgroundJobs
     include DurhamRails::DestroyFromContainers
+    include Trifle::SourceRecord
     
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title do |index|
       index.as :stored_searchable
@@ -68,6 +69,9 @@ module Trifle
         collection.description = self.description if self.description.present?
         collection.license = self.licence if self.licence.present?
         collection.attribution = self.attribution if self.attribution.present?
+        
+        source_link = public_source_link
+        collection['related'] = source_link if source_link        
         
         _inherited_logo = inherited_logo
         collection.logo = _inherited_logo if _inherited_logo

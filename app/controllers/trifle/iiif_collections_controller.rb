@@ -11,7 +11,7 @@ module Trifle
     helper 'trifle/application'
 
     def self.presenter_terms
-      super + [:identifier,  :description, :attribution, :licence, :logo, :keeper]
+      super + [:identifier,  :description, :source_record, :licence, :attribution, :logo, :keeper]
     end
 
     def set_parent
