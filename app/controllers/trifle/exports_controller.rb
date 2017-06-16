@@ -9,10 +9,7 @@ module Trifle
     def export_images
       oubliette_params = export_params
       
-      export_ids = parse_export_ids(oubliette_params[:export_ids])
-      images = Trifle::IIIFImage.all.from_solr!.find_some(export_ids)
-      nil_ind = images.index(nil)
-      raise "Couldn't find image #{oubliette_params[:export_ids][nil_ind]}" unless nil_ind.nil?
+      images = get_export_images(oubliette_params[:export_ids])
       
       authorize_export_images(images)
       oubliette_params[:export_ids] = get_oubliette_export_ids(images)
@@ -45,17 +42,38 @@ module Trifle
         end
       end
       
-      def parse_export_ids(id_list)
-        re = /.*\?.*canvas=([^&]+)(&|$)/
-        id_list.map do |id|
-          m = id.match(re)
-          if m
-            m[1]
-          else
-            ind = id.rindex('/')
-            ind.nil? ? id : id[(ind+1)..-1]  
-          end
+      def parse_export_id(id)
+        m = id.match(/.*\?.*canvas=([^&]+)(&|$)/)
+        if m
+          m[1]
+        else
+          ind = id.rindex('/')
+          ind.nil? ? id : id[(ind+1)..-1]  
         end
+      end
+      
+      def get_export_images(image_ids)
+        # note, image_ids may contain image ranges
+        image_index = {}
+        flattened_ids = image_ids.flatten.uniq
+        Trifle::IIIFImage.all.from_solr!.find_some(flattened_ids).each_with_index do |image,i|
+          raise "Couldn't find image #{flattened_ids[i]}" if image.nil?
+          image_index[image.id] = image
+        end
+        image_ids.map do |id|
+          if id.is_a?(String)
+            image_index[id]
+          else
+            img1 = image_index[id[0]]
+            img2 = image_index[id[1]]
+            raise 'Images in image range don\'t share the same manifest' unless img1.manifest.id == img2.manifest.id
+            manifest_images = img1.manifest.ordered_members.from_solr!.to_a
+            ind1 = manifest_images.index do |img| img.id == img1.id end
+            ind2 = manifest_images.index do |img| img.id == img2.id end
+            ind1, ind2 = ind2, ind1 if ind1 > ind2
+            manifest_images[ind1..ind2]
+          end
+        end .flatten
       end
       
       def get_oubliette_export_ids(images)
@@ -71,7 +89,15 @@ module Trifle
         export_ids_raw.each do |raw_id|
           next unless raw_id.present?
           raw_id.split(/[\s,]+/).each do |id|
-            export_ids << id
+            id = parse_export_id(id) unless id == '-'
+            if export_ids.last == '-'
+              # handle id ranges like "id1 - id2"
+              export_ids.pop
+              raise 'Invalid id range' if export_ids.empty? || !export_ids.last.is_a?(String)
+              export_ids << [export_ids.pop, id]
+            else
+              export_ids << id
+            end
           end
         end
         raise 'No export_ids given' unless export_ids.present?
