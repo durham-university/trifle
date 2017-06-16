@@ -14,6 +14,7 @@ module Trifle
     include Trifle::InheritLogo
     include Trifle::TrackDirtyStateBehaviour
     include Trifle::SourceRecord
+    include Trifle::MillenniumLinkBehaviour
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title do |index|
       index.as :stored_searchable

@@ -12,6 +12,13 @@ RSpec.describe Trifle::IIIFCollection do
       expect(json).to be_a(String)
       expect(json).to include(collection.manifests.first.title)
     end
+    it "adds digitisation note" do
+      collection.description = 'description'
+      collection.digitisation_note = 'digitisation_note'
+      c = collection.iiif_collection
+      json = c.to_json
+      expect(json).to include("\"description\\ndigitisation_note\"")      
+    end    
   end
   
   describe "::index_collection_iiif" do
@@ -175,6 +182,27 @@ RSpec.describe Trifle::IIIFCollection do
           expect(result3.empty?).to eql(true)
         end
       end
+    end
+  end
+
+  describe "#to_millennium" do
+    # iiif_manifest_spec has some more millennium linking related tests
+    before { allow(Trifle::IIIFCollection).to receive(:ark_naan).and_return('12345') }
+    let(:collection) { FactoryGirl.create(:iiifcollection) } # need ark and id in collection
+    it "returns nil when source is not in millennium" do
+      collection.source_record = nil
+      expect(collection.to_millennium).to be_nil
+      collection.source_record = "schmit:test"
+      expect(collection.to_millennium).to be_nil
+    end
+    it "returns millennium records" do
+      collection.source_record = "millennium:12345#test"
+      mil = collection.to_millennium
+      expect(mil['12345'][0]).to eql("n 533 |aDigital image|5UkDhU")
+      expect(mil['12345'][1]).to eql("y 856 4 1 |zOnline version|uhttps://n2t.durham.ac.uk/ark:/12345/#{collection.id}.html")
+      collection.digitisation_note = 'test digitisation note'
+      mil = collection.to_millennium
+      expect(mil['12345'][0]).to eql("n 533 |aDigital image|ntest digitisation note|5UkDhU")
     end
   end
   

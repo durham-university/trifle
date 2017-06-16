@@ -327,4 +327,42 @@ RSpec.describe Trifle::IIIFManifest do
       expect(manifest.inherited_logo).to be_nil
     end
   end  
+  
+  describe "#to_millennium" do
+    before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
+    let(:manifest) { FactoryGirl.create(:iiifmanifest) } # need ark and id in manifest
+    it "returns nil when source is not in millennium" do
+      manifest.source_record = nil
+      expect(manifest.to_millennium).to be_nil
+      manifest.source_record = "schmit:test"
+      expect(manifest.to_millennium).to be_nil
+    end
+    it "returns millennium records" do
+      manifest.source_record = "millennium:12345#test"
+      mil = manifest.to_millennium
+      expect(mil['12345'][0]).to eql("n 533 |aDigital image|5UkDhU")
+      expect(mil['12345'][1]).to eql("y 856 4 1 |zOnline version|uhttps://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html")
+      manifest.digitisation_note = 'test digitisation note'
+      mil = manifest.to_millennium
+      expect(mil['12345'][0]).to eql("n 533 |aDigital image|ntest digitisation note|5UkDhU")
+    end
+  end
+  
+  describe "#to_millennium_all" do
+    before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
+    before { allow(Trifle::IIIFCollection).to receive(:ark_naan).and_return('12345') }
+    let!(:manifest1) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:12345#test') }
+    let!(:manifest2) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:67890') }
+    let!(:manifest3) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:12345') }
+    let!(:manifest4) { FactoryGirl.create(:iiifmanifest) }
+    let!(:collection1) { FactoryGirl.create(:iiifcollection, source_record: 'millennium:12345#test') }
+    let!(:collection2) { FactoryGirl.create(:iiifcollection, source_record: 'millennium:67890') }
+    it "merges all from same source" do
+      mil = manifest1.to_millennium_all
+      expect(mil['12345'].count).to eql(6)
+      expect(mil['12345'].index("y 856 4 1 |zOnline version|uhttps://n2t.durham.ac.uk/ark:/12345/#{manifest1.id}.html")).to be_present
+      expect(mil['12345'].index("y 856 4 1 |zOnline version|uhttps://n2t.durham.ac.uk/ark:/12345/#{manifest3.id}.html")).to be_present
+      expect(mil['12345'].index("y 856 4 1 |zOnline version|uhttps://n2t.durham.ac.uk/ark:/12345/#{collection1.id}.html")).to be_present
+    end
+  end
 end

@@ -8,10 +8,12 @@ module Trifle
     include DurhamRails::WithBackgroundJobs
     include DurhamRails::DestroyFromContainers
     include Trifle::SourceRecord
+    include Trifle::MillenniumLinkBehaviour
     
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title do |index|
       index.as :stored_searchable
     end
+    property :digitisation_note, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#digitisation_note')
     property :identifier, predicate: ::RDF::DC.identifier do |index|
       index.as :symbol
     end
@@ -71,7 +73,9 @@ module Trifle
     
     def iiif_collection(opts={})
       iiif_collection_stub(opts).tap do |collection|
-        collection.description = self.description if self.description.present?
+        if self.description.present? || self.digitisation_note.present?
+          collection.description = [self.description,self.digitisation_note].select(&:present?).join("\n")
+        end
         collection.license = self.licence if self.licence.present?
         collection.attribution = self.attribution if self.attribution.present?
         
