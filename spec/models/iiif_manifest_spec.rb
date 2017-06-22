@@ -10,6 +10,18 @@ RSpec.describe Trifle::IIIFManifest do
     end
   end
   
+  describe "#parent_id" do
+    let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_parent) }
+    it "returns the id of parent" do
+      expect(manifest.instance_variable_get(:@one_parent)).to be_nil
+      expect(manifest.parent_id).to be_present
+    end
+    it "uses @one_parent when set" do
+      manifest.has_parent!(double('dummy parent',id: 'testparentid'))
+      expect(manifest.parent_id).to eql('testparentid')
+    end
+  end
+  
   describe "#default_container_location!" do
     let(:manifest) { FactoryGirl.build(:iiifmanifest, image_container_location: nil) }
     it "doesn't do anything if already set" do

@@ -31,13 +31,18 @@ module Trifle
 
     has_subresource "ranges_iiif", class_name: 'ActiveFedora::File'
 
+    def parent_id
+      return @one_parent.id if @one_parent.present?
+      ActiveFedora::SolrService.query("has_model_ssim:\"Trifle::IIIFCollection\" AND member_ids_ssim:\"#{id}\"").first.try(:[],'id')
+    end
+
     def as_json(*args)
       super(*args).except('serialised_ranges').tap do |json|
         json.merge!({
           'images' => images.map(&:as_json)
         }) if args.first.try(:fetch,:include_children,false)
-        parent_id = parent.try(:id)
-        json.merge!({'parent_id' => parent_id}) if parent_id.present?
+        _parent_id = parent_id
+        json.merge!({'parent_id' => _parent_id}) if _parent_id.present?
       end
     end    
     
@@ -205,8 +210,8 @@ module Trifle
         
         manifest.sequences = iiif_sequences(opts)
         
-        _parent = parent
-        manifest.within = Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url(_parent, host: Trifle.iiif_host) if _parent
+        _parent_id = parent_id
+        manifest.within = Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url(_parent_id, host: Trifle.iiif_host) if _parent_id.present?
       end
     end
     
