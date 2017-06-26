@@ -13,9 +13,10 @@ RSpec.describe Trifle::ImageDepositActor do
     let(:stdout) { '' }
     let(:stderr) { '' }
     let(:status) { 0 }
+    let(:expected_conversion_profile) { 'default' }
     before {
       expect(actor).to receive(:convert_command).and_return(['dummy'])
-      expect(actor).to receive(:shell_exec).with('','dummy',source_path,dest_path,'RGB').and_return([stdout,stderr,status])
+      expect(actor).to receive(:shell_exec).with('','dummy',source_path,dest_path,'RGB',expected_conversion_profile).and_return([stdout,stderr,status])
     }
     context "when things work" do
       it "returns true" do
@@ -29,6 +30,12 @@ RSpec.describe Trifle::ImageDepositActor do
         expect(actor.convert_image(source_path,dest_path)).to eql(false)
         expect(actor.log.errors?).to eql(true)
         expect(actor.log.map(&:message).join(' ')).to include('Dummy error message')
+      end
+    end
+    context "with conversion method" do
+      let(:expected_conversion_profile) { 'printed' }
+      it "passes on the method" do
+        expect(actor.convert_image(source_path, dest_path, 'printed')).to eql(true)
       end
     end
   end
@@ -214,7 +221,7 @@ RSpec.describe Trifle::ImageDepositActor do
     }
     let(:source_path) { '/tmp/source' }
     let(:metadata) { { 'basename' => 'foo', dummy: 'dummy' } }
-    let(:metadata_with_source) { metadata.merge('source_path' => source_path)}
+    let(:metadata_with_source) { metadata.merge('source_path' => source_path, 'conversion_profile' => 'default')}
     
     context "with http:// path" do
       let(:source_path) { 'http://www.example.com/dummy' }
@@ -270,7 +277,7 @@ RSpec.describe Trifle::ImageDepositActor do
     end
         
     it "doesn't overwrite source_path" do
-      expect(actor).to receive(:add_to_image_container).with({'source_path' => 'moo'})
+      expect(actor).to receive(:add_to_image_container).with({'source_path' => 'moo', 'conversion_profile' => 'default'})
       actor.deposit_image(source_path, {'source_path' => 'moo'})
     end
 

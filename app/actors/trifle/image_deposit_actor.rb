@@ -9,10 +9,10 @@ module Trifle
       super(model_object, user, attributes)
     end
 
-    def convert_image(source_path,dest_path)
+    def convert_image(source_path, dest_path, conversion_profile='default')
       log!(:info,"Converting image #{source_path} to #{dest_path} (colour space #{@image_analysis.try(:[],:colour_space)})")
       cs = (['BlackIsZero','WhiteIsZero'].include?(@image_analysis.try(:[],:colour_space)) ? 'BW' : 'RGB')
-      stdout, stderr, exit_status = shell_exec('',*(convert_command+[source_path,dest_path,cs]))
+      stdout, stderr, exit_status = shell_exec('',*(convert_command+[source_path,dest_path,cs,conversion_profile]))
       if exit_status!=0
         log!(:error,"Error converting image. (#{exit_status})")
         log!(:error, stderr) if stderr.present?
@@ -152,9 +152,12 @@ module Trifle
         convert_file.close
         convert_path = convert_file.path
         
-        metadata = metadata.stringify_keys.reverse_merge({'source_path' => source_path})
+        metadata = metadata.stringify_keys.reverse_merge({
+          'source_path' => source_path,
+          'conversion_profile' => 'default'
+        })
         
-        analyse_image(source_path) && convert_image(source_path, convert_path) &&
+        analyse_image(source_path) && convert_image(source_path, convert_path, metadata['conversion_profile']) &&
           send_or_copy_file(convert_path, dest_path, connection_params) && 
           add_to_image_container(metadata)
       ensure
