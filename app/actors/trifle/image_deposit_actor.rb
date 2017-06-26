@@ -11,7 +11,7 @@ module Trifle
 
     def convert_image(source_path,dest_path)
       log!(:info,"Converting image #{source_path} to #{dest_path} (colour space #{@image_analysis.try(:[],:colour_space)})")
-      cs = (@image_analysis.try(:[],:colour_space) == 'BlackIsZero' ? 'BW' : 'RGB')
+      cs = (['BlackIsZero','WhiteIsZero'].include?(@image_analysis.try(:[],:colour_space)) ? 'BW' : 'RGB')
       stdout, stderr, exit_status = shell_exec('',*(convert_command+[source_path,dest_path,cs]))
       if exit_status!=0
         log!(:error,"Error converting image. (#{exit_status})")
