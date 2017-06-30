@@ -2,6 +2,7 @@ module Trifle
   class PublishIIIFActor < Trifle::BaseActor
     include DurhamRails::Actors::SFTPUploader
     include DurhamRails::Actors::FileCopier
+    include Trifle::PackageUpload
 
     def initialize(model_object, user=nil, attributes={})
       super(model_object, user, attributes)
@@ -31,46 +32,30 @@ module Trifle
       end
     end
     
-    def send_or_copy_file(source, dest_path, connection_params)
-      if connection_params[:local_copy].to_s == 'true'
-        return copy_file_local(source, dest_path, connection_params)
-      else
-        return send_file(source, dest_path, connection_params.except(:local_copy))
-      end
-    end    
-
     def upload_package(package=nil, connection_params=nil, remote_path=nil)
-      log!("Uploading iiif of #{model_object.title} (#{model_object.id})")
-      package ||= iiif_package
-      connection_params ||= Trifle.config['image_server_config'].symbolize_keys.except(:root, :iiif_root, :images_root)
-      remote_path ||= "#{Trifle.config['image_server_config']['iiif_root']}"
-      package.each do |file_entry|
-        full_path = File.join(remote_path,file_entry.path)
-        log!("Sending file #{full_path}")
-        return false unless send_or_copy_file(StringIO.new(file_entry.content), full_path, connection_params.reverse_merge(create_dirs: true))
+      super(package || iiif_package, connection_params, remote_path) do
+        mark_clean
       end
-      mark_clean
-      log!("Done")
-      true
     end
     
     def write_package(root_dir, package=nil)
-      log!("Writing iiif of #{model_object.title} (#{model_object.id})")
-      package ||= iiif_package
-      package.each do |file_entry|
-        full_path = File.join(root_dir, file_entry.path)
-        log!("Writing file #{full_path}")
-        dir_name = File.dirname(full_path)
-        FileUtils.mkdir_p(dir_name)
-        File.open(full_path,'wb') do |file|
-          file.write(file_entry.content)
-        end
+      super(root_dir, package || iiif_package) do
+        mark_clean
       end
-      mark_clean
-      log!("Done")
-      true
     end
-              
+    
+    def default_connection_params
+      Trifle.config['image_server_config'].symbolize_keys.except(:root, :iiif_root, :images_root)
+    end
+    
+    def default_remote_path
+      Trifle.config['image_server_config'].symbolize_keys[:iiif_root]
+    end
+    
+    def default_package_label
+      "iiif of #{model_object.title} (#{model_object.id})"
+    end
+
     def iiif_package(target=nil)
       Enumerator.new do |yielder|
         iiif_package_unstatified(target).each do |file|
@@ -214,12 +199,6 @@ module Trifle
         end
       end
         
-    class FileEntry
-      attr_accessor :path, :content
-      def initialize(path,content=nil)
-        self.path = path
-        self.content = content
-      end
-    end
+    class FileEntry < Trifle::PackageUpload::FileEntry ; end
   end
 end
