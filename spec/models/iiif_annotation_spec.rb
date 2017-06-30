@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Trifle::IIIFAnnotation do
   describe "#as_json" do
-    let(:annotation) { FactoryGirl.build(:iiifannotation)}
+    let(:annotation) { FactoryGirl.create(:iiifannotation, :with_image)}
     let(:json) { annotation.as_json }
     it "sets properties" do
       expect(json['title']).to be_present
@@ -38,5 +38,27 @@ RSpec.describe Trifle::IIIFAnnotation do
       expect(s[1]).to start_with('t0t')
     end
   end  
+
+  describe "#from_params" do
+    let(:annotation) { FactoryGirl.create(:iiifannotation, :with_image)}
+    it "can read from as_json output" do
+      new_anno = Trifle::IIIFAnnotation.new(annotation.as_json)
+      expect(new_anno.id).to eql(annotation.id)
+      expect(new_anno.title).to eql(annotation.title)
+      expect(new_anno.format).to eql(annotation.format)
+      expect(new_anno.language).to eql(annotation.language)
+      expect(new_anno.content).to eql(annotation.content)
+      expect(new_anno.selector).to eql(annotation.selector)
+    end
+    it "can read from to_iiif output" do
+      new_anno = Trifle::IIIFAnnotation.new(JSON.parse(annotation.to_iiif.to_json))
+      expect(new_anno.id).to eql(annotation.id)
+      expect(new_anno.title).to eql(annotation.title)
+      expect(new_anno.format).to eql(annotation.format)
+      expect(new_anno.language).to eql(annotation.language)
+      expect(new_anno.content).to eql(annotation.content)
+      expect(new_anno.selector).to eql(annotation.selector)
+    end
+  end
 
 end

@@ -26,6 +26,11 @@ module Trifle
     
     protected
     
+    def preload_show
+      super
+      @resource.ancestors_from_solr!
+    end
+    
     def update_reply(success)
       return super(success) unless params[:reply_iiif]=='true'
       render json: @resource.to_iiif.to_json

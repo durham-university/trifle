@@ -104,6 +104,11 @@ module Trifle
       def set_sequence_iiif_resource
         set_resource
       end
+      
+      def preload_show
+        super
+        @resource.ancestors_from_solr!
+      end
     
   end
 end

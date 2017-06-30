@@ -35,6 +35,13 @@ module Trifle
       @annotation_lists = nil
       self
     end
+    
+    def ancestors_from_solr!
+      unless @parent.present?
+        @parent = ordered_item_containers_from_solr.first
+      end
+      parent.try(:ancestors_from_solr!)
+    end        
 
     def parent(reload=false)
       @parent = nil if reload

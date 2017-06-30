@@ -58,6 +58,11 @@ module Trifle
       # We can still cache one parent and return it if only a single one is needed.
       @one_parent = parent
     end
+    
+    def ancestors_from_solr!
+      ordered_by_from_solr! unless @one_parent.present?
+      parent.try(:ancestors_from_solr!)
+    end
 
     def parent
       return @one_parent if @one_parent.present?

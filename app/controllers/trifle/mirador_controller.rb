@@ -1,7 +1,12 @@
 module Trifle
   class MiradorController < Trifle::ApplicationController
+    before_action :authenticate_user!
+    before_action :set_resource
+    before_action :authorize_resource!
+    
     def show
-      @resource = ActiveFedora::Base.find(params['id'])
+      @resource.try(:ancestors_from_solr!)
+      
       @collection = @resource.root_collection
       case @resource
       when Trifle::IIIFManifest
@@ -26,9 +31,22 @@ module Trifle
       render :show, layout: false
     end
     
-    def index
-      @no_auto_load = true if params['no_auto_load']
-      render :show, layout: false
+#    def index
+#      @no_auto_load = true if params['no_auto_load']
+#      render :show, layout: false
+#    end
+
+    protected
+    
+    def authorize_resource!
+      authorize!(:show_mirador, @resource)
+    end
+    def set_resource(resource = nil)
+      if resource
+        @resource = resource
+      else
+        @resource = ActiveFedora::Base.load_instance_from_solr(params['id'])
+      end
     end
   end
 end

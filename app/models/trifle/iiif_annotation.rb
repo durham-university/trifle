@@ -13,11 +13,7 @@ module Trifle
       end
       @parent = parent
       json_or_params ||= {}      
-      if json_or_params.key?('@id')
-        from_json(json_or_params)
-      else
-        from_params(json_or_params)
-      end
+      from_params(json_or_params)
     end
     
     def save
@@ -88,6 +84,10 @@ module Trifle
     def validate!
     end
     
+    def ancestors_from_solr!
+      parent.ancestors_from_solr!
+    end    
+    
     def self.find(id)
       image_id = id.split('_').first
       image = Trifle::IIIFImage.find(image_id)
@@ -111,26 +111,32 @@ module Trifle
     end
     
     def from_params(params)
-      @id = params[:id]
-      @title = params[:title]
-      @content = params[:content]
-      @language = params[:language]
-      @format = params[:format]
-      @selector = params[:selector]
-      if params.key?(:parent)
-        @parent = params[:parent]
+      @id = params['@id'].try(:split,'/').try(:last) || params[:id] || params['id']
+      @title = params['resource'].try(:[],'label') || params[:title] || params['title']
+      @content = params['resource'].try(:[],'chars') || params[:content] || params['content']
+      @language = params['resource'].try(:[],'language') || params[:language] || params['language']
+      @format = params['resource'].try(:[],'format') || params[:format] || params['format']
+      @selector = params['on'].try(:[],'selector') || params[:selector] || params['selector']
+      @selector = @selector.to_json if @selector && !@selector.is_a?(String)
+      if params.key?(:parent) || params.key?('parent')
+        @parent = params[:parent] || params['parent']
         @parent = Trifle::IIIFAnnotationList.find(@parent) if @parent.is_a?(String)
       end
     end
-    
+
+    def as_json(*args)
+      {
+        'id' => id, 
+        'title' => title,
+        'content' => content,
+        'language' => language,
+        'format' => self.format,
+        'selector' => selector
+      }
+    end    
+
     def from_json(json)
-      @id = json['@id'].split('/').last
-      @content = json['resource'].try(:[],'chars')
-      @language = json['resource'].try(:[],'language')
-      @format = json['resource'].try(:[],'format')
-      @title = json['resource'].try(:[],'label')
-      @selector = json['on'].try(:[],'selector')
-      @selector = @selector.to_json if @selector
+      from_params(json)
     end
 
     def manifest

@@ -21,6 +21,11 @@ module Trifle
 
     protected
     
+    def preload_show
+      super
+      @resource.ancestors_from_solr!
+    end
+    
     def set_parent
       @parent = IIIFImage.find(params[:iiif_image_id])
     end

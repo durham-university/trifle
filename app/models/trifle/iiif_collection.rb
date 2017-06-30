@@ -32,6 +32,11 @@ module Trifle
       end
     end
     
+    def ancestors_from_solr!
+      ordered_by_from_solr! unless @parent.present?
+      parent.try(:ancestors_from_solr!)
+    end    
+    
     def parent(reload=false)
       @parent = nil if reload
       @parent ||= ordered_by.to_a.find do |m| m.is_a? IIIFCollection end

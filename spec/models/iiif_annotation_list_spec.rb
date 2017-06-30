@@ -12,12 +12,28 @@ RSpec.describe Trifle::IIIFAnnotationList do
   end
   
   describe "#as_json" do
-    let(:annotation_list) { FactoryGirl.build(:iiifannotationlist)}
+    let(:annotation_list) { FactoryGirl.create(:iiifannotationlist, :with_image, :with_annotations)}
     let(:json) { annotation_list.as_json }
     it "sets properties" do
       expect(json['title']).to be_present
     end
-  end  
+  end
+  
+  describe "#from_params" do
+    let(:annotation_list) { FactoryGirl.create(:iiifannotationlist, :with_image, :with_annotations)}
+    it "can read from as_json output" do
+      new_list = Trifle::IIIFAnnotationList.new(annotation_list.as_json)
+      expect(new_list.id).to eql(annotation_list.id)
+      expect(new_list.title).to eql(annotation_list.title)
+      expect(new_list.annotations).to all( be_a(Trifle::IIIFAnnotation) )
+    end
+    it "can read from to_iiif output" do
+      new_list = Trifle::IIIFAnnotationList.new(JSON.parse(annotation_list.to_iiif.to_json))
+      expect(new_list.id).to eql(annotation_list.id)
+      expect(new_list.title).to eql(annotation_list.title)
+      expect(new_list.annotations).to all( be_a(Trifle::IIIFAnnotation) )
+    end
+  end
   
   describe "#to_iiif" do
     let(:annotation_list) { FactoryGirl.create(:iiifannotationlist, :with_manifest, :with_annotations)}

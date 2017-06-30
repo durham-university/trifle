@@ -149,5 +149,10 @@ module Trifle
         false
       end
     
+      def preload_show
+        super
+        @resource.ancestors_from_solr!
+      end
+    
   end
 end

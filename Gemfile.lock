@@ -1,16 +1,4 @@
 GIT
-  remote: file:///home/qgkb58/hydra/durham_rails
-  revision: 5dd6a0a18370b9b9a7c2047e317b404c23377c2e
-  branch: master
-  specs:
-    durham_rails (0.0.18)
-      active-fedora (~> 9.13)
-      httparty
-      net-sftp
-      rails (~> 4.2.5)
-      redlock
-
-GIT
   remote: git://github.com/jcoyne/kaminari.git
   revision: 7f7108e12bdd64eb5a76177633768feb14df5453
   branch: sufia
@@ -46,6 +34,16 @@ PATH
       sass-rails (~> 5.0)
       schmit_api (~> 0.9.0)
       simple_form (~> 3.1.0)
+
+PATH
+  remote: /home/qgkb58/hydra/durham_rails
+  specs:
+    durham_rails (0.0.18)
+      active-fedora (~> 9.13)
+      httparty
+      net-sftp
+      rails (~> 4.2.5)
+      redlock
 
 PATH
   remote: /home/qgkb58/hydra/oubliette/oubliette_api

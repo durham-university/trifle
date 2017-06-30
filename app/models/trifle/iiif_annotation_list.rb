@@ -13,11 +13,7 @@ module Trifle
       end
       @parent = parent
       json_or_params ||= {}
-      if json_or_params.key?('@id')
-        from_json(json_or_params)
-      else
-        from_params(json_or_params)
-      end
+      from_params(json_or_params)
     end
     
     def save
@@ -82,6 +78,10 @@ module Trifle
     def validate!
     end
     
+    def ancestors_from_solr!
+      parent.ancestors_from_solr!
+    end
+    
     def self.find(id)
       image_id = id.split('_').first
       image = Trifle::IIIFImage.find(image_id)
@@ -97,21 +97,28 @@ module Trifle
     end
     
     def from_params(params)
-      @id = params[:id]
-      @title = params[:title]
+      @id = params['@id'].try(:split,'/').try(:last) || params[:id] || params['id']
+      @title = params[:title] || params['title'] || params['label']
       @annotations = []
       if params.key?(:parent)
         @parent = params[:parent]
         @parent = Trifle::IIIFImage.find(@parent) if @parent.is_a?(String)
       end
+      if params.key?(:annotations) || params.key?('annotations') || params['resources']
+        @annotations = (params[:annotations] || params['annotations'] || params['resources']).map do |annotation_params|
+          Trifle::IIIFAnnotation.new(self, annotation_params)
+        end
+      end
+    end
+    
+    def as_json(*args)
+      json = {'id' => id, 'title' => title}
+      json['annotations'] = annotations.map(&:as_json) if args.first.try(:fetch,:include_children,true)
+      json
     end
     
     def from_json(json)
-      @id = json['@id'].split('/').last
-      @title = json['label']
-      @annotations = (json['resources'] || []).map do |annotation_json|
-        Trifle::IIIFAnnotation.new(self, annotation_json)
-      end
+      from_params(json)
     end
     
     def manifest

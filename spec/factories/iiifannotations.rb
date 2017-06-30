@@ -2,7 +2,7 @@ FactoryGirl.define do
   factory :iiifannotation, class: Trifle::IIIFAnnotation do
 
     sequence(:title) { |n| "Image #{n}" }
-    sequence(:selector) { |n| "{\"@type\" : \"oa:FragmentSelector\", \"value\" : \"xywh=100,#{n}00,200,80\" }" }
+    sequence(:selector) { |n| "{\"@type\":\"oa:FragmentSelector\",\"value\":\"xywh=100,#{n}00,200,80\"}" }
     format 'text/html'
     language 'en'
     sequence(:content) { |n| "content #{n}"}

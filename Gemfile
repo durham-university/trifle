@@ -2,8 +2,8 @@ source 'https://rubygems.org'
 
 gemspec
 
-#gem 'durham_rails', path: File.expand_path("../../durham_rails", __FILE__)
-gem 'durham_rails', git: "file://#{File.expand_path('../../durham_rails', __FILE__)}", branch: 'master'
+gem 'durham_rails', path: File.expand_path("../../durham_rails", __FILE__)
+#gem 'durham_rails', git: "file://#{File.expand_path('../../durham_rails', __FILE__)}", branch: 'master'
 gem 'schmit_api', path: File.expand_path("../../schmit/schmit_api", __FILE__)
 gem 'oubliette_api', path: File.expand_path("../../oubliette/oubliette_api", __FILE__)
 

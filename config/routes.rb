@@ -69,7 +69,7 @@ Trifle::Engine.routes.draw do
   get '/exports', to: 'exports#show', as: :exports
   post '/exports', to: 'exports#export_images'
   
-  get '/mirador', to: 'mirador#index', as: :mirador_index
+#  get '/mirador', to: 'mirador#index', as: :mirador_index
   get '/mirador/:id', to: 'mirador#show', as: :mirador_manifest
   get '/mirador/:id/embed', to: 'mirador#show', as: :mirador_manifest_embed, defaults: { no_auto_load: 'true' }
     
