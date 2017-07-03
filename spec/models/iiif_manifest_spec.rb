@@ -340,11 +340,11 @@ RSpec.describe Trifle::IIIFManifest do
     it "returns millennium records" do
       manifest.source_record = "millennium:12345#test"
       mil = manifest.to_millennium
-      expect(mil['12345'][0]).to eql("n 533 |aDigital image|5UkDhU")
-      expect(mil['12345'][1]).to eql("y 856 4 1 |zOnline version|uhttps://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html")
+      expect(mil['12345'][0].to_s).to eql("533    $a Digital image $5 UkDhU ")
+      expect(mil['12345'][1].to_s).to eql("856 41 $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html ")
       manifest.digitisation_note = 'test digitisation note'
       mil = manifest.to_millennium
-      expect(mil['12345'][0]).to eql("n 533 |aDigital image|ntest digitisation note|5UkDhU")
+      expect(mil['12345'][0].to_s).to eql("533    $a Digital image $n test digitisation note $5 UkDhU ")
     end
   end
   
@@ -359,10 +359,11 @@ RSpec.describe Trifle::IIIFManifest do
     let!(:collection2) { FactoryGirl.create(:iiifcollection, source_record: 'millennium:67890') }
     it "merges all from same source" do
       mil = manifest1.to_millennium_all
-      expect(mil['12345'].count).to eql(6)
-      expect(mil['12345'].index("y 856 4 1 |zOnline version|uhttps://n2t.durham.ac.uk/ark:/12345/#{manifest1.id}.html")).to be_present
-      expect(mil['12345'].index("y 856 4 1 |zOnline version|uhttps://n2t.durham.ac.uk/ark:/12345/#{manifest3.id}.html")).to be_present
-      expect(mil['12345'].index("y 856 4 1 |zOnline version|uhttps://n2t.durham.ac.uk/ark:/12345/#{collection1.id}.html")).to be_present
+      records = mil['12345'].map(&:to_s)
+      expect(records.count).to eql(6)
+      expect(records.index("856 41 $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{manifest1.id}.html ")).to be_present
+      expect(records.index("856 41 $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{manifest3.id}.html ")).to be_present
+      expect(records.index("856 41 $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{collection1.id}.html ")).to be_present
     end
   end
 end

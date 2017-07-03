@@ -46,6 +46,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'cancancan', '~> 1.10'
 
   s.add_dependency 'nokogiri'
+  s.add_dependency 'marc'
 
   s.add_dependency 'resque'
   s.add_dependency 'resque-pool'

@@ -3,17 +3,22 @@ module Trifle
     extend ActiveSupport::Concern
     
     def to_millennium
+      # NOTE: Millennium actor has code which recognises and removes fields
+      # created here. Adding new fields may require modifying that code as well.
+      
       return nil unless self.source_record.try(:start_with?,'millennium:')
       raise "Record doesn't have an ark" unless self.local_ark.present?
-      
-      # There is a marc gem which could be used for this but it offers very little benefit.
       
       n2t_url = "#{Trifle.config.fetch('n2t_server','https://n2t.durham.ac.uk')}/#{self.local_ark}.html"
       millennium_id, holdind_id = self.source_record[('millennium:'.length)..-1].split('#',2)
       {
         millennium_id => [
-          "n 533 |aDigital image#{ self.try(:digitisation_note).present? ? "|n#{digitisation_note}" : ""}|5UkDhU",
-          "y 856 4 1 |zOnline version|u#{n2t_url}"
+          MARC::DataField.new('533', nil, nil, *(
+            [['a', 'Digital image']] +
+            (self.try(:digitisation_note).present? ? [['n', digitisation_note]] : []) +
+            [['5', 'UkDhU']]
+          )),
+          MARC::DataField.new('856', '4', '1', ['z', 'Online version'], ['u', n2t_url]),
         ]
       }
     end
