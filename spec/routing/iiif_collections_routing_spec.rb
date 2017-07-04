@@ -43,4 +43,7 @@ RSpec.describe Trifle::StaticPagesController, type: :routing do
     expect(get: "/iiif/collection").to route_to("trifle/iiif_collections#index_iiif")
   end
   
+  it "routes to #link_millennium via POST" do
+    expect(post: "/collection/1/link_millennium").to route_to("trifle/iiif_collections#link_millennium", id: "1")
+  end  
 end

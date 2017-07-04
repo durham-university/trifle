@@ -114,11 +114,20 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
   context "with anonymous user" do
     before {
       expect_any_instance_of(Trifle::DepositJob).not_to receive(:queue_job)
+      expect_any_instance_of(Trifle::MillenniumLinkJob).not_to receive(:queue_job)
     }
     describe "POST #deposit_images" do
       it "fails authentication" do
         # not receive queue_job in before block
         post :deposit_images, id: manifest.id, deposit_items: deposit_items
+      end
+    end
+    
+    describe "POST #link_millennium" do
+      let(:manifest) { FactoryGirl.create(:iiifmanifest, source_record: "millennium:123456") }
+      it "fails authentication" do
+        # not receive queue_job in before block
+        post :link_millennium, id: manifest.id
       end
     end
     
@@ -348,24 +357,32 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
         expect(manifest.description).to eql('new scopecontent')
       end
     end    
-  end
-  
-  describe "#set_new_resource" do
-    let(:user) { FactoryGirl.create(:user,:admin) }
-    before {
-      allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222','33333']})
-      collection.identifier = ['ark:/22222/collection']
-      collection.save
-      sign_in user
-    }
-    it "sets parent naan" do
-      post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest' }      
-      expect(assigns(:resource).local_ark_naan).to eql('22222')
+    
+    describe "POST #link_millennium" do
+      let(:manifest) { FactoryGirl.create(:iiifmanifest, source_record: "millennium:123456") }
+      it "starts link job" do
+        expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::MillenniumLinkJob)) do |job|
+          expect(job.resource_id).to eql(manifest.id)
+        end
+        post :link_millennium, id: manifest.id
+      end
     end
-    it "allows overriding naan" do
-      post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest', ark_naan: '33333' }
-      expect(assigns(:resource).local_ark_naan).to eql('33333')
-    end    
+  
+    describe "#set_new_resource" do
+      before {
+        allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222','33333']})
+        collection.identifier = ['ark:/22222/collection']
+        collection.save
+      }
+      it "sets parent naan" do
+        post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest' }      
+        expect(assigns(:resource).local_ark_naan).to eql('22222')
+      end
+      it "allows overriding naan" do
+        post :create, iiif_collection_id: collection.id, iiif_manifest: { title: 'created manifest', ark_naan: '33333' }
+        expect(assigns(:resource).local_ark_naan).to eql('33333')
+      end    
+    end
   end
 
 end

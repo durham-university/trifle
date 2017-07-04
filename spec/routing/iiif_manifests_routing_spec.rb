@@ -65,4 +65,8 @@ RSpec.describe Trifle::IIIFManifestsController, type: :routing do
   it "routes to #update_ranges via POST" do
     expect(post: "/manifest/1/update_ranges").to route_to("trifle/iiif_manifests#update_ranges", id: "1")
   end  
+  
+  it "routes to #link_millennium via POST" do
+    expect(post: "/manifest/1/link_millennium").to route_to("trifle/iiif_manifests#link_millennium", id: "1")
+  end  
 end

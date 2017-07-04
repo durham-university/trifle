@@ -5,6 +5,7 @@ module Trifle
     include DurhamRails::ReceiveMovesBehaviour
     include Trifle::ServeIIIFBehaviour
     include Trifle::AutoPublishResourceBehaviour
+    include Trifle::LinkMillenniumBehaviour
     include Trifle::MemberReordering
     include Trifle::AllowCorsBehaviour # Keep this last
 

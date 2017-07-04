@@ -6,6 +6,7 @@ module Trifle
     include Trifle::ServeIIIFBehaviour
     include Trifle::RefreshFromSourceBehaviour
     include Trifle::PublishResourceBehaviour
+    include Trifle::LinkMillenniumBehaviour
     include Trifle::UpdateRangesBehaviour
     include Trifle::MemberReordering
     include Trifle::AllowCorsBehaviour # Keep this last

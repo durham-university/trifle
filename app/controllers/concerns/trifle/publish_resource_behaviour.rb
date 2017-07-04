@@ -3,9 +3,9 @@ module Trifle
     extend ActiveSupport::Concern
     
     included do
+      before_action :set_publish_resource, only: [:publish]
       before_action :validate_publish_job!, only: [:update] # don't try to validate before create, the resource won't exist at that point
       before_action :validate_remove_publish_job!, only: [:destroy]
-      before_action :set_publish_resource, only: [:publish]
       around_action :remove_published_hook, only: [:destroy]
     end
     

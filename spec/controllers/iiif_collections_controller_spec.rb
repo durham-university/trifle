@@ -170,6 +170,17 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
   end
 
   context "with anonymous user" do
+    before {
+      expect_any_instance_of(Trifle::MillenniumLinkJob).not_to receive(:queue_job)
+    }
+    describe "POST #link_millennium" do
+      let(:collection) { FactoryGirl.create(:iiifcollection, source_record: "millennium:123456") }
+      it "fails authentication" do
+        # not receive queue_job in before block
+        post :link_millennium, id: collection.id
+      end
+    end
+    
     describe "GET #show_iiif" do
       let(:collection) { FactoryGirl.create(:iiifcollection, :with_manifests) }
       it "renders manifest json" do
@@ -242,38 +253,46 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
     end
   end
   
-  
-  describe "GET #index_iiif" do
+  context "with admin user" do
     let(:user) { FactoryGirl.create(:user,:admin) }
     before { sign_in user }
-    let(:json) { JSON.parse(response.body) }
-    let!(:collection) { FactoryGirl.create(:iiifcollection) }
-    let!(:collection2) { FactoryGirl.create(:iiifcollection) }
-    it "returns top collections" do
-      expect(Trifle::IIIFCollection).to receive(:index_collection_iiif).and_call_original
-      get :index_iiif
-      expect(json['collections'].count).to eql(2)
-      expect(json['@id']).to be_present
+
+    describe "GET #index_iiif" do
+      let(:json) { JSON.parse(response.body) }
+      let!(:collection) { FactoryGirl.create(:iiifcollection) }
+      let!(:collection2) { FactoryGirl.create(:iiifcollection) }
+      it "returns top collections" do
+        expect(Trifle::IIIFCollection).to receive(:index_collection_iiif).and_call_original
+        get :index_iiif
+        expect(json['collections'].count).to eql(2)
+        expect(json['@id']).to be_present
+      end
     end
-  end
   
-  
-  describe "#set_new_resource" do
-    let(:user) { FactoryGirl.create(:user,:admin) }
-    before {
-      allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222','33333']})
-      collection.identifier = ['ark:/22222/collection']
-      collection.save
-      sign_in user
-    }
-    it "sets parent naan" do
-      post :create, iiif_collection_id: collection.id, iiif_collection: { title: 'created manifest' }      
-      expect(assigns(:resource).local_ark_naan).to eql('22222')
+    describe "POST #link_millennium" do
+      let(:collection) { FactoryGirl.create(:iiifcollection, source_record: "millennium:123456") }
+      it "starts link job" do
+        expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::MillenniumLinkJob)) do |job|
+          expect(job.resource_id).to eql(collection.id)
+        end
+        post :link_millennium, id: collection.id
+      end
     end
-    it "allows overriding naan" do
-      post :create, iiif_collection_id: collection.id, iiif_collection: { title: 'created manifest', ark_naan: '33333' }
-      expect(assigns(:resource).local_ark_naan).to eql('33333')
-    end    
-  end
-  
+
+    describe "#set_new_resource" do
+      before {
+        allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222','33333']})
+        collection.identifier = ['ark:/22222/collection']
+        collection.save
+      }
+      it "sets parent naan" do
+        post :create, iiif_collection_id: collection.id, iiif_collection: { title: 'created manifest' }      
+        expect(assigns(:resource).local_ark_naan).to eql('22222')
+      end
+      it "allows overriding naan" do
+        post :create, iiif_collection_id: collection.id, iiif_collection: { title: 'created manifest', ark_naan: '33333' }
+        expect(assigns(:resource).local_ark_naan).to eql('33333')
+      end    
+    end
+  end  
 end

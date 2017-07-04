@@ -41,6 +41,7 @@ Trifle::Engine.routes.draw do
   get '/manifest/:iiif_manifest_id/canvas/:id/all_annotations', to: 'iiif_images#all_annotations', as: :iiif_manifest_iiif_image_all_annotations
   post '/manifest/:iiif_manifest_id/canvas/:id/refresh_from_source', to: 'iiif_images#refresh_from_source', as: :iiif_manifest_iiif_image_refresh_from_source
   post '/manifest/:id/update_ranges', to: 'iiif_manifests#update_ranges', as: :iiif_manifest_update_ranges
+  post '/manifest/:id/link_millennium', to: 'iiif_manifests#link_millennium', as: :iiif_manifest_link_millennium
   
   post '/manifest/:id/select', to: 'iiif_manifests#select_resource', as: :select_iiif_manifest
   post '/manifest/:id/deselect', to: 'iiif_manifests#deselect_resource', as: :deselect_iiif_manifest
@@ -52,6 +53,7 @@ Trifle::Engine.routes.draw do
   post '/collection/:id/deselect_all', to: 'iiif_collections#deselect_all_resources', as: :deselect_all_iiif_collection
   post '/collection/:id/move_into', to: 'iiif_collections#move_selection_into', as: :move_into_iiif_collection
   post '/collection/:id/publish', to: 'iiif_collections#publish', as: :iiif_collection_publish
+  post '/collection/:id/link_millennium', to: 'iiif_collections#link_millennium', as: :iiif_collection_link_millennium
   
   
   scope 'iiif' do
