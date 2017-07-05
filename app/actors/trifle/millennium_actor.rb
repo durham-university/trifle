@@ -24,10 +24,12 @@ module Trifle
       target ||= model_object
       Enumerator.new do |yielder|
         target.to_millennium_all.each do |mid,fields|
-          existing_fields = preserved_millennium_fields(mid)
+          existing_fields = existing_millennium_fields(mid)
+          existing_fields = remove_old_injected_fields(existing_fields)
+          Trifle::IIIFManifest.reassign_marc_field_links(existing_fields, fields)
           
           r = MARC::Record.new()
-          existing_fields.each do |f| r.append(f) end
+          pick_relevant_fields(existing_fields).each do |f| r.append(f) end
           fields.each do |f| r.append(f) end
             
           content = case format
@@ -47,18 +49,28 @@ module Trifle
       end
     end
     
-    def preserved_millennium_fields(mid)
-      r = DurhamRails::LibrarySystems::Millennium.connection.record(mid).marc_record
-      fields_533 = r.fields.select do |f| f.tag == '533' end
-      fields_856 = r.fields.select do |f| f.tag == '856' end
-        
-      fields_533.select! do |f| f['a'] != 'Digital image' end
-      
+    def existing_millennium_fields(mid)
+      DurhamRails::LibrarySystems::Millennium.connection.record(mid).marc_record.fields.to_a
+    end
+    
+    def remove_old_injected_fields(existing_fields)
       n2t_server = Trifle.config['n2t_server'] || 'https://n2t.durham.ac.uk'
       n2t_matcher = /^#{n2t_server}\/ark:\/[0-9]+\/t[0-9][0-9a-z]+\.html$/
-      fields_856.select! do |f| !n2t_matcher.match(f['u']) end
-        
-      fields_533 + fields_856
+      
+      existing_fields.select do |f|
+        case f.tag
+        when '533'
+          f['a'] != 'Digital image'
+        when '856'
+          !n2t_matcher.match(f['u'])
+        else
+          true
+        end
+      end
+    end
+    
+    def pick_relevant_fields(fields)
+      fields.select do |f| f.tag == '533' || f.tag == '856' end
     end
     
     protected

@@ -340,11 +340,11 @@ RSpec.describe Trifle::IIIFManifest do
     it "returns millennium records" do
       manifest.source_record = "millennium:12345#test"
       mil = manifest.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $a Digital image $5 UkDhU ")
-      expect(mil['12345'][1].to_s).to eql("856 41 $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html ")
+      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $5 UkDhU ")
+      expect(mil['12345'][1].to_s).to eql("856 41 $8 1\\u $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html ")
       manifest.digitisation_note = 'test digitisation note'
       mil = manifest.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $a Digital image $n test digitisation note $5 UkDhU ")
+      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $n test digitisation note $5 UkDhU ")
     end
   end
   
@@ -358,12 +358,43 @@ RSpec.describe Trifle::IIIFManifest do
     let!(:collection1) { FactoryGirl.create(:iiifcollection, source_record: 'millennium:12345#test') }
     let!(:collection2) { FactoryGirl.create(:iiifcollection, source_record: 'millennium:67890') }
     it "merges all from same source" do
+      expect(Trifle::IIIFManifest).to receive(:reassign_marc_field_links).at_least(:once).and_call_original
       mil = manifest1.to_millennium_all
       records = mil['12345'].map(&:to_s)
       expect(records.count).to eql(6)
-      expect(records.index("856 41 $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{manifest1.id}.html ")).to be_present
-      expect(records.index("856 41 $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{manifest3.id}.html ")).to be_present
-      expect(records.index("856 41 $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{collection1.id}.html ")).to be_present
+      expect(records.index("533    $8 1\\u $a Digital image $5 UkDhU ")).to be_present
+      expect(records.index("533    $8 2\\u $a Digital image $5 UkDhU ")).to be_present
+      expect(records.index("533    $8 3\\u $a Digital image $5 UkDhU ")).to be_present
+
+      expect(records.find do |r| r.match(/856 41 \$8 [1-3]\\u \$z Online version \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest1.id}\.html /) end).to be_present
+      expect(records.find do |r| r.match(/856 41 \$8 [1-3]\\u \$z Online version \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest3.id}\.html /) end).to be_present
+      expect(records.find do |r| r.match(/856 41 \$8 [1-3]\\u \$z Online version \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{collection1.id}\.html /) end).to be_present
+    end
+  end
+  
+  describe "::reassign_marc_field_links" do
+    let(:existing_fields) {[
+        MARC::ControlField.new('001'), # make sure control fields go through
+        MARC::DataField.new('856', '4', '1', ['8', "1\\u"], ['z', 'Online version'], ['u', 'http://example.com/1']),
+        MARC::DataField.new('533', nil, nil, ['8', "1\\u"], ['a', 'Digital image'], ['n', 'note 1'], ['5', 'UkDhU']),
+        MARC::DataField.new('856', '4', '1', ['8', " 3.2\\u"], ['z', 'Online version'], ['u', 'http://example.com/2']),
+        MARC::DataField.new('533', nil, nil, ['8', " 3.2\\u"], ['a', 'Digital image'], ['n', 'note 2'], ['5', 'UkDhU']),
+      ]}
+    let(:new_fields) {[
+        MARC::DataField.new('856', '4', '1', ['8', "1\\u"], ['z', 'Online version'], ['u', 'http://example.com/3']),
+        MARC::DataField.new('856', '4', '1', ['8', "2.3\\u"], ['z', 'Online version'], ['u', 'http://example.com/4']),
+        MARC::DataField.new('533', nil, nil, ['8', "1\\u"], ['a', 'Digital image'], ['n', 'note 3'], ['5', 'UkDhU']),      
+        MARC::DataField.new('533', nil, nil, ['8', "2.3\\u"], ['a', 'Digital image'], ['n', 'note 4'], ['5', 'UkDhU']),      
+      ]}
+    let(:reassigned) { Trifle::IIIFManifest.reassign_marc_field_links(existing_fields, new_fields).map(&:to_s) }
+    it "assigns new link ids" do
+      reassigned
+      expect(reassigned).to eql([
+        '856 41 $8 4\u $z Online version $u http://example.com/3 ',
+        '856 41 $8 5.3\u $z Online version $u http://example.com/4 ',
+        '533    $8 4\u $a Digital image $n note 3 $5 UkDhU ',
+        '533    $8 5.3\u $a Digital image $n note 4 $5 UkDhU '
+        ])
     end
   end
 end

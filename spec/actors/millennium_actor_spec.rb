@@ -25,16 +25,23 @@ RSpec.describe Trifle::MillenniumActor do
     before {
       expect(manifest).to receive(:to_millennium_all).and_return({
         'mid1234' => [
-          MARC::DataField.new('856', '4', '1',['z', 'Online version'], ['u', 'http://www.example.com/trifle_link']),
-          MARC::DataField.new('533', nil, nil,['a', 'Digital image'], ['n', 'test note'])
+          MARC::DataField.new('856', '4', '1',['8', '1\u'], ['z', 'Online version'], ['u', 'http://www.example.com/trifle_link']),
+          MARC::DataField.new('533', nil, nil,['8', '1\u'], ['a', 'Digital image'], ['n', 'new note'])
         ],
         'mid5678' => [ MARC::DataField.new('533', nil, nil,['a', 'Digital image'], ['n', 'another test']) ]
       })
-      expect(actor).to receive(:preserved_millennium_fields).twice.and_return([
-          MARC::DataField.new('856', '4', '1',['z', 'Online version'], ['u', 'http://www.example.com/preserved_link'])
+      expect(actor).to receive(:existing_millennium_fields).twice.and_return([
+          MARC::DataField.new('856', '4', '1',['8', '2\u'], ['z', 'Online version'], ['u', 'https://n2t.durham.ac.uk/ark:/12345/t0abcdefg.html']),
+          MARC::DataField.new('856', '4', '1',['z', 'Online version'], ['u', 'http://www.example.com/preserved_link']),
+          MARC::DataField.new('533', nil, nil,['8', '2\u'], ['a', 'Digital image'], ['n', 'test note']),
+          MARC::DataField.new('533', nil, nil,['a', 'Microfilm'], ['n', 'another copy']),
+          MARC::DataField.new('130', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test']),
+          MARC::DataField.new('132', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test'])
         ])
     }
     it "gets all millennium records" do
+      expect(actor).to receive(:remove_old_injected_fields).twice.and_call_original
+      expect(actor).to receive(:pick_relevant_fields).twice.and_call_original
       package = actor.millennium_package.to_a
       expect(package.length).to eql(2)
       expect(package[0].path).to eql('mid1234')
@@ -42,32 +49,30 @@ RSpec.describe Trifle::MillenniumActor do
       expect(contents).to start_with('<?xml version=\'1.0\'?>')
       expect(contents).to include('<collection')
       expect(contents).to include('</collection>') # make sure the xml writer is closed properly
+      expect(contents).not_to include('https://n2t.durham.ac.uk/ark:/12345/t0abcdefg.html')
+      expect(contents).not_to include('test note')
       expect(contents).to include('Online version')
-      expect(contents).to include('test note')
+      expect(contents).to include('new note')
       expect(contents).to include('http://www.example.com/preserved_link')
       expect(contents).to include('http://www.example.com/trifle_link')
+      expect(contents).to include("<subfield code='8'>2\\u</subfield>")
+      expect(contents).not_to include("another test")
       expect(package[1].path).to eql('mid5678')
       expect(package[1].content.to_s).to include("another test")
     end
   end
-
-  describe "#preserved_millennium_fields" do
-    let(:manifest) { FactoryGirl.create(:iiifmanifest, source_record: "millennium:12345", digitisation_note: 'test note') }
+  
+  describe "#existing_millennium_fields" do
     let(:mock_connection) { double('mock_connection')}
     let(:millennium_id) { 'abcdefgh' }
     let(:marc_record) {
       MARC::Record.new().tap do |r|
-        manifest.to_millennium.each do |k,fs|
-          fs.each do |f|
-            r.append(f)
-          end
-        end
-        expect(r.fields.select do |f| f.tag == '856' end).not_to be_empty
-        expect(r.fields.select do |f| f.tag == '533' end).not_to be_empty
-        r.append(MARC::DataField.new('856', '4', '1',['z', 'Online version'], ['u', 'http://www.example.com']))
-        r.append(MARC::DataField.new('533', nil, nil,['a', 'Microfilm'], ['n', 'test note']))
+        r.append(MARC::DataField.new('856', '4', '1',['8', '2\u'], ['z', 'Online version'], ['u', 'https://n2t.durham.ac.uk/ark:/12345/t0abcdefg.html']))
+        r.append(MARC::DataField.new('533', nil, nil,['8', '2\u'], ['a', 'Digital image'], ['n', 'test note']))
+        r.append(MARC::DataField.new('856', '4', '1',['8', '2\u'], ['z', 'Online version'], ['u', 'http://www.example.com']))
+        r.append(MARC::DataField.new('533', nil, nil,['8', '2\u'], ['a', 'Microfilm'], ['n', 'test note']))
         r.append(MARC::DataField.new('533', nil, nil,['a', 'Microfilm'], ['n', 'another copy']))
-        r.append(MARC::DataField.new('130', '0', nil,['a', 'test'], ['l', 'test']))
+        r.append(MARC::DataField.new('130', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test']))
       end
     }
     before {
@@ -75,18 +80,60 @@ RSpec.describe Trifle::MillenniumActor do
       expect(mock_connection).to receive(:record).with(millennium_id).and_return(double('mock_record',marc_record: marc_record))
     }
     
-    it "preserves only fields not created by Trifle" do
-      fs = actor.preserved_millennium_fields(millennium_id)
-      expect(fs.count).to eql(3)
-      expect(fs.find do |f| f.tag == '130' end).to be_nil # don't return irrelevant fields
-      f856 = fs.select do |f| f.tag == '856' end
-      f533 = fs.select do |f| f.tag == '533' end
-        
-      expect(f856.count).to eql(1)
-      expect(f856[0]['u']).to eql('http://www.example.com')
-      expect(f533.count).to eql(2)
-      expect(f533[0]['n']).to eql('test note')
-      expect(f533[1]['n']).to eql('another copy')
+    it "returns all existing fields" do
+      existing = actor.existing_millennium_fields(millennium_id)
+      expect(existing.map(&:to_s)).to eql([
+        '856 41 $8 2\u $z Online version $u https://n2t.durham.ac.uk/ark:/12345/t0abcdefg.html ',
+        '533    $8 2\u $a Digital image $n test note ',
+        '856 41 $8 2\u $z Online version $u http://www.example.com ',
+        '533    $8 2\u $a Microfilm $n test note ',
+        '533    $a Microfilm $n another copy ',
+        '130 0  $8 1\u $a test $l test '
+        ])
+    end
+  end
+  
+  describe "#remove_old_injected_fields" do
+    let(:manifest) { FactoryGirl.create(:iiifmanifest, source_record: "millennium:12345", digitisation_note: 'test note') }
+
+    let(:fields) {
+      # if something gets changed in the model then this test should fail
+      generated_fields = manifest.to_millennium.values.flatten
+      expect(generated_fields).not_to be_empty
+      generated_fields + [
+        MARC::DataField.new('856', '4', '1',['8', '2\u'], ['z', 'Online version'], ['u', 'https://n2t.durham.ac.uk/ark:/12345/t0abcdefg.html']),
+        MARC::DataField.new('856', '4', '1',['z', 'Online version'], ['u', 'http://www.example.com']),
+        MARC::DataField.new('533', nil, nil,['8', '2\u'], ['a', 'Digital image'], ['n', 'test note']),
+        MARC::DataField.new('533', nil, nil,['a', 'Microfilm'], ['n', 'another copy']),
+        MARC::DataField.new('130', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test']),
+        MARC::DataField.new('132', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test'])
+      ]}
+    it "removes injected fields" do
+      kept = actor.remove_old_injected_fields(fields)
+      expect(kept.map(&:to_s)).to eql([
+          '856 41 $z Online version $u http://www.example.com ',
+          '533    $a Microfilm $n another copy ',
+          '130 0  $8 1\u $a test $l test ',
+          '132 0  $8 1\u $a test $l test '
+        ])
+    end
+  end
+  
+  describe "#pick_relevant_fields" do
+    let(:fields) {[
+        MARC::DataField.new('856', '4', '1',['8', '2\u'], ['z', 'Online version'], ['u', 'http://www.example.com']),
+        MARC::DataField.new('533', nil, nil,['8', '2\u'], ['a', 'Digital image'], ['n', 'test note']),
+        MARC::DataField.new('533', nil, nil,['a', 'Microfilm'], ['n', 'another copy']),
+        MARC::DataField.new('130', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test']),
+        MARC::DataField.new('132', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test'])
+      ]}
+    it "keeps all 856 and 533 fields" do
+      relevant = actor.pick_relevant_fields(fields)
+      expect(relevant.map(&:to_s)).to eql([
+        '856 41 $8 2\u $z Online version $u http://www.example.com ',
+        '533    $8 2\u $a Digital image $n test note ',
+        '533    $a Microfilm $n another copy '
+        ])
     end
   end
 

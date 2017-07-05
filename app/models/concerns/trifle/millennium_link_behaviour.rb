@@ -14,11 +14,12 @@ module Trifle
       {
         millennium_id => [
           MARC::DataField.new('533', nil, nil, *(
+            [['8', "1\\u"]] +
             [['a', 'Digital image']] +
             (self.try(:digitisation_note).present? ? [['n', digitisation_note]] : []) +
             [['5', 'UkDhU']]
           )),
-          MARC::DataField.new('856', '4', '1', ['z', 'Online version'], ['u', n2t_url]),
+          MARC::DataField.new('856', '4', '1', ['8',"1\\u"], ['z', 'Online version'], ['u', n2t_url]),
         ]
       }
     end
@@ -32,9 +33,54 @@ module Trifle
       
       (ms + cs).reduce({}) do |all_records, m|
         (m.to_millennium || {}).each do |k,vs|
-          (all_records[k] ||= []).push(*vs)
+          all_records[k] ||= []
+          self.class.reassign_marc_field_links(all_records[k], vs)
+          all_records[k].push(*vs)
         end
         all_records
+      end
+    end
+    
+    module ClassMethods
+      def reassign_marc_field_links(existing_fields, new_fields)
+        # Marc subfield 8 links several data fields together. When combining
+        # fields from several sources, they may have clashes in the link ids
+        # the use. This reassigns the link ids in new_fields so that they
+        # don't clash with anything in existing_fields.
+
+        re = /^([^\d]*)(\d+)(.*)$/
+        
+        used_links = {}
+        existing_fields.each do |f|
+          next unless f.is_a?(MARC::DataField)
+          f.each do |s|
+            next unless s.code == '8'
+            m = re.match(s.value)
+            next unless m
+            used_links[m[2]] = true
+          end
+        end
+
+        new_map = {}
+        last_used = used_links.keys.map(&:to_i).max || 0        
+        
+        new_fields.each do |f|
+          next unless f.is_a?(MARC::DataField)
+          f.each do |s|
+            next unless s.code == '8'
+            m = re.match(s.value)
+            next unless m
+            link_id = m[2]
+            
+            link_id = new_map[link_id] || begin
+              last_used += 1
+              new_map[link_id] = last_used.to_s
+            end
+            
+            s.value = "#{m[1]}#{link_id}#{m[3]}"
+          end
+        end
+        new_fields
       end
     end
     
