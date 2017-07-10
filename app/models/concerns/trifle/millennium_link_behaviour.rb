@@ -10,13 +10,26 @@ module Trifle
       raise "Record doesn't have an ark" unless self.local_ark.present?
       
       n2t_url = "#{Trifle.config.fetch('n2t_server','https://n2t.durham.ac.uk')}/#{self.local_ark}.html"
-      millennium_id, holdind_id = self.source_record[('millennium:'.length)..-1].split('#',2)
+      millennium_id, holding_id = self.source_record[('millennium:'.length)..-1].split('#',2)
+      
+      shelf_mark = if holding_id.present?
+        r = DurhamRails::LibrarySystems::Millennium.connection.record(millennium_id)
+        if r.present?
+          h = r.holdings.find do |h| h.holding_id == holding_id end
+          h.try(:call_no)
+        end
+      else
+        nil
+      end
+      
+      note = [shelf_mark.present? ? "Shelf mark #{shelf_mark}.": nil, self.try(:digitisation_note)].compact.join(' ')
+      
       {
         millennium_id => [
           MARC::DataField.new('533', nil, nil, *(
             [['8', "1\\u"]] +
             [['a', 'Digital image']] +
-            (self.try(:digitisation_note).present? ? [['n', digitisation_note]] : []) +
+            (note.present? ? [['n', note]] : []) +
             [['5', 'UkDhU']]
           )),
           MARC::DataField.new('856', '4', '1', ['8',"1\\u"], ['z', 'Online version'], ['u', n2t_url]),

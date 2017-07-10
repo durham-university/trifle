@@ -187,6 +187,13 @@ RSpec.describe Trifle::IIIFCollection do
 
   describe "#to_millennium" do
     # iiif_manifest_spec has some more millennium linking related tests
+    before { allow(DurhamRails::LibrarySystems::Millennium).to receive(:connection).and_return(mock_millennium)}
+    let(:mock_millennium) { 
+      double('mock_millennium').tap do |m| allow(m).to receive(:record).with('12345').and_return(mock_record) end
+    }
+    let(:mock_record) {
+      double('mock_record').tap do |m| allow(m).to receive(:holdings).and_return([double('mock_holding',holding_id: 'test', call_no: 'testcallno')]) end
+    }    
     before { allow(Trifle::IIIFCollection).to receive(:ark_naan).and_return('12345') }
     let(:collection) { FactoryGirl.create(:iiifcollection) } # need ark and id in collection
     it "returns nil when source is not in millennium" do
@@ -198,11 +205,11 @@ RSpec.describe Trifle::IIIFCollection do
     it "returns millennium records" do
       collection.source_record = "millennium:12345#test"
       mil = collection.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $5 UkDhU ")
+      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $n Shelf mark testcallno. $5 UkDhU ")
       expect(mil['12345'][1].to_s).to eql("856 41 $8 1\\u $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{collection.id}.html ")
       collection.digitisation_note = 'test digitisation note'
       mil = collection.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $n test digitisation note $5 UkDhU ")
+      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $n Shelf mark testcallno. test digitisation note $5 UkDhU ")
     end
   end
   

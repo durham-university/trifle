@@ -329,6 +329,13 @@ RSpec.describe Trifle::IIIFManifest do
   end  
   
   describe "#to_millennium" do
+    before { allow(DurhamRails::LibrarySystems::Millennium).to receive(:connection).and_return(mock_millennium)}
+    let(:mock_millennium) { 
+      double('mock_millennium').tap do |m| allow(m).to receive(:record).with('12345').and_return(mock_record) end
+    }
+    let(:mock_record) {
+      double('mock_record').tap do |m| allow(m).to receive(:holdings).and_return([double('mock_holding',holding_id: 'test', call_no: 'testcallno')]) end
+    }
     before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
     let(:manifest) { FactoryGirl.create(:iiifmanifest) } # need ark and id in manifest
     it "returns nil when source is not in millennium" do
@@ -340,17 +347,21 @@ RSpec.describe Trifle::IIIFManifest do
     it "returns millennium records" do
       manifest.source_record = "millennium:12345#test"
       mil = manifest.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $5 UkDhU ")
+      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $n Shelf mark testcallno. $5 UkDhU ")
       expect(mil['12345'][1].to_s).to eql("856 41 $8 1\\u $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html ")
       manifest.digitisation_note = 'test digitisation note'
       mil = manifest.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $n test digitisation note $5 UkDhU ")
+      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $n Shelf mark testcallno. test digitisation note $5 UkDhU ")
     end
   end
   
   describe "#to_millennium_all" do
     before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
     before { allow(Trifle::IIIFCollection).to receive(:ark_naan).and_return('12345') }
+    before { allow(DurhamRails::LibrarySystems::Millennium).to receive(:connection).and_return(mock_millennium)}
+    let(:mock_millennium) { 
+      double('mock_millennium').tap do |m| allow(m).to receive(:record).and_return(nil) end
+    }
     let!(:manifest1) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:12345#test') }
     let!(:manifest2) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:67890') }
     let!(:manifest3) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:12345') }
