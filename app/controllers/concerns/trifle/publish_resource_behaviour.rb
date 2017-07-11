@@ -64,11 +64,12 @@ module Trifle
               Trifle::PublishJob.new( params ).queue_job
             end
           else
-            # Just pick any collection where we can attach a job.
+            # Just pick any top-level collection where we can attach a job.
             # This should be a rare occurrence. Should also prevent removing
-            # last collection.
-            c = Trifle::IIIFCollection.first
-            Trifle::PublishJob.new( {resource: c, remove: @resource} ).queue_job            
+            # last collection. Using a top-level collection for this will also
+            # update the pseudo index collection.
+            c = Trifle::IIIFCollection.root_collections.first
+            Trifle::PublishJob.new( {resource: c, remove: @resource} ).queue_job 
           end
         end
       end

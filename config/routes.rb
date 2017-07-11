@@ -48,9 +48,11 @@ Trifle::Engine.routes.draw do
   post '/collection/deselect_all', to: 'iiif_collections#deselect_all_resources'
   post '/collection/:id/deselect_all', to: 'iiif_collections#deselect_all_resources', as: :deselect_all_iiif_collection
   post '/collection/:id/move_into', to: 'iiif_collections#move_selection_into', as: :move_into_iiif_collection
+  post '/collection/:id/publish', to: 'iiif_collections#publish', as: :iiif_collection_publish
   
   
   scope 'iiif' do
+    get 'collection', to: 'iiif_collections#index_iiif', as: :iiif_collection_index_iiif
     get 'collection/:id', to: 'iiif_collections#show_iiif', as: :iiif_collection_iiif
     get 'manifest/:id/manifest', to: 'iiif_manifests#show_iiif', as: :iiif_manifest_iiif
     get 'manifest/:id', to: 'iiif_manifests#show_iiif'

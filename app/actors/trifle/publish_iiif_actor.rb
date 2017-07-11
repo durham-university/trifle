@@ -121,6 +121,8 @@ module Trifle
           if parent
             raise "Parent has no local_ark" unless parent.local_ark.present?
             yielder << FileEntry.new("collection/#{parent.local_ark.split('/')[1..2].join('/')}", parent.to_iiif(opts))
+          else
+            yielder << FileEntry.new("collection/index", Trifle::IIIFCollection.index_collection_iiif(opts))
           end
         end
       end
@@ -175,7 +177,10 @@ module Trifle
       end
     
       def convert_id(id)
-        if id.start_with?(rails_manifest_prefix)
+        if id == rails_collection_prefix[0..-2]
+          # this is the index collection, prefix is /trifle/iiif/collection without a trailing slash
+          "#{Trifle.config['published_iiif_url']}collection/index"
+        elsif id.start_with?(rails_manifest_prefix)
           # rails_manifest_preix will have manifest_id in it, replace it with treeified prefix
           (man_id, rest) = id[(rails_manifest_prefix.length)..-1].split('/',2)
           treeified_prefix(man_id) + rest

@@ -173,6 +173,20 @@ RSpec.describe Trifle::PublishIIIFActor do
       end
     end
     
+    context "with a top-level collection" do
+      # variable manifest is really a collection!
+      let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests)}
+      let(:iiif) { entries.find do |e| e.path.ends_with?("collection/12345/#{manifest.id}") end .content }
+      it "works with a collection object" do
+        expect(enum).to be_a(Enumerator)
+        expect(entries.map(&:path)).to match_array([
+            "collection/12345/#{manifest.id}",
+            "collection/index"
+          ])
+        expect(iiif).to be_a(IIIF::Presentation::Collection)
+      end
+    end
+    
     context "with a parameter object" do
       let(:enum) { actor.iiif_package_unstatified(other_object) }
       let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests) }
@@ -265,6 +279,12 @@ RSpec.describe Trifle::PublishIIIFActor do
       let(:uri) { "http://www.example.com/trifle/iiif/collection/ttr243b49tvy" }
       it "converts uris that start with the prefix" do
         expect(actor.send(:convert_id, uri)).to eql('http://imageserver/iiif/collection/12345/ttr243b49tvy')
+      end
+    end
+    context "with the collection index uri" do
+      let(:uri) { "http://www.example.com/trifle/iiif/collection" }
+      it "converts the index uri" do
+        expect(actor.send(:convert_id, uri)).to eql('http://imageserver/iiif/collection/index')
       end
     end
     it "returns other uris untouched" do

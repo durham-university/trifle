@@ -102,6 +102,18 @@ module Trifle
       end
     end
     
+    def self.index_collection_iiif(opts={})
+      IIIF::Presentation::Collection.new.tap do |collection|
+        collection['@id'] = Trifle::Engine.routes.url_helpers.iiif_collection_index_iiif_url(host: Trifle.iiif_host)
+        collection.label = Trifle.config[:index_collection].try(:[],:label) || 'Collection index'
+        collection.description = Trifle.config[:index_collection].try(:[],:description) || nil
+        collection.license = Trifle.config[:index_collection].try(:[],:licence) || nil
+        collection.attribution = Trifle.config[:index_collection].try(:[],:attribution) || nil
+        collection.logo = Trifle.config[:index_collection].try(:[],:logo) || nil
+        collection.collections = root_collections.to_a.map do |c| c.iiif_collection_stub(opts) end
+      end        
+    end
+    
     def self.root_collections
       self.where(Solrizer.solr_name('root_collection_id', type: :symbol) => nil)
     end

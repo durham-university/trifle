@@ -33,6 +33,10 @@ module Trifle
       end  
     end
     
+    def index_iiif
+      render json: Trifle::IIIFCollection.index_collection_iiif(use_cached: true).to_json(pretty: true)
+    end    
+    
     def show
       if params['full_manifest_list'].present?
         authorize!(:index_all, Trifle::IIIFManifest)

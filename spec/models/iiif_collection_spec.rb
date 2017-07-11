@@ -13,6 +13,21 @@ RSpec.describe Trifle::IIIFCollection do
       expect(json).to include(collection.manifests.first.title)
     end
   end
+  
+  describe "::index_collection_iiif" do
+    let!(:collection) { FactoryGirl.create(:iiifcollection,:with_sub_collections) }
+    let!(:collection2) { FactoryGirl.create(:iiifcollection,:with_sub_collections) }
+    let(:iiif) { Trifle::IIIFCollection.index_collection_iiif }
+    before { allow(Trifle).to receive(:config).and_return({ark_naan: '12345', index_collection: {logo: 'http://www.example.com/logo.jpg'}})}
+    it "creates index collection iiif" do
+      expect(Trifle::IIIFCollection.count).to be > 2
+      expect(iiif['label']).to be_present
+      expect(iiif['@id']).to be_present
+      expect(iiif['collections'].count).to eql(2)
+      expect(iiif['collections'].map do |c| c['label'] end).to match_array ([collection.title, collection2.title])
+      expect(iiif['logo']).to eql('http://www.example.com/logo.jpg')
+    end
+  end
 
   describe "#to_iiif" do
     it "calls #iiif_collection" do
