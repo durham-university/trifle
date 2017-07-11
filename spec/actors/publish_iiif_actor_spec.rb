@@ -196,6 +196,40 @@ RSpec.describe Trifle::PublishIIIFActor do
         expect(entries.map(&:path)).not_to include("collection/12345/#{manifest.id}")
       end
     end
+    
+    context "skipping parent" do
+      let(:options) { { skip_parent: true } }
+      context "of manifest" do
+        let(:manifest) { full_manifest }
+        let(:iiif) { entries.find do |e| e.path.ends_with?('/manifest') end .content }
+        let(:prefix) { actor.send(:treeify_id) }
+        it "doesn't add parent" do
+          expect(enum).to be_a(Enumerator)
+          expect(entries.map(&:path)).to match_array([
+              "#{prefix}/manifest", "#{prefix}/sequence/default",
+              "#{prefix}/range/#{manifest.ranges.first.id}",
+              "#{prefix}/range/#{manifest.ranges.first.sub_ranges.first.id}",
+              *(manifest.images.map do |img| "#{prefix}/canvas/#{img.id}" end),
+              *(manifest.images.map do |img| "#{prefix}/annotation/canvas_#{img.id}" end),
+              "#{prefix}/list/#{manifest.images.first.annotation_lists.first.id}",
+              *(manifest.images.first.annotation_lists.first.annotations.map do |ann| "#{prefix}/annotation/#{ann.id}" end)
+            ])
+          expect(iiif).to be_a(IIIF::Presentation::Manifest)
+        end
+      end
+      context "of collection" do
+        # variable manifest is really a collection!
+        let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests, :with_parent)}
+        let(:iiif) { entries.find do |e| e.path.ends_with?("collection/12345/#{manifest.id}") end .content }
+        it "doesn't add parent" do
+          expect(enum).to be_a(Enumerator)
+          expect(entries.map(&:path)).to match_array([
+              "collection/12345/#{manifest.id}"
+            ])
+          expect(iiif).to be_a(IIIF::Presentation::Collection)
+        end
+      end
+    end
   end
   
   describe "#iiif_package" do

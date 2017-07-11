@@ -110,19 +110,23 @@ module Trifle
               end
             end
           end
-          target.parents.select do |o| o.is_a?(Trifle::IIIFCollection) end .each do |collection|
-            raise "Collection has no local_ark" unless collection.local_ark.present?
-            yielder << FileEntry.new("collection/#{collection.local_ark.split('/')[1..2].join('/')}", collection.to_iiif(opts))
+          unless attributes[:skip_parent]
+            target.parents.select do |o| o.is_a?(Trifle::IIIFCollection) end .each do |collection|
+              raise "Collection has no local_ark" unless collection.local_ark.present?
+              yielder << FileEntry.new("collection/#{collection.local_ark.split('/')[1..2].join('/')}", collection.to_iiif(opts))
+            end
           end
         when Trifle::IIIFCollection
           raise "Target has no local_ark" unless target.local_ark.present?
           yielder << FileEntry.new("collection/#{target.local_ark.split('/')[1..2].join('/')}", target.to_iiif(opts))
-          parent = target.parent
-          if parent
-            raise "Parent has no local_ark" unless parent.local_ark.present?
-            yielder << FileEntry.new("collection/#{parent.local_ark.split('/')[1..2].join('/')}", parent.to_iiif(opts))
-          else
-            yielder << FileEntry.new("collection/index", Trifle::IIIFCollection.index_collection_iiif(opts))
+          unless attributes[:skip_parent]
+            parent = target.parent
+            if parent
+              raise "Parent has no local_ark" unless parent.local_ark.present?
+              yielder << FileEntry.new("collection/#{parent.local_ark.split('/')[1..2].join('/')}", parent.to_iiif(opts))
+            else
+              yielder << FileEntry.new("collection/index", Trifle::IIIFCollection.index_collection_iiif(opts))
+            end
           end
         end
       end
