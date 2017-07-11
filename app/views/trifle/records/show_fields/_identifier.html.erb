@@ -1,0 +1,11 @@
+<% Array(record[key]).each do |v| %>
+  <span itemprop="<%= key %>" itemscope itemtype="http://schema.org/Thing">
+    <% if v.start_with?('ark:') %>
+      <a href="<%= Trifle.config.fetch(:n2t_server,'https://n2t.durham.ac.uk') %>/<%= v %>"><%= v %></a>
+      (<a href="<%= Trifle.config.fetch(:n2t_server,'https://n2t.durham.ac.uk') %>/<%= v %>.html">.html</a>)
+    <% else %>
+      <%= v %>
+    <% end %>
+  </span>
+  <br />
+<% end %>
