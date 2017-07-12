@@ -57,12 +57,21 @@ module Trifle
       n2t_server = Trifle.config['n2t_server'] || 'https://n2t.durham.ac.uk'
       n2t_matcher = /^#{n2t_server}\/ark:\/[0-9]+\/t[0-9][0-9a-z]+\.html$/
       
+      injected_subfields = []
+      existing_fields.select do |f|
+        if f.tag == '856' && f['x'] == 'Injected by Trifle'
+          sub_index = subfield_index(f)
+          injected_subfields << sub_index if sub_index.present?
+        end
+      end
+      
       existing_fields.select do |f|
         case f.tag
         when '533'
-          f['a'] != 'Digital image'
+          sub_index = subfield_index(f)
+          sub_index.nil? || !injected_subfields.include?(sub_index)
         when '856'
-          !n2t_matcher.match(f['u'])
+          f['x'] != 'Injected by Trifle'
         else
           true
         end
@@ -74,6 +83,13 @@ module Trifle
     end
     
     protected
+    
+    def subfield_index(f)
+      return nil unless f.is_a?(MARC::DataField) && f['8'].present?
+      re = /^([^\d]*)(\d+)(.*)$/
+      m = re.match(f['8'])
+      m.try(:[],2)
+    end
     
     def default_connection_params
       Trifle.config['millennium_linking_config'].symbolize_keys.except(:root)

@@ -25,15 +25,15 @@ RSpec.describe Trifle::MillenniumActor do
     before {
       expect(manifest).to receive(:to_millennium_all).and_return({
         'mid1234' => [
-          MARC::DataField.new('856', '4', '1',['8', '1\u'], ['z', 'Online version'], ['u', 'http://www.example.com/trifle_link']),
-          MARC::DataField.new('533', nil, nil,['8', '1\u'], ['a', 'Digital image'], ['n', 'new note'])
+          MARC::DataField.new('856', '4', '1',['8', '1\c'], ['3', 'SM1'], ['y', 'Online version'], ['u', 'http://www.example.com/trifle_link'], ['x', 'Injected by Trifle']),
+          MARC::DataField.new('533', nil, nil,['8', '1\c'], ['3', 'SM1'], ['a', 'Digital image'], ['c', 'Durham University'], ['n', 'new note'])
         ],
         'mid5678' => [ MARC::DataField.new('533', nil, nil,['a', 'Digital image'], ['n', 'another test']) ]
       })
       expect(actor).to receive(:existing_millennium_fields).twice.and_return([
-          MARC::DataField.new('856', '4', '1',['8', '2\u'], ['z', 'Online version'], ['u', 'https://n2t.durham.ac.uk/ark:/12345/t0abcdefg.html']),
+          MARC::DataField.new('856', '4', '1',['8', '2\c'], ['3', 'SM2'], ['y', 'Online version'], ['u', 'https://n2t.durham.ac.uk/ark:/12345/t0abcdefg.html'], ['x', 'Injected by Trifle']),
           MARC::DataField.new('856', '4', '1',['z', 'Online version'], ['u', 'http://www.example.com/preserved_link']),
-          MARC::DataField.new('533', nil, nil,['8', '2\u'], ['a', 'Digital image'], ['n', 'test note']),
+          MARC::DataField.new('533', nil, nil,['8', '2\c'], ['3', 'SM2'], ['a', 'Digital image'], ['n', 'test note']),
           MARC::DataField.new('533', nil, nil,['a', 'Microfilm'], ['n', 'another copy']),
           MARC::DataField.new('130', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test']),
           MARC::DataField.new('132', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test'])
@@ -55,7 +55,7 @@ RSpec.describe Trifle::MillenniumActor do
       expect(contents).to include('new note')
       expect(contents).to include('http://www.example.com/preserved_link')
       expect(contents).to include('http://www.example.com/trifle_link')
-      expect(contents).to include("<subfield code='8'>2\\u</subfield>")
+      expect(contents).to include("<subfield code='8'>2\\c</subfield>")
       expect(contents).not_to include("another test")
       expect(package[1].path).to eql('mid5678')
       expect(package[1].content.to_s).to include("another test")
@@ -101,9 +101,9 @@ RSpec.describe Trifle::MillenniumActor do
       generated_fields = manifest.to_millennium.values.flatten
       expect(generated_fields).not_to be_empty
       generated_fields + [
-        MARC::DataField.new('856', '4', '1',['8', '2\u'], ['z', 'Online version'], ['u', 'https://n2t.durham.ac.uk/ark:/12345/t0abcdefg.html']),
+        MARC::DataField.new('856', '4', '1',['8', '2\c'], ['z', 'Test version'], ['u', 'https://example.com'], ['x', 'Injected by Trifle']),
         MARC::DataField.new('856', '4', '1',['z', 'Online version'], ['u', 'http://www.example.com']),
-        MARC::DataField.new('533', nil, nil,['8', '2\u'], ['a', 'Digital image'], ['n', 'test note']),
+        MARC::DataField.new('533', nil, nil,['8', '2\c'], ['a', 'Digital image'], ['n', 'test note']),
         MARC::DataField.new('533', nil, nil,['a', 'Microfilm'], ['n', 'another copy']),
         MARC::DataField.new('130', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test']),
         MARC::DataField.new('132', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test'])
@@ -121,7 +121,7 @@ RSpec.describe Trifle::MillenniumActor do
   
   describe "#pick_relevant_fields" do
     let(:fields) {[
-        MARC::DataField.new('856', '4', '1',['8', '2\u'], ['z', 'Online version'], ['u', 'http://www.example.com']),
+        MARC::DataField.new('856', '4', '1',['8', '2\u'], ['z', 'Test version'], ['u', 'http://www.example.com']),
         MARC::DataField.new('533', nil, nil,['8', '2\u'], ['a', 'Digital image'], ['n', 'test note']),
         MARC::DataField.new('533', nil, nil,['a', 'Microfilm'], ['n', 'another copy']),
         MARC::DataField.new('130', '0', nil,['8', '1\u'], ['a', 'test'], ['l', 'test']),
@@ -130,7 +130,7 @@ RSpec.describe Trifle::MillenniumActor do
     it "keeps all 856 and 533 fields" do
       relevant = actor.pick_relevant_fields(fields)
       expect(relevant.map(&:to_s)).to eql([
-        '856 41 $8 2\u $z Online version $u http://www.example.com ',
+        '856 41 $8 2\u $z Test version $u http://www.example.com ',
         '533    $8 2\u $a Digital image $n test note ',
         '533    $a Microfilm $n another copy '
         ])

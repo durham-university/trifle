@@ -22,17 +22,20 @@ module Trifle
         nil
       end
       
-      note = [shelf_mark.present? ? "Shelf mark #{shelf_mark}.": nil, self.try(:digitisation_note)].compact.join(' ')
-      
       {
         millennium_id => [
           MARC::DataField.new('533', nil, nil, *(
-            [['8', "1\\u"]] +
-            [['a', 'Digital image']] +
-            (note.present? ? [['n', note]] : []) +
+            [['8', "1\\c"]] +
+            (shelf_mark.present? ? [['3', shelf_mark]] : []) +
+            [['a', 'Digital image'], ['c', 'Durham University']] +
+            (self.try(:digitisation_note).present? ? [['n', self.try(:digitisation_note)]] : []) +
             [['5', 'UkDhU']]
           )),
-          MARC::DataField.new('856', '4', '1', ['8',"1\\u"], ['z', 'Online version'], ['u', n2t_url]),
+          MARC::DataField.new('856', '4', '1', *(
+            [['8',"1\\c"]] +
+            (shelf_mark.present? ? [['3', shelf_mark]] : []) +
+            [['u', n2t_url], ['y', 'Online version'], ['x', 'Injected by Trifle']]
+          )),
         ]
       }
     end

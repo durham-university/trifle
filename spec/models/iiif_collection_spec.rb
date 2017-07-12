@@ -205,11 +205,11 @@ RSpec.describe Trifle::IIIFCollection do
     it "returns millennium records" do
       collection.source_record = "millennium:12345#test"
       mil = collection.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $n Shelf mark testcallno. $5 UkDhU ")
-      expect(mil['12345'][1].to_s).to eql("856 41 $8 1\\u $z Online version $u https://n2t.durham.ac.uk/ark:/12345/#{collection.id}.html ")
+      expect(mil['12345'][0].to_s).to eql("533    $8 1\\c $3 testcallno $a Digital image $c Durham University $5 UkDhU ")
+      expect(mil['12345'][1].to_s).to eql("856 41 $8 1\\c $3 testcallno $u https://n2t.durham.ac.uk/ark:/12345/#{collection.id}.html $y Online version $x Injected by Trifle ")
       collection.digitisation_note = 'test digitisation note'
       mil = collection.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $8 1\\u $a Digital image $n Shelf mark testcallno. test digitisation note $5 UkDhU ")
+      expect(mil['12345'][0].to_s).to eql("533    $8 1\\c $3 testcallno $a Digital image $c Durham University $n test digitisation note $5 UkDhU ")
     end
   end
   
