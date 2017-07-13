@@ -104,12 +104,13 @@ module Trifle
     
     def self.index_collection_iiif(opts={})
       IIIF::Presentation::Collection.new.tap do |collection|
+        config = (Trifle.config[:index_collection] || Trifle.config['index_collection'] || {}).with_indifferent_access        
         collection['@id'] = Trifle::Engine.routes.url_helpers.iiif_collection_index_iiif_url(host: Trifle.iiif_host)
-        collection.label = Trifle.config[:index_collection].try(:[],:label) || 'Collection index'
-        collection.description = Trifle.config[:index_collection].try(:[],:description) || nil
-        collection.license = Trifle.config[:index_collection].try(:[],:licence) || nil
-        collection.attribution = Trifle.config[:index_collection].try(:[],:attribution) || nil
-        collection.logo = Trifle.config[:index_collection].try(:[],:logo) || nil
+        collection.label = config[:label] || 'Collection index'
+        collection.description = config[:description] || nil
+        collection.license = config[:licence] || nil
+        collection.attribution = config[:attribution] || nil
+        collection.logo = config[:logo] || nil
         collection.collections = root_collections.to_a.map do |c| c.iiif_collection_stub(opts) end
       end        
     end

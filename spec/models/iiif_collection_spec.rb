@@ -18,10 +18,10 @@ RSpec.describe Trifle::IIIFCollection do
     let!(:collection) { FactoryGirl.create(:iiifcollection,:with_sub_collections) }
     let!(:collection2) { FactoryGirl.create(:iiifcollection,:with_sub_collections) }
     let(:iiif) { Trifle::IIIFCollection.index_collection_iiif }
-    before { allow(Trifle).to receive(:config).and_return({ark_naan: '12345', index_collection: {logo: 'http://www.example.com/logo.jpg'}})}
+    before { allow(Trifle).to receive(:config).and_return({ark_naan: '12345', index_collection: {'label' => 'test label', logo: 'http://www.example.com/logo.jpg'}})}
     it "creates index collection iiif" do
       expect(Trifle::IIIFCollection.count).to be > 2
-      expect(iiif['label']).to be_present
+      expect(iiif['label']).to eql('test label')
       expect(iiif['@id']).to be_present
       expect(iiif['collections'].count).to eql(2)
       expect(iiif['collections'].map do |c| c['label'] end).to match_array ([collection.title, collection2.title])
