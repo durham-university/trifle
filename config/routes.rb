@@ -30,6 +30,8 @@ Trifle::Engine.routes.draw do
       resources :iiif_ranges, only: [:new, :create], path: 'range'
     end
   end
+
+  get 'image', to: 'iiif_images#index', as: :iiif_images # This is only for indexing images from a particular source
   
   get '/manifest/:id/manifest', to: 'iiif_manifests#show'
   get '/manifest/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_manifest_background_jobs
@@ -37,6 +39,7 @@ Trifle::Engine.routes.draw do
   post '/manifest/:id/refresh_from_source', to: 'iiif_manifests#refresh_from_source', as: :iiif_manifest_refresh_from_source
   post '/manifest/:id/publish', to: 'iiif_manifests#publish', as: :iiif_manifest_publish
   get '/manifest/:iiif_manifest_id/canvas/:id/all_annotations', to: 'iiif_images#all_annotations', as: :iiif_manifest_iiif_image_all_annotations
+  post '/manifest/:iiif_manifest_id/canvas/:id/refresh_from_source', to: 'iiif_images#refresh_from_source', as: :iiif_manifest_iiif_image_refresh_from_source
   post '/manifest/:id/update_ranges', to: 'iiif_manifests#update_ranges', as: :iiif_manifest_update_ranges
   
   post '/manifest/:id/select', to: 'iiif_manifests#select_resource', as: :select_iiif_manifest

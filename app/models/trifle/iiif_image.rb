@@ -10,6 +10,8 @@ module Trifle
     include DurhamRails::DestroyFromContainers
     include DurhamRails::DestroyDependentMembers
     include Trifle::TrackDirtyParentBehaviour
+    include Trifle::SourceRecord
+    attr_accessor :date_published # SourceRecord needs to set this. Might put it in Fedora later
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
     property :image_location, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_location')
@@ -21,7 +23,11 @@ module Trifle
     property :width, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_width')
     property :height, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_height')
 
+    property :description, multiple: false, predicate: ::RDF::Vocab::DC.description
+
     has_subresource "annotation_lists_iiif", class_name: 'ActiveFedora::File'
+
+    use_parent_ark!
 
     def as_json(*args)
       super(*args).except('serialised_annotations').tap do |json|
@@ -115,6 +121,12 @@ module Trifle
         canvas.label = title
         canvas.width = width.to_i
         canvas.height = height.to_i
+
+        canvas.description = self.description if self.description.present?
+    
+        source_link = public_source_link
+        canvas['related'] = source_link if source_link        
+
         canvas.images = [iiif_annotation(opts)]
 
         unless opts[:no_annotations]

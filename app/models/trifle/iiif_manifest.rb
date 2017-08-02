@@ -31,6 +31,8 @@ module Trifle
 
     has_subresource "ranges_iiif", class_name: 'ActiveFedora::File'
 
+    around_save :update_image_arks
+
     def parent_id
       return @one_parent.id if @one_parent.present?
       ActiveFedora::SolrService.query("has_model_ssim:\"Trifle::IIIFCollection\" AND member_ids_ssim:\"#{id}\"").first.try(:[],'id')
@@ -249,9 +251,22 @@ module Trifle
       @solr_ranges = parsed['serialised_ranges']
       self
     end
-    
-    
+        
     private 
+
+      # this is called as an around hook for save
+      def update_image_arks
+        if ordered_members.changed?
+          # We're relying on images not being moved between manifests
+          if yield
+            self.images.each do |img|
+              img.save if img.update_ark_parents
+            end
+          end
+        else
+          yield
+        end
+      end
     
       def noid_minter
         @noid_minter ||= noid_minter_with_prefix('m', 'manifest')

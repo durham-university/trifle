@@ -43,20 +43,23 @@ module Trifle
       end
     end
     
-    def refresh_from_source
+    def refresh_from_source(cache=nil)
       raise 'Source type not set' unless source_type.present?
       type_method = :"refresh_from_#{source_type.to_s.underscore}_source"
       raise 'Unknown source type' unless self.respond_to?(type_method)
-      self.send(type_method)
+      self.send(type_method, cache)
     end
     
-    def refresh_from_millenium_source
+    def refresh_from_millenium_source(cache=nil)
       raise 'TODO'
     end
     
-    def refresh_from_adlib_source
-      item = DurhamRails::LibrarySystems::Adlib.connection.record(source_identifier)
-      raise("Couldn't find Adlib record #{source_identifier}") unless item && item.exists?
+    def refresh_from_adlib_source(cache=nil)
+      cache ||= {} # forcing a non-persistent empty cache simplifies code
+      adlib_identifier = source_identifier
+      cache[adlib_identifier] ||= DurhamRails::LibrarySystems::Adlib.connection.record(adlib_identifier)
+      item = cache[adlib_identifier]
+      raise("Couldn't find Adlib record #{adlib_identifier}") unless item && item.exists?
       
 #      if item.title.present?
 #        self.title = item.title 
@@ -68,10 +71,12 @@ module Trifle
       true
     end
     
-    def refresh_from_schmit_source
+    def refresh_from_schmit_source(cache=nil)
+      cache ||= {} # forcing a non-persistent empty cache simplifies code
       schmit_id, item_id = source_identifier.split('#',2)
       
-      record = Schmit::API::Catalogue.try_find(schmit_id) || raise("Couldn't find Schmit record #{schmit_id}") 
+      cache[schmit_id] ||= Schmit::API::Catalogue.try_find(schmit_id)
+      record = cache[schmit_id] || raise("Couldn't find Schmit record #{schmit_id}")
       
       xml_record = record.xml_record || raise("Couldn't get xml_record for #{schmit_id}")
       item = item_id.nil? ? xml_record.root_item : (xml_record.sub_item(item_id) || raise("Couldn't find sub item #{item_id} for #{schmit_id}"))

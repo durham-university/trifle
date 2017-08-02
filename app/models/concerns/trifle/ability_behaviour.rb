@@ -18,7 +18,7 @@ module Trifle
       end
       if user.is_api_user?
         can :show, [Trifle::IIIFCollection, Trifle::IIIFManifest, Trifle::IIIFImage]
-        can :index, [Trifle::IIIFCollection, Trifle::IIIFManifest]
+        can :index, [Trifle::IIIFCollection, Trifle::IIIFManifest, Trifle::IIIFImage]
         can :destroy, [Trifle::IIIFManifest, Trifle::IIIFImage]
         can :index_all, [Trifle::IIIFCollection, Trifle::IIIFManifest]
         can :deposit_images, Trifle::IIIFManifest

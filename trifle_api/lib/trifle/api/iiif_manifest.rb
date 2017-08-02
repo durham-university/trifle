@@ -8,6 +8,7 @@ module Trifle
 
       def initialize
         super
+        @images = nil
       end
 
       def parent
@@ -31,6 +32,7 @@ module Trifle
         @description = json['description']
         @licence = json['licence']
         @attribution = json['attribution']
+        @images = json['images'].map do |m_json| Trifle::API::IIIFImage.from_json(m_json) end if json.key?('images')
         @parent_id = json['parent_id']
         @job_tag = json['job_tag']
       end
@@ -48,8 +50,18 @@ module Trifle
         json['attribution'] = @attribution
         json['parent_id'] = @parent_id
         json['job_tag'] = @job_tag
+        json['images'] = @images.map(&:as_json) if @images
         json
       end
+
+      def images
+        fetch unless @images
+        @images
+      end
+      
+      def full
+        fetch unless @images
+      end      
 
       def self.all
         # TODO: handle paging properly

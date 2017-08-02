@@ -10,6 +10,19 @@ namespace :trifle do
     end
   end
   
+  desc "sets image arks to be child arks of their parents"
+  task "image_child_arks" => :environment do
+    Trifle::IIIFManifest.all.each do |m|
+      puts "Processing manifest #{m.id} #{m.title}"
+      parent_ark = m.local_ark
+      m.images.each do |img|
+        next if img.local_ark.start_with?(parent_ark)
+        img.save if img.update_ark_parents
+      end
+    end
+    puts "All done"
+  end
+  
   desc "outputs a foliation text file"
   task "foliation_file", [:front_count, :main_count, :back_count] do |t,args|
     def roman(n)

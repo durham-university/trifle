@@ -8,43 +8,51 @@ GIT
       activesupport (>= 3.0.0)
 
 PATH
-  remote: /home/qgkb58/hydra/durham_rails
+  remote: /home/user/priory_dev/durham_rails
   specs:
-    durham_rails (0.0.12)
-      active-fedora
+    durham_rails (0.0.18)
+      active-fedora (~> 9.13)
       httparty
       net-sftp
       rails (~> 4.2.5)
       redlock
 
 PATH
-  remote: /home/qgkb58/hydra/oubliette/oubliette_api
+  remote: /home/user/priory_dev/oubliette/oubliette_api
   specs:
-    oubliette_api (0.0.1)
+    oubliette_api (0.9.0)
       durham_rails
       httmultiparty
       rails
 
 PATH
-  remote: /home/qgkb58/hydra/schmit/schmit_api
+  remote: /home/user/priory_dev/schmit/schmit_api
   specs:
-    schmit_api (0.1.1)
+    schmit_api (0.9.0)
       durham_rails (~> 0.0.12)
       httparty
       rails
 
 PATH
-  remote: /home/qgkb58/hydra/trifle
+  remote: /home/user/priory_dev/trifle/trifle_api
   specs:
-    trifle (0.0.3)
+    trifle_api (0.9.0)
+      durham_rails
+      httmultiparty
+      rails
+
+PATH
+  remote: /home/user/priory_dev/trifle
+  specs:
+    trifle (0.9.0)
       active-fedora
-      active_fedora-noid
+      active_fedora-noid (< 2.0.0)
       bootstrap-sass (~> 3.3.5)
       bootstrap-sass-extras
       cancancan (~> 1.10)
       devise
       devise_ldap_authenticatable
-      durham_rails (~> 0.0.12)
+      durham_rails (~> 0.0.13)
       hydra-pcdm (= 0.6.0)
       hydra-works (= 0.8.1)
       iiif-presentation
@@ -58,16 +66,8 @@ PATH
       resque-pool
       rsolr (~> 1.0)
       sass-rails (~> 5.0)
-      schmit_api (~> 0.1.1)
+      schmit_api (~> 0.9.0)
       simple_form (~> 3.1.0)
-
-PATH
-  remote: /home/qgkb58/hydra/trifle/trifle_api
-  specs:
-    trifle_api (0.0.3)
-      durham_rails
-      httparty
-      rails
 
 GEM
   remote: https://rubygems.org/
@@ -91,7 +91,7 @@ GEM
       erubis (~> 2.7.0)
       rails-dom-testing (~> 1.0, >= 1.0.5)
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
-    active-fedora (9.12.0)
+    active-fedora (9.13.0)
       active-triples (~> 0.7.1)
       activemodel (>= 4.2, < 6)
       activesupport (>= 4.2.4, < 6)
@@ -109,7 +109,7 @@ GEM
       deprecation (~> 1.0)
       linkeddata (~> 1.1)
       rdf (~> 1.1)
-    active_fedora-noid (1.1.0)
+    active_fedora-noid (1.1.3)
       active-fedora (>= 9.7, < 11)
       noid (~> 0.7)
     activejob (4.2.5.1)
@@ -128,16 +128,17 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
-    addressable (2.4.0)
+    addressable (2.5.1)
+      public_suffix (~> 2.0, >= 2.0.2)
     arel (6.0.3)
-    autoprefixer-rails (6.3.6.1)
+    autoprefixer-rails (7.1.2.3)
       execjs
     bcp47 (0.3.3)
       i18n
     bcrypt (3.1.10)
     binding_of_caller (0.7.2)
       debug_inspector (>= 0.0.1)
-    bootstrap-sass (3.3.6)
+    bootstrap-sass (3.3.7)
       autoprefixer-rails (>= 5.2.1)
       sass (>= 3.3.4)
     bootstrap-sass-extras (0.0.7)
@@ -148,7 +149,7 @@ GEM
     childprocess (0.5.9)
       ffi (~> 1.0, >= 1.0.11)
     concurrent-ruby (1.0.0)
-    daemons (1.2.3)
+    daemons (1.2.4)
     debug_inspector (0.0.2)
     deprecation (1.0.0)
       activesupport
@@ -169,7 +170,7 @@ GEM
       nokogiri (>= 1.4.3)
     erubis (2.7.0)
     execjs (2.7.0)
-    faraday (0.9.2)
+    faraday (0.12.2)
       multipart-post (>= 1.2, < 3)
     ffi (1.9.10)
     globalid (0.3.6)
@@ -183,12 +184,11 @@ GEM
       mimemagic
       multipart-post
     http_logger (0.5.1)
-    httparty (0.13.7)
-      json (~> 1.8)
+    httparty (0.15.6)
       multi_xml (>= 0.5.2)
-    hydra-derivatives (3.1.1)
-      active-fedora (>= 9.0, < 11)
-      activesupport (~> 4.0)
+    hydra-derivatives (3.2.2)
+      active-fedora (>= 9.0, < 12)
+      activesupport (>= 4.0, < 6)
       deprecation
       mime-types (> 2.0, < 4.0)
       mini_magick (>= 3.2, < 5)
@@ -202,9 +202,9 @@ GEM
       hydra-file_characterization (~> 0.3, >= 0.3.3)
       hydra-pcdm (~> 0.5)
     i18n (0.7.0)
-    iiif-presentation (0.0.5)
+    iiif-presentation (0.2.0)
       activesupport (>= 3.2.18)
-      faraday (~> 0.9.0)
+      faraday (>= 0.9)
       json
     jettywrapper (2.0.3)
       activesupport (>= 3.0.0)
@@ -212,11 +212,11 @@ GEM
       i18n
       logger
       rubyzip
-    jquery-rails (4.1.1)
+    jquery-rails (4.3.1)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
       thor (>= 0.14, < 2.0)
-    jquery-ui-rails (5.0.5)
+    jquery-ui-rails (6.0.1)
       railties (>= 3.2.16)
     json (1.8.3)
     json-ld (1.99.2)
@@ -257,13 +257,13 @@ GEM
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
     mime-types (2.99)
-    mimemagic (0.3.1)
-    mini_magick (4.5.1)
+    mimemagic (0.3.2)
+    mini_magick (4.8.0)
     mini_portile2 (2.0.0)
     minitest (5.8.4)
     mono_logger (1.1.0)
     multi_json (1.11.2)
-    multi_xml (0.5.5)
+    multi_xml (0.6.0)
     multipart-post (2.0.0)
     nest (2.0.0)
       redic
@@ -271,20 +271,21 @@ GEM
     net-ldap (0.11)
     net-sftp (2.1.2)
       net-ssh (>= 2.6.5)
-    net-ssh (3.1.1)
-    noid (0.8.0)
+    net-ssh (4.1.0)
+    noid (0.9.0)
     nokogiri (1.6.7.2)
       mini_portile2 (~> 2.0.0.rc2)
-    nom-xml (0.5.4)
+    nom-xml (0.6.0)
       activesupport (>= 3.2.18)
       i18n
       nokogiri
-    om (3.1.0)
+    om (3.1.1)
       activemodel
       activesupport
       nokogiri (>= 1.4.2)
       solrizer (~> 3.3)
     orm_adapter (0.5.0)
+    public_suffix (2.0.5)
     rack (1.6.4)
     rack-protection (1.5.3)
       rack
@@ -315,6 +316,9 @@ GEM
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
     rake (10.5.0)
+    rb-fsevent (0.10.2)
+    rb-inotify (0.9.10)
+      ffi (>= 0.5.0, < 2)
     rdf (1.99.1)
       link_header (~> 0.0, >= 0.0.8)
     rdf-aggregate-repo (1.99.0)
@@ -376,8 +380,8 @@ GEM
     redis-session-store (0.8.1)
       actionpack (>= 3, < 5.1)
       redis
-    redlock (0.1.5)
-      redis (~> 3, >= 3.0.5)
+    redlock (0.2.0)
+      redis (~> 3, >= 3.0.0)
     responders (2.1.1)
       railties (>= 4.2.0, < 5.1)
     resque (1.25.2)
@@ -389,12 +393,16 @@ GEM
     resque-pool (0.6.0)
       rake
       resque (~> 1.22)
-    rsolr (1.1.1)
+    rsolr (1.1.2)
       builder (>= 2.1.2)
     rubyzip (1.1.7)
-    sass (3.4.22)
-    sass-rails (5.0.4)
-      railties (>= 4.0.0, < 5.0)
+    sass (3.5.1)
+      sass-listen (~> 4.0.0)
+    sass-listen (4.0.0)
+      rb-fsevent (~> 0.9, >= 0.9.4)
+      rb-inotify (~> 0.9, >= 0.9.7)
+    sass-rails (5.0.6)
+      railties (>= 4.0.0, < 6)
       sass (~> 3.1)
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
@@ -409,8 +417,8 @@ GEM
       rack (~> 1.5)
       rack-protection (~> 1.4)
       tilt (>= 1.3, < 3)
-    slop (4.3.0)
-    solrizer (3.4.0)
+    slop (4.5.0)
+    solrizer (3.4.1)
       activesupport
       daemons
       nokogiri
@@ -424,9 +432,11 @@ GEM
       rdf-xsd (~> 1.1)
       sparql-client (~> 1.1)
       sxp (~> 0.1)
-    sparql-client (1.99.0)
+    sparql-client (1.99.1)
+      json (~> 1.8)
       net-http-persistent (~> 2.9)
-      rdf (~> 1.1)
+      rdf (>= 1.99, < 3)
+      tins (= 1.6.0)
     spring (1.6.3)
     sprockets (3.5.2)
       concurrent-ruby (~> 1.0)
@@ -436,11 +446,12 @@ GEM
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
     sqlite3 (1.3.11)
-    stomp (1.3.5)
+    stomp (1.4.4)
     sxp (0.1.5)
     thor (0.19.1)
     thread_safe (0.3.5)
     tilt (2.0.2)
+    tins (1.6.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     vegas (0.1.11)
@@ -478,3 +489,6 @@ DEPENDENCIES
   trifle!
   trifle_api!
   web-console (~> 2.0)
+
+BUNDLED WITH
+   1.11.2

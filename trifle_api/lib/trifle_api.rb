@@ -7,6 +7,7 @@ module Trifle
     extend ActiveSupport::Autoload
 
     autoload :IIIFManifest
+    autoload :IIIFImage
     autoload :IIIFCollection
     autoload :FetchError
     

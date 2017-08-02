@@ -46,9 +46,11 @@ RSpec.describe Trifle::ImageDepositActor do
       actor.instance_variable_set(:@image_analysis, { width: 1234, height: 4567, colour_space: 'RGB'})
       allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222']})      
     }
-    let(:metadata) { { 'title' => 'Foo title', 'source_path' => 'oubliette:b0ab12cd34x', 'ark_naan' => '22222' } }
+    let(:metadata) { { 'title' => 'Foo title', 'source_path' => 'oubliette:b0ab12cd34x', 'ark_naan' => '22222', 'description' => 'test description', 'source_record' => 'testrecord:12345' } }
     let(:image) { actor.create_image_object(metadata) }
     it "creates an IIIFImage and sets metadata" do
+      # description is set and no other information comes from refresh_from_source
+      expect_any_instance_of(Trifle::IIIFImage).not_to receive(:refresh_from_source)
       expect(image).to be_a Trifle::IIIFImage
       expect(image.title).to eql('Foo title')
       expect(image.width).to eql('1234')
@@ -56,6 +58,15 @@ RSpec.describe Trifle::ImageDepositActor do
       expect(image.image_location).to eql('folder/foo.ptif')
       expect(image.image_source).to eql('oubliette:b0ab12cd34x')
       expect(image.instance_variable_get(:@ark_naan)).to eql('22222')
+      expect(image.description).to eql('test description')
+      expect(image.source_record).to eql('testrecord:12345')
+    end
+    it "refreshes from source" do
+      metadata.delete('description')
+      expect_any_instance_of(Trifle::IIIFImage).to receive(:refresh_from_source) do |img|
+        img.description = 'from source'
+      end
+      expect(image.description).to eql('from source')
     end
   end
 

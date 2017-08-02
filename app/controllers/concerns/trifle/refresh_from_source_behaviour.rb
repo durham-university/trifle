@@ -11,7 +11,12 @@ module Trifle
       
       respond_to do |format|
         if @resource.refresh_from_source && @resource.save
-          Trifle::PublishJob.new(resource: @resource).queue_job
+          case @resource
+          when Trifle::IIIFImage
+            Trifle::PublishJob.new(resource: @resource.parent).queue_job
+          when Trifle::IIIFManifest
+            Trifle::PublishJob.new(resource: @resource).queue_job
+          end
           
           format.html { redirect_to @resource, notice: "#{self.class.model_name.human} was successfully refreshed from source." }
           format.json { render json: {status: :ok, resource: @resource.as_json } }

@@ -6,6 +6,7 @@ module Trifle
     include DurhamRails::Actors::FitsRunner
 
     def initialize(model_object, user=nil, attributes={})
+      @source_record_cache = {}
       super(model_object, user, attributes)
     end
 
@@ -30,8 +31,15 @@ module Trifle
         image.image_location = @logical_path
         image.image_source = metadata['source_path'] if metadata['source_path'].present?
         image.title = metadata['title'] if metadata['title'].present?
+        image.source_record = metadata['source_record'] if metadata['source_record'].present?
         image.width = "#{@image_analysis[:width]}"
         image.height = "#{@image_analysis[:height]}"
+        if image.source_record.present? && !metadata['description'].present?
+          # Update_from_source currently only sets description. No need to do
+          # this if description is overwritten with metadata anyway.
+          image.refresh_from_source(@source_record_cache)
+        end
+        image.description = metadata['description'] if metadata['description'].present?
       end
     end
 

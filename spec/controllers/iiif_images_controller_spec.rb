@@ -24,6 +24,14 @@ RSpec.describe Trifle::IIIFImagesController, type: :controller do
         expect(response.body).to include(image.image_location)
       end
     end    
+    
+    describe "POST #refresh_from_source" do
+      it "fails authentication" do 
+        expect_any_instance_of(Trifle::IIIFImage).not_to receive(:refresh_from_source)
+        expect(Schmit::API::Catalogue).not_to receive(:try_find)
+        post :refresh_from_source, id: image.id, iiif_manifest_id: manifest.id
+      end
+    end        
   end
   
   context "with admin user" do
@@ -61,6 +69,52 @@ RSpec.describe Trifle::IIIFImagesController, type: :controller do
       end
     end
     
+    describe "POST #refresh_from_source" do
+      let(:image) { FactoryGirl.create(:iiifimage, source_record: 'schmit:ark:/12345/testid#subid') }
+      let(:manifest) { FactoryGirl.create(:iiifmanifest, ordered_members: [image])}
+      it "refreshes resource from source and starts a publish job" do
+        expect(image).to receive(:refresh_from_source).and_return(true)
+        expect(controller).to receive(:set_refresh_from_source_resource) do controller.send(:set_resource,image) end
+        expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
+          expect(job.resource_id).to eql(manifest.id) # job posted for manifest
+        end
+        post :refresh_from_source, id: image.id, iiif_manifest_id: manifest.id
+      end
+    end        
+  end
+
+  context "with api user" do
+    let(:user) { FactoryGirl.create(:user,:api) }
+    before { sign_in user }
+    
+    describe "GET #index with in_source set" do
+      let!(:manifest1) { FactoryGirl.create(:iiifmanifest, :with_images) }
+      let!(:manifest2) { FactoryGirl.create(:iiifmanifest, :with_images) }
+      before {
+        manifest1.images[0].source_record = 'schmit:ark:/12345/test#abc'
+        manifest1.images[0].save
+        manifest1.images[1].source_record = 'schmit:ark:/12345/moo#ghi'
+        manifest1.images[1].save
+        manifest2.images[1].source_record = 'schmit:ark:/12345/test#def'
+        manifest2.images[1].save
+      }
+      it "returns only images in source with prefix query" do
+        expect(Trifle::IIIFImage).to receive(:find_from_source).and_call_original
+        get :index, in_source: 'schmit:ark:/12345/test', format: 'json'
+        json = JSON.parse(response.body)
+        expect(json['resources'].map do |r| r['id'] end).to match_array([manifest1.images[0].id, manifest2.images[1].id])
+      end
+      it "returns only images in source with exact query" do
+        get :index, in_source: 'schmit:ark:/12345/test#abc', in_source_prefix: 'false', format: 'json'
+        json = JSON.parse(response.body)
+        expect(json['resources'].length).to eql(1)
+        expect(json['resources'].first['id']).to eql(manifest1.images[0].id)
+        
+        get :index, in_source: 'schmit:ark:/12345/test', in_source_prefix: 'false', format: 'json'
+        json = JSON.parse(response.body)
+        expect(json['resources'].length).to eql(0)
+      end
+    end
   end
   
   describe "#set_new_resource" do
