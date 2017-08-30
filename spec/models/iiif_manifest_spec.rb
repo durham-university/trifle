@@ -140,8 +140,9 @@ RSpec.describe Trifle::IIIFManifest do
   end  
   
   describe "#ranges" do
+    let(:test_string) { "\xE2\x80\x9C\xC3\xA4".force_encoding("UTF-8") }    
     let(:manifest) { FactoryGirl.create(:iiifmanifest) }
-    let(:range) { FactoryGirl.build(:iiifrange, manifest: manifest) }
+    let(:range) { FactoryGirl.build(:iiifrange, manifest: manifest, title: test_string) }
     let(:range2) { FactoryGirl.build(:iiifrange, manifest: manifest) }
     it "saves and loads ranges" do
       expect(manifest.ranges.count).to eql(0)

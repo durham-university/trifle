@@ -65,7 +65,7 @@ module Trifle
 
     def annotation_lists
       @annotation_lists ||= begin
-        iiif = @solr_annotations || annotation_lists_iiif.try(:content)
+        iiif = @solr_annotations || annotation_lists_iiif.try(:content).try(:force_encoding,"UTF-8")
         if iiif.present?
           json = JSON.parse(iiif)
           json.map do |list_json| Trifle::IIIFAnnotationList.new(self, list_json) end
@@ -140,7 +140,7 @@ module Trifle
     end
     
     def serializable_hash(*args)
-      super(*args).merge({'serialised_annotations' => (annotation_lists_iiif.try(:content) || '[]')})
+      super(*args).merge({'serialised_annotations' => (annotation_lists_iiif.try(:content).try(:force_encoding,'UTF-8') || '[]')})
     end    
     
     def init_with_json(json)

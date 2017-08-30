@@ -98,7 +98,7 @@ module Trifle
     def ranges
       @ranges ||= begin
         @ranges_flat ||= []
-        iiif = @solr_ranges || ranges_iiif.try(:content)
+        iiif = @solr_ranges || ranges_iiif.try(:content).try(:force_encoding,'UTF-8')
         if iiif.present?
           ret = []
           json = JSON.parse(iiif)
@@ -242,7 +242,7 @@ module Trifle
 
     
     def serializable_hash(*args)
-      super(*args).merge({'serialised_ranges' => (ranges_iiif.try(:content) || '[]')})
+      super(*args).merge({'serialised_ranges' => (ranges_iiif.try(:content).try(:force_encoding,'UTF-8') || '[]')})
     end    
     
     def init_with_json(json)

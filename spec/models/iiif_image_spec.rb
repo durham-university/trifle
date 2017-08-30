@@ -71,4 +71,14 @@ RSpec.describe Trifle::IIIFImage do
     end
   end
 
+  describe "persisting annotations" do
+    let(:test_string) { "\xE2\x80\x9C\xC3\xA4".force_encoding("UTF-8") }
+    let(:image) { annotation_list.parent }
+    let(:annotation_list) { annotation.parent }
+    let!(:annotation) { FactoryGirl.create(:iiifannotation, :with_image, content: test_string) }
+    it "supports special characters" do
+      image.reload
+      expect(image.annotation_lists.first.annotations.first.content).to eql(test_string)
+    end
+  end
 end
