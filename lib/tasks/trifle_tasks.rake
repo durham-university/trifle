@@ -15,10 +15,22 @@ namespace :trifle do
     Trifle::IIIFManifest.all.each do |m|
       puts "Processing manifest #{m.id} #{m.title}"
       parent_ark = m.local_ark
+      
+      # do a quick check if we need to process this manifest at all
+      next unless m.ordered_members.from_solr.any? do |item|
+        item.is_a?(Trifle::IIIFImage) && !item.local_ark.start_with?(parent_ark)
+      end
+      
       m.images.each do |img|
         next if img.local_ark.start_with?(parent_ark)
         img.save if img.update_ark_parents
       end
+      
+      # Free up memory by nilling some cached variables. Otherwise these for all
+      # manifests togetger can grow up enough to cause out of memory error
+      m.instance_variable_set(:@ordered_items,nil)
+      m.instance_variable_set(:@ordered_item_ids,nil)
+      m.ordered_items_serial.instance_variable_set(:@content,nil)
     end
     puts "All done"
   end
