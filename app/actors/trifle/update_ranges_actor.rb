@@ -7,6 +7,7 @@ module Trifle
     end
     
     def update_ranges(ranges_json)
+      @model_object.ordered_members.from_solr!
       if ['1','auto'].include?(@iiif_version.to_s)
         ranges_json = adapt_json(ranges_json)
       end
