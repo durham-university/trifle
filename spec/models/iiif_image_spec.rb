@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Trifle::IIIFImage do
+  before { allow(Trifle::IIIFImage).to receive(:ark_naan).and_return('12345') }
+  before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
   let(:image) { FactoryGirl.create(:iiifimage, :with_manifest)}
   describe "#as_json" do
     let(:json) { image.as_json }
@@ -46,7 +48,6 @@ RSpec.describe Trifle::IIIFImage do
 
   describe "id minting" do
     before { File.unlink('/tmp/test-minter-state_other') if File.exists?('/tmp/test-minter-state_other') }
-    before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'identifier_template' => 't0.reeddeeddk', 'identifier_statefile' => '/tmp/test-minter-state'}) }
     let(:image) { FactoryGirl.build(:iiifimage)}
     let(:id) { image.assign_id }
     it "uses generic minter" do
@@ -55,7 +56,6 @@ RSpec.describe Trifle::IIIFImage do
   end  
   
   describe "child arks" do
-    before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'identifier_template' => 't0.reeddeeddk', 'identifier_statefile' => '/tmp/test-minter-state'}) }
     let(:manifest) { FactoryGirl.create(:iiifmanifest) }
     let(:image) {
       manifest.ordered_members << FactoryGirl.create(:iiifimage)
@@ -81,4 +81,73 @@ RSpec.describe Trifle::IIIFImage do
       expect(image.annotation_lists.first.annotations.first.content).to eql(test_string)
     end
   end
+  
+  describe "source record" do
+    # iiif_manifest_spec has more source record tests, manifest and collection share the same concern
+    let(:image) { FactoryGirl.build(:iiifimage, source_record: 'schmit:ark:/12345/testid#subid') }    
+    describe "#source_type" do
+      it "returns the source type" do
+        expect(image.source_type).to eql('schmit')
+      end
+    end
+    describe "#source_url" do
+      it "retuns a schmit link" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_base_url' => 'http://www.example.com/schmit'})
+        expect(image.source_url).to eql('http://www.example.com/schmit/catalogues/testid#subid')
+      end
+    end
+    describe "#public_source_link" do
+      it "returns a iiif link to xtf" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
+        link = image.public_source_link
+        expect(link['@id']).to eql('http://www.example.com/xtf/view?docId=12345_testid.xml#subid')
+        expect(link['label']).to be_present
+      end
+      it "returns nil if no link" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
+        image.source_record = nil
+        expect(image.public_source_link).to be_nil
+      end
+    end
+    describe "::find_from_source" do
+      let!(:image1) { FactoryGirl.create(:iiifimage, :with_manifest, source_record: 'schmit:ark:/12345/testid1#subid\\1') }    
+      let!(:image2) { FactoryGirl.create(:iiifimage, :with_manifest, source_record: 'schmit:ark:/12345/testid1#subid\\2') }    
+      let!(:image3) { FactoryGirl.create(:iiifimage, :with_manifest, source_record: 'schmit:ark:/12345/testid2#subid"1"') }    
+      
+      context "prefix search" do
+        let(:result1) { Trifle::IIIFImage.find_from_source('schmit:ark:/12345/testid1#')}
+        let(:result2) { Trifle::IIIFImage.find_from_source('schmit:ark:/12345/testid2#')}
+        let(:result3) { Trifle::IIIFImage.find_from_source('schmit:ark:/12345/testid\\2')}
+        it "finds correct manifests" do
+          expect(result1.map(&:id)).to match_array([image1.id,image2.id])
+          expect(result2.map(&:id)).to match_array([image3.id])
+          expect(result3.empty?).to eql(true)
+        end
+      end
+    end
+  end
+
+  describe "#to_millennium" do
+    # iiif_manifest_spec has some more millennium linking related tests
+    before { allow(DurhamRails::LibrarySystems::Millennium).to receive(:connection).and_return(mock_millennium)}
+    let(:mock_millennium) { 
+      double('mock_millennium').tap do |m| allow(m).to receive(:record).with('12345').and_return(mock_record) end
+    }
+    let(:mock_record) {
+      double('mock_record').tap do |m| allow(m).to receive(:holdings).and_return([double('mock_holding',holding_id: 'test', call_no: 'testcallno')]) end
+    }    
+    let(:image) { FactoryGirl.create(:iiifimage, :with_manifest) } # need ark and id in image
+    it "returns nil when source is not in millennium" do
+      image.source_record = nil
+      expect(image.to_millennium).to be_nil
+      image.source_record = "schmit:test"
+      expect(image.to_millennium).to be_nil
+    end
+    it "returns millennium records" do
+      image.source_record = "millennium:12345#test"
+      mil = image.to_millennium
+      expect(mil['12345'][0].to_s).to eql("533    $8 1\\c $3 testcallno $a Digital image $c Durham University $5 UkDhU ")
+      expect(mil['12345'][1].to_s).to eql("856 41 $8 1\\c $3 testcallno $u https://n2t.durham.ac.uk/#{image.parent.local_ark}/#{image.id}.html $y Online version $x Injected by Trifle ")
+    end
+  end  
 end

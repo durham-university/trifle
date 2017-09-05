@@ -42,6 +42,8 @@ Trifle::Engine.routes.draw do
   post '/manifest/:iiif_manifest_id/canvas/:id/refresh_from_source', to: 'iiif_images#refresh_from_source', as: :iiif_manifest_iiif_image_refresh_from_source
   post '/manifest/:id/update_ranges', to: 'iiif_manifests#update_ranges', as: :iiif_manifest_update_ranges
   post '/manifest/:id/link_millennium', to: 'iiif_manifests#link_millennium', as: :iiif_manifest_link_millennium
+  post '/canvas/:id/link_millennium', to: 'iiif_images#link_millennium', as: :iiif_image_link_millennium
+  get '/canvas/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_image_background_jobs
   
   post '/manifest/:id/select', to: 'iiif_manifests#select_resource', as: :select_iiif_manifest
   post '/manifest/:id/deselect', to: 'iiif_manifests#deselect_resource', as: :deselect_iiif_manifest

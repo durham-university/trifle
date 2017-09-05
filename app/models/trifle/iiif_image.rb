@@ -7,10 +7,13 @@ module Trifle
     include DurhamRails::NoidBehaviour # ModelBase overrides NoidBehaviour, keep this line before include ModelBase
     include Trifle::ModelBase
     include Trifle::ArkNaanOptionsBehaviour
+    include DurhamRails::WithBackgroundJobs
     include DurhamRails::DestroyFromContainers
     include DurhamRails::DestroyDependentMembers
     include Trifle::TrackDirtyParentBehaviour
     include Trifle::SourceRecord
+    include Trifle::MillenniumLinkBehaviour
+
     attr_accessor :date_published # SourceRecord needs to set this. Might put it in Fedora later
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title

@@ -358,6 +358,7 @@ RSpec.describe Trifle::IIIFManifest do
   describe "#to_millennium_all" do
     before { allow(Trifle::IIIFManifest).to receive(:ark_naan).and_return('12345') }
     before { allow(Trifle::IIIFCollection).to receive(:ark_naan).and_return('12345') }
+    before { allow(Trifle::IIIFImage).to receive(:ark_naan).and_return('12345') }
     before { allow(DurhamRails::LibrarySystems::Millennium).to receive(:connection).and_return(mock_millennium)}
     let(:mock_millennium) { 
       double('mock_millennium').tap do |m| allow(m).to receive(:record).and_return(nil) end
@@ -368,18 +369,21 @@ RSpec.describe Trifle::IIIFManifest do
     let!(:manifest4) { FactoryGirl.create(:iiifmanifest) }
     let!(:collection1) { FactoryGirl.create(:iiifcollection, source_record: 'millennium:12345#test') }
     let!(:collection2) { FactoryGirl.create(:iiifcollection, source_record: 'millennium:67890') }
+    let!(:image1) { FactoryGirl.create(:iiifimage, :with_manifest, source_record: 'millennium:12345') }
     it "merges all from same source" do
       expect(Trifle::IIIFManifest).to receive(:reassign_marc_field_links).at_least(:once).and_call_original
       mil = manifest1.to_millennium_all
       records = mil['12345'].map(&:to_s)
-      expect(records.count).to eql(6)
+      expect(records.count).to eql(8)
       expect(records.index("533    $8 1\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
       expect(records.index("533    $8 2\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
       expect(records.index("533    $8 3\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
-
-      expect(records.find do |r| r.match(/856 41 \$8 [1-3]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
-      expect(records.find do |r| r.match(/856 41 \$8 [1-3]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest3.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
-      expect(records.find do |r| r.match(/856 41 \$8 [1-3]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{collection1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+      expect(records.index("533    $8 4\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
+      
+      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest3.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{collection1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/#{image1.local_ark}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
     end
   end
   

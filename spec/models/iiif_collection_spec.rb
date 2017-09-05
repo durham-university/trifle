@@ -140,25 +140,23 @@ RSpec.describe Trifle::IIIFCollection do
   
   describe "source record" do
     # iiif_manifest_spec has more source record tests, manifest and collection share the same concern
-    let(:manifest) { FactoryGirl.build(:iiifcollection, source_record: 'schmit:ark:/12345/testid#subid') }    
+    let(:collection) { FactoryGirl.build(:iiifcollection, source_record: 'schmit:ark:/12345/testid#subid') }    
     describe "#source_type" do
       it "returns the source type" do
-        expect(manifest.source_type).to eql('schmit')
+        expect(collection.source_type).to eql('schmit')
       end
     end
     describe "#source_url" do
       it "retuns a schmit link" do
         allow(Schmit::API).to receive(:config).and_return({'schmit_base_url' => 'http://www.example.com/schmit'})
-        collection.source_record = 'schmit:ark:/12345/test1234'
-        expect(collection.source_url).to eql('http://www.example.com/schmit/catalogues/test1234')
+        expect(collection.source_url).to eql('http://www.example.com/schmit/catalogues/testid#subid')
       end
     end
     describe "#public_source_link" do
       it "returns a iiif link to xtf" do
         allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
-        collection.source_record = 'schmit:ark:/12345/test'
         link = collection.public_source_link
-        expect(link['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml')
+        expect(link['@id']).to eql('http://www.example.com/xtf/view?docId=12345_testid.xml#subid')
         expect(link['label']).to be_present
       end
       it "returns nil if no link" do

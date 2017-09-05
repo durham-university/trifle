@@ -44,4 +44,8 @@ RSpec.describe Trifle::IIIFImagesController, type: :routing do
     expect(post: "/manifest/2/canvas/1/refresh_from_source").to route_to("trifle/iiif_images#refresh_from_source", id: "1", iiif_manifest_id: '2')
   end
   
+  it "routes to #link_millennium" do
+    expect(post: "/canvas/1/link_millennium").to route_to("trifle/iiif_images#link_millennium", id: "1")
+  end
+
 end

@@ -46,8 +46,9 @@ module Trifle
       
       ms = Trifle::IIIFManifest.find_from_source(millennium_source,true).to_a
       cs = Trifle::IIIFCollection.find_from_source(millennium_source,true).to_a
+      is = Trifle::IIIFImage.find_from_source(millennium_source,true).to_a
       
-      (ms + cs).reduce({}) do |all_records, m|
+      (ms + cs + is).reduce({}) do |all_records, m|
         (m.to_millennium || {}).each do |k,vs|
           all_records[k] ||= []
           self.class.reassign_marc_field_links(all_records[k], vs)

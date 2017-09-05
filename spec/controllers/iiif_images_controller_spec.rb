@@ -7,6 +7,21 @@ RSpec.describe Trifle::IIIFImagesController, type: :controller do
   context "with anonymous user" do
     let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_images) }
     let(:image) { manifest.images.first }
+    
+    before {
+      expect_any_instance_of(Trifle::MillenniumLinkJob).not_to receive(:queue_job)
+    }
+    describe "POST #link_millennium" do
+      before {
+        image.source_record = "millennium:123456"
+        image.save
+      }
+      it "fails authentication" do
+        # not receive queue_job in before block
+        post :link_millennium, id: image.id, iiif_manifest_id: manifest.id
+      end
+    end
+    
     describe "GET #show_iiif" do
       it "renders manifest json" do
         expect_any_instance_of(Trifle::IIIFImage).to receive(:to_iiif).and_call_original
@@ -39,6 +54,19 @@ RSpec.describe Trifle::IIIFImagesController, type: :controller do
     before { sign_in user }
     let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_images) }
     let(:image) { manifest.images.first }
+        
+    describe "POST #link_millennium" do
+      before {
+        image.source_record = "millennium:123456"
+        image.save
+      }      
+      it "starts link job" do
+        expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::MillenniumLinkJob)) do |job|
+          expect(job.resource_id).to eql(image.id)
+        end
+        post :link_millennium, id: image.id, iiif_manifest_id: manifest.id
+      end
+    end
         
     describe "GET #all_annotations" do
       let(:list) { FactoryGirl.create(:iiifannotationlist,:with_annotations,:with_manifest) }

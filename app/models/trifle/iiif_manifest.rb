@@ -257,7 +257,8 @@ module Trifle
 
       # this is called as an around hook for save
       def update_image_arks
-        if ordered_members.changed?
+        # local_ark presence check is mostly for specs which don't always have arks
+        if ordered_members.changed? && self.local_ark.present?
           # We're relying on images not being moved between manifests
           if yield
             self.images.each do |img|

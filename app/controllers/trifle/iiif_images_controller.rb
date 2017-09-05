@@ -4,6 +4,7 @@ module Trifle
     
     include DurhamRails::ModelControllerBase
     include Trifle::RefreshFromSourceBehaviour
+    include Trifle::LinkMillenniumBehaviour
     include Trifle::ServeIIIFBehaviour
 
     helper 'trifle/application'

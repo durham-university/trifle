@@ -8,7 +8,7 @@ FactoryGirl.define do
 
     trait :with_manifest do
       after :create do |image, evaluator|
-        manifest = FactoryGirl.create(:iiifmanifest)
+        manifest = FactoryGirl.create(:iiifmanifest) 
         manifest.ordered_members << image
         manifest.save
       end
