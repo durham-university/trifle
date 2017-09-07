@@ -38,6 +38,11 @@ module Trifle
         split[0] += '.xml'
         url = Schmit::API.config['schmit_xtf_base_url']+(split.join('#'))
         {'@id' => url, 'label' => 'Catalogue record'}
+      elsif source_record.try(:start_with?,'millennium:')
+        return nil unless Trifle.config['millennium_base_url'].present?
+        millennium_id = source_record.split(':',2)[1].split('#')[0]
+        url = Trifle.config['millennium_base_url']+(millennium_id)
+        {'@id' => url, 'label' => 'Catalogue record'}
       else
         nil
       end

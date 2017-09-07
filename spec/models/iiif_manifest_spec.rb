@@ -193,6 +193,13 @@ RSpec.describe Trifle::IIIFManifest do
         expect(link['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml')
         expect(link['label']).to be_present
       end
+      it "returns a link to millennium" do
+        allow(Trifle).to receive(:config).and_return({'millennium_base_url' => 'http://www.example.com/millennium?id='})
+        manifest.source_record = 'millennium:b1234abcd'
+        link = manifest.public_source_link
+        expect(link['@id']).to eql('http://www.example.com/millennium?id=b1234abcd')
+        expect(link['label']).to be_present
+      end
       it "returns parent link" do
         allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
         collection = FactoryGirl.create(:iiifcollection, source_record: 'schmit:ark:/12345/parenttest')
