@@ -164,6 +164,16 @@ RSpec.describe Trifle::IIIFCollection do
         collection.source_record = nil
         expect(collection.public_source_link).to be_nil
       end
+      it "returns parent link" do
+        allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
+        parent = FactoryGirl.create(:iiifcollection, source_record: 'schmit:ark:/12345/parenttest')
+        parent.ordered_members << collection
+        parent.save
+        collection.source_record = nil
+        link = collection.public_source_link
+        expect(link['@id']).to eql('http://www.example.com/xtf/view?docId=12345_parenttest.xml')
+        expect(link['label']).to be_present
+      end      
     end
     describe "::find_from_source" do
       let!(:collection1) { FactoryGirl.create(:iiifcollection, source_record: 'schmit:ark:/12345/testid1#subid\\1') }    

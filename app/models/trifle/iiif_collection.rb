@@ -51,6 +51,10 @@ module Trifle
     def parent_ids
       parents.map(&:id)
     end
+    
+    def public_source_link
+      super || parent.try(:public_source_link)
+    end    
          
     def root_collection
       parent.try(:root_collection) || self
