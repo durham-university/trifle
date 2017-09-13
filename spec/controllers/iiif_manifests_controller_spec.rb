@@ -86,9 +86,17 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
     end
     it "publishes with publish action" do
       expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
+        expect(job.recursive).not_to eql(true)
         expect(job.resource_id).to eql(manifest.id)
       end
       post :publish, id: manifest.id
+    end
+    it "publishes with publish action with recursive" do
+      expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::PublishJob)) do |job|
+        expect(job.resource_id).to eql(manifest.id)
+        expect(job.recursive).to eql_true
+      end
+      post :publish, id: manifest.id, recursive: 'true'
     end
     it "removes published iiif after destroy" do
       collection ; collection2 # create by reference

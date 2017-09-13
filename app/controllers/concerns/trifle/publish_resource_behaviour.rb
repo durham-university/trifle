@@ -48,9 +48,13 @@ module Trifle
       def set_publish_resource
         set_resource
       end
+      
+      def recursive?
+        params[:recursive].to_s == 'true'
+      end
     
       def publish_job
-        @publish_job ||= Trifle::PublishJob.new(resource: @resource)
+        @publish_job ||= Trifle::PublishJob.new(resource: @resource, recursive: recursive?)
       end
       
       def remove_published_hook

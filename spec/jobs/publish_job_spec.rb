@@ -22,6 +22,21 @@ RSpec.describe Trifle::PublishJob do
       expect(actor.instance_variable_get(:@log)).to eql(job.log)
     end
     
+    context "when recursive is true" do
+      let( :job ) { Trifle::PublishJob.new( {resource: manifest, recursive: true } ) }
+      let!(:recursive_actor) { Trifle::RecursivePublishIIIFActor.new(manifest,user,options) }
+      it "runs RecursivePublishIIIFActor if recursive" do
+        expect(job.recursive).to eql(true)
+        expect(Trifle::RecursivePublishIIIFActor).to receive(:new) do |resource|
+          expect(resource.id).to eql(manifest.id)
+          recursive_actor
+        end
+        expect(recursive_actor).to receive(:publish_recursive).and_return(true)
+        job.run_job
+        expect(recursive_actor.instance_variable_get(:@log)).to eql(job.log)
+      end
+    end
+    
     describe "removing iiif" do
       let(:job) { Trifle::PublishJob.new( {resource: collection, remove: destroyed_manifest} ) }
       it "removes iiif" do

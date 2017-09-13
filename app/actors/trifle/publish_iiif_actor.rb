@@ -25,8 +25,13 @@ module Trifle
     end
     
     def mark_clean
-      if @model_object.respond_to?(:set_clean)
-        log!("Marking manifest clean")
+      if @model_object.respond_to?(:set_clean) && @model_object.try(:dirty?)
+        log!("Marking object clean")
+        if @model_object.readonly?
+          parent = @model_object.parent
+          @model_object = @model_object.class.find(@model_object.id)
+          @model_object.has_parent!(parent)
+        end
         @model_object.set_clean
         @model_object.save
       end

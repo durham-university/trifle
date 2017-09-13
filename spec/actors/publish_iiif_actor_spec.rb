@@ -74,6 +74,14 @@ RSpec.describe Trifle::PublishIIIFActor do
         actor.upload_package
         expect(manifest.reload).to be_clean
       end
+      context "with read only objects" do
+        let(:manifest) { Trifle::IIIFManifest.load_instance_from_solr(full_manifest.id) }
+        it "marks object clean" do
+          expect(manifest).to be_dirty
+          actor.upload_package
+          expect(manifest.reload).to be_clean
+        end
+      end
     end
   end
   

@@ -5,7 +5,7 @@ module Trifle
 #    include DurhamRails::Jobs::WithUser
     include Trifle::TrifleJob
     
-    attr_accessor :remove_id, :remove_type
+    attr_accessor :remove_id, :remove_type, :recursive
     
     def initialize(params={})
       super(params)
@@ -25,13 +25,15 @@ module Trifle
       else
         raise "Unknown remove object type #{params[:remove].class}"
       end
+      
+      self.recursive = params.fetch(:recursive, false)
     end
     
     def queue_job
       existing_job = resource.queued_jobs.find do |_job| 
         next false unless _job.job_type == self.class.to_s
         job = Marshal.load(Base64.decode64(_job.job_data))
-        job.remove_type == self.remove_type && job.remove_id == self.remove_id
+        job.remove_type == self.remove_type && job.remove_id == self.remove_id && job.recursive == self.recursive
       end
       if existing_job.present?
         # Don't queue another publish job if one is already queued. This will
@@ -42,20 +44,27 @@ module Trifle
     end
     
     def dump_attributes
-      super + [:remove_id, :remove_type]
+      super + [:remove_id, :remove_type, :recursive]
     end        
     
     def validate_job!
       super
+      raise "remove_id can't be present when recursively publishing" if remove_id.present? && recursive
       raise "Invalid resource type #{resource.class}" unless resource.is_a?(Trifle::IIIFManifest) || resource.is_a?(Trifle::IIIFCollection)
     end
         
     def run_job
-      iiif_actor = Trifle::PublishIIIFActor.new(resource)
-      iiif_actor.instance_variable_set(:@log,log)
-      iiif_actor.upload_package
-      if remove_id.present?
-        iiif_actor.remove_remote_package(remove_id, remove_type)
+      if recursive
+        iiif_actor = Trifle::RecursivePublishIIIFActor.new(resource)
+        iiif_actor.instance_variable_set(:@log, log)
+        iiif_actor.publish_recursive
+      else
+        iiif_actor = Trifle::PublishIIIFActor.new(resource)
+        iiif_actor.instance_variable_set(:@log,log)
+        iiif_actor.upload_package
+        if remove_id.present?
+          iiif_actor.remove_remote_package(remove_id, remove_type)
+        end
       end
     end
     

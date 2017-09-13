@@ -14,17 +14,16 @@ RSpec.describe Trifle::PublishAllJob do
   }
   
   describe "#run_job" do
+    let(:mock_actor) { double('recursive_actor') }
     it "publishes all manifests and collections" do
       expect(Trifle::IIIFCollection).to receive(:root_collections).and_return(double('relation', from_solr!: [collection1, collection2]))
-      expect(Trifle::PublishIIIFActor).to receive(:new) do |resource,user,opts|
-        if [manifest1, manifest2, collection1, collection2].include?(resource)
-          double('actor').tap do |actor|
-            expect(actor).to receive(:upload_package)
-          end
-        else
+      expect(Trifle::RecursivePublishIIIFActor).to receive(:new).and_return(mock_actor)
+      expect(mock_actor).to receive(:publish_single_resource).with(kind_of(Trifle::IIIFCollection),false)
+      expect(mock_actor).to receive(:publish_recursive) do |resource|
+        unless [collection1, collection2].include?(resource)
           raise 'Unexpected resource'
         end
-      end .exactly(5).times
+      end .exactly(2).times 
       job.run_job
     end
   end
