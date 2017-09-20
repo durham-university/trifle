@@ -43,6 +43,11 @@ module Trifle
         millennium_id = source_record.split(':',2)[1].split('#')[0]
         url = Trifle.config['millennium_base_url']+(millennium_id)
         {'@id' => url, 'label' => 'Catalogue record'}
+      elsif source_record.try(:start_with?,'adlib:')
+        return nil unless Trifle.config['adlib_base_url'].present?
+        adlib_id = source_record.split(':',2)[1].split('#')[0]
+        url = Trifle.config['adlib_base_url']+(adlib_id)
+        {'@id' => url, 'label' => 'Catalogue record'}
       else
         nil
       end
