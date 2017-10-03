@@ -25,6 +25,7 @@ RSpec.describe Trifle::IIIFImage do
       expect(json['width']).to be_present
       expect(json['height']).to be_present
       expect(json['images']).to be_a(Array)
+      expect(json['images'][0]['resource']['service']['@context']).to be_present
       expect(json['related']['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml')
       expect(json['related']['label']).to be_present
       expect(json['description']).to eql('test_description')

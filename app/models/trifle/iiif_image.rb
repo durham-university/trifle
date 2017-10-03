@@ -95,6 +95,7 @@ module Trifle
 
     def iiif_service(opts={})
       IIIF::Service.new.tap do |service|
+        service['@context'] = "http://iiif.io/api/image/2/context.json"
         service['@id'] = "#{Trifle.iiif_service}/#{image_location}"
         service['profile'] = "http://iiif.io/api/image/2/level1.json"
       end
