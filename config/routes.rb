@@ -85,4 +85,6 @@ Trifle::Engine.routes.draw do
   resources :background_job_containers, as: :durham_rails_background_job_containers
   get '/background_job_containers/:resource_id/background_jobs', to: 'background_jobs#index', as: :durham_rails_background_job_container_background_jobs
   
+  post '/background_job_containers/start_publish_all_job', to: 'background_job_containers#start_publish_all_job', as: :start_publish_all_job
+  
 end

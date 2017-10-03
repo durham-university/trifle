@@ -1,0 +1,3 @@
+<% if can?(:start_publish_all_job, DurhamRails::BackgroundJobContainer) %>
+<li><%= link_to("Start publish all job", engine_paths.polymorphic_path(:start_publish_all_job), method: "POST", data: {confirm: "Are you sure you want to republish all content?"}) %></li>
+<% end %>

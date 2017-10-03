@@ -12,6 +12,10 @@ module Trifle
       # Publishing resources recursively rather than in arbitrary order is better
       # for keeping relevant parent/child resources in memory rather than having
       # to resolve them separately for each resource.
+            
+      log.log_filter = Proc.new do |m|
+        !(m.level == :info && m.message.start_with?("Sending file"))
+      end
       
       actor = Trifle::RecursivePublishIIIFActor.new
       actor.instance_variable_set(:@log,log)
