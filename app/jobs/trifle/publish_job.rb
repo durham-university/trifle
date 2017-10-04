@@ -55,6 +55,10 @@ module Trifle
         
     def run_job
       if recursive
+        log.log_filter = Proc.new do |m|
+          !(m.level == :info && m.message.start_with?("Sending file"))
+        end
+        
         iiif_actor = Trifle::RecursivePublishIIIFActor.new(resource)
         iiif_actor.instance_variable_set(:@log, log)
         iiif_actor.publish_recursive

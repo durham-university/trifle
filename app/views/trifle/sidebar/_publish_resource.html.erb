@@ -1,3 +1,30 @@
 <% if can?(:publish, resource) %>
-  <li><%= link_to("Publish", engine_paths.polymorphic_path([resource,:publish]), method: "POST") %></li>
+  <li><a href="#" data-target="#publish_resource_modal" data-toggle="modal">Publish</a></li>
+
+  <% content_for :modal_dialogs do %>
+    <div id="publish_resource_modal" class="modal fade publish_dialog" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="ajax-modal-close close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h1 class="modal-title">Publish resource</h1>
+          </div>
+          <div class="popup-tool-form">
+          <%= form_tag(engine_paths.polymorphic_path([resource,:publish]), method: "post") do %>
+            <% if resource.is_a?(Trifle::IIIFCollection) %>
+              <p>
+                <%= check_box_tag(:recursive, "true", false) %> <%= label_tag(:recursive, "Publish all sub resources recursively")%>
+              </p>
+            <% end %>
+            <p>
+              <input type="submit" class="btn btn-primary" value="Start job"/>
+              <button type="button" class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+            </p>
+          <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+  
 <% end %>
