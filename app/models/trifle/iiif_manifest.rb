@@ -15,6 +15,7 @@ module Trifle
     include Trifle::TrackDirtyStateBehaviour
     include Trifle::SourceRecord
     include Trifle::MillenniumLinkBehaviour
+    include DurhamRails::OtherMetadata
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title do |index|
       index.as :stored_searchable

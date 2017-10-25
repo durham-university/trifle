@@ -16,7 +16,7 @@ module Trifle
     before_action :set_sequence_iiif_resource, only: [:show_sequence_iiif]
 
     def self.presenter_terms
-      super + [:digitisation_note, :identifier, :image_container_location, :date_published, :author, :description, :source_record, :licence, :attribution, :dirty_state]
+      super + [:digitisation_note, :identifier, :image_container_location, :date_published, :author, :description, :source_record, :licence, :attribution, :other_metadata, :dirty_state]
     end
 
     def self.form_terms
