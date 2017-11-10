@@ -77,7 +77,8 @@ module Trifle
 #      end
       date = item.production_date || item.period
       self.date_published = date if date.present?
-      self.description = item.description if item.description.present?
+      description = item.web_label || item.description
+      self.description = description if description.present?
       true
     end
     
