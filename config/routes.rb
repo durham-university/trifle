@@ -37,6 +37,7 @@ Trifle::Engine.routes.draw do
   get '/manifest/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_manifest_background_jobs
   post '/manifest/:id/deposit', to: 'iiif_manifests#deposit_images'
   post '/manifest/:id/refresh_from_source', to: 'iiif_manifests#refresh_from_source', as: :iiif_manifest_refresh_from_source
+  post '/manifest/:id/repair_with_oubliette', to: 'iiif_manifests#repair_with_oubliette', as: :iiif_manifest_repair_with_oubliette
   post '/manifest/:id/publish', to: 'iiif_manifests#publish', as: :iiif_manifest_publish
   get '/manifest/:iiif_manifest_id/canvas/:id/all_annotations', to: 'iiif_images#all_annotations', as: :iiif_manifest_iiif_image_all_annotations
   post '/manifest/:iiif_manifest_id/canvas/:id/refresh_from_source', to: 'iiif_images#refresh_from_source', as: :iiif_manifest_iiif_image_refresh_from_source

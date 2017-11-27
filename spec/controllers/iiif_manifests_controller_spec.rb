@@ -121,6 +121,7 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
   
   context "with anonymous user" do
     before {
+      expect_any_instance_of(Trifle::RepairManifestJob).not_to receive(:queue_job)
       expect_any_instance_of(Trifle::DepositJob).not_to receive(:queue_job)
       expect_any_instance_of(Trifle::MillenniumLinkJob).not_to receive(:queue_job)
     }
@@ -136,6 +137,13 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
       it "fails authentication" do
         # not receive queue_job in before block
         post :link_millennium, id: manifest.id
+      end
+    end
+
+    describe "POST #repair_with_oubliette" do
+      it "fails authentication" do
+        # not receive queue_job in before block
+        post :repair_with_oubliette, id: manifest.id
       end
     end
     
@@ -375,7 +383,16 @@ RSpec.describe Trifle::IIIFManifestsController, type: :controller do
         post :link_millennium, id: manifest.id
       end
     end
-  
+
+    describe "POST #repair_with_oubliette" do
+      it "starts repair job" do
+        expect(Trifle.queue).to receive(:push).with(kind_of(Trifle::RepairManifestJob)) do |job|
+          expect(job.resource_id).to eql(manifest.id)
+        end
+        post :repair_with_oubliette, id: manifest.id
+      end
+    end
+
     describe "#set_new_resource" do
       before {
         allow(Trifle).to receive(:config).and_return({'ark_naan' => '11111', 'allowed_ark_naan' => ['11111','22222','33333']})

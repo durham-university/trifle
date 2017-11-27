@@ -1,0 +1,3 @@
+<% if can?(:repair_with_oubliette, resource) %>
+  <li><%= link_to("Repair with Oubliette", engine_paths.polymorphic_path([@parent,resource,:repair_with_oubliette].compact), method: "POST") %></li>
+<% end %>

@@ -5,6 +5,7 @@ module Trifle
     include Trifle::ImageDepositBehaviour
     include Trifle::ServeIIIFBehaviour
     include Trifle::RefreshFromSourceBehaviour
+    include Trifle::RepairWithOublietteBehaviour
     include Trifle::PublishResourceBehaviour
     include Trifle::LinkMillenniumBehaviour
     include Trifle::UpdateRangesBehaviour
