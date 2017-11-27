@@ -159,12 +159,20 @@ module Trifle
     end
     
     def iiif_on(opts={})
-      {
+      on = {
         '@type' => 'oa:SpecificResource',
         'full' => Trifle.cached_url_helpers.iiif_manifest_iiif_image_iiif_url(manifest, on_image),
       } .tap do |on|
         on['selector'] = JSON.parse(selector) if selector.present?
       end
+      # According to specs, 'on' can be a single value or an array. However, Mirador annotation
+      # DualStrategy won't work without it being an array. On the other hand, other strategies
+      # won't work with an array. So wrap it in an array only when Mirador needs it. The new
+      # versions of Mirador should
+      if on['selector'].try(:[],'@type') == 'oa:Choice'
+        on = [on]
+      end
+      on
     end
     
     def iiif_annotation(opts={})

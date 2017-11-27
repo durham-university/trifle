@@ -24,6 +24,13 @@ RSpec.describe Trifle::IIIFAnnotation do
       expect(json['resource']['format']).to eql(annotation.format)
       expect(json['resource']['chars']).to eql(annotation.content)
     end
+
+    it "wraps on in an arroy with oa:Choice type" do
+      annotation.selector = "{\"@type\":\"oa:Choice\",\"default\":{\"@type\":\"oa:FragmentSelector\",\"value\":\"xywh=100,100,200,80\"},\"item\":{\"@type\":\"oa:SvgSelector\",\"value\":\"<svg></svg>\"}}"
+      expect(json['on']).to be_a(Array)
+      expect(json['on'][0]['selector']['default']['@type']).to eql('oa:FragmentSelector')
+      expect(json['on'][0]['selector']['item']['@type']).to eql('oa:SvgSelector')
+    end
   end
 
   describe "id minting" do
