@@ -24,17 +24,19 @@ module Trifle
       
       {
         millennium_id => [
-          MARC::DataField.new('533', nil, nil, *(
-            [['8', "1\\c"]] +
-            (shelf_mark.present? ? [['3', shelf_mark]] : []) +
-            [['a', 'Digital image'], ['c', 'Durham University']] +
-            (self.try(:digitisation_note).present? ? [['n', self.try(:digitisation_note)]] : []) +
-            [['5', 'UkDhU']]
-          )),
+#          MARC::DataField.new('533', nil, nil, *(
+#            [['8', "1\\c"]] +
+#            (shelf_mark.present? ? [['3', shelf_mark]] : []) +
+#            [['a', 'Digital image'], ['c', 'Durham University']] +
+#            (self.try(:digitisation_note).present? ? [['n', self.try(:digitisation_note)]] : []) +
+#            [['5', 'UkDhU']]
+#          )),
           MARC::DataField.new('856', '4', '1', *(
-            [['8',"1\\c"]] +
+#            [['8',"1\\c"]] +
             (shelf_mark.present? ? [['3', shelf_mark]] : []) +
-            [['u', n2t_url], ['y', 'Online version'], ['x', 'Injected by Trifle']]
+            [['u', n2t_url], ['y', 'Online version']] +
+            (self.try(:digitisation_note).present? ? [['z', self.digitisation_note]] : []) +
+            [['x', 'Injected by Trifle']]
           )),
         ]
       }

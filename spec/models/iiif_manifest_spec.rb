@@ -370,11 +370,13 @@ RSpec.describe Trifle::IIIFManifest do
     it "returns millennium records" do
       manifest.source_record = "millennium:12345#test"
       mil = manifest.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $8 1\\c $3 testcallno $a Digital image $c Durham University $5 UkDhU ")
-      expect(mil['12345'][1].to_s).to eql("856 41 $8 1\\c $3 testcallno $u https://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html $y Online version $x Injected by Trifle ")
+#      expect(mil['12345'][0].to_s).to eql("533    $8 1\\c $3 testcallno $a Digital image $c Durham University $5 UkDhU ")
+#      expect(mil['12345'][1].to_s).to eql("856 41 $8 1\\c $3 testcallno $u https://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html $y Online version $x Injected by Trifle ")
+      expect(mil['12345'][0].to_s).to eql("856 41 $3 testcallno $u https://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html $y Online version $x Injected by Trifle ")
       manifest.digitisation_note = 'test digitisation note'
       mil = manifest.to_millennium
-      expect(mil['12345'][0].to_s).to eql("533    $8 1\\c $3 testcallno $a Digital image $c Durham University $n test digitisation note $5 UkDhU ")
+#      expect(mil['12345'][0].to_s).to eql("533    $8 1\\c $3 testcallno $a Digital image $c Durham University $n test digitisation note $5 UkDhU ")
+      expect(mil['12345'][0].to_s).to eql("856 41 $3 testcallno $u https://n2t.durham.ac.uk/ark:/12345/#{manifest.id}.html $y Online version $z test digitisation note $x Injected by Trifle ")
     end
   end
   
@@ -397,16 +399,21 @@ RSpec.describe Trifle::IIIFManifest do
       expect(Trifle::IIIFManifest).to receive(:reassign_marc_field_links).at_least(:once).and_call_original
       mil = manifest1.to_millennium_all
       records = mil['12345'].map(&:to_s)
-      expect(records.count).to eql(8)
-      expect(records.index("533    $8 1\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
-      expect(records.index("533    $8 2\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
-      expect(records.index("533    $8 3\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
-      expect(records.index("533    $8 4\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
-      
-      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
-      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest3.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
-      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{collection1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
-      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/#{image1.local_ark}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+#      expect(records.count).to eql(8)
+      expect(records.count).to eql(4)
+#      expect(records.index("533    $8 1\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
+#      expect(records.index("533    $8 2\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
+#      expect(records.index("533    $8 3\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present
+#      expect(records.index("533    $8 4\\c $a Digital image $c Durham University $5 UkDhU ")).to be_present     
+#      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+#      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest3.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+#      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{collection1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+#      expect(records.find do |r| r.match(/856 41 \$8 [1-4]\\c \$u https:\/\/n2t\.durham\.ac.uk\/#{image1.local_ark}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+
+      expect(records.find do |r| r.match(/856 41 \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+      expect(records.find do |r| r.match(/856 41 \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{manifest3.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+      expect(records.find do |r| r.match(/856 41 \$u https:\/\/n2t\.durham\.ac.uk\/ark:\/12345\/#{collection1.id}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
+      expect(records.find do |r| r.match(/856 41 \$u https:\/\/n2t\.durham\.ac.uk\/#{image1.local_ark}\.html \$y Online version \$x Injected by Trifle /) end).to be_present
     end
   end
   

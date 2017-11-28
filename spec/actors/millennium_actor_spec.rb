@@ -25,12 +25,16 @@ RSpec.describe Trifle::MillenniumActor do
     before {
       expect(manifest).to receive(:to_millennium_all).and_return({
         'mid1234' => [
-          MARC::DataField.new('856', '4', '1',['8', '1\c'], ['3', 'SM1'], ['y', 'Online version'], ['u', 'http://www.example.com/trifle_link'], ['x', 'Injected by Trifle']),
+          MARC::DataField.new('856', '4', '1',['3', 'SM3'], ['y', 'Online version'], ['u', 'http://www.example.com/trifle_link3'], ['x', 'Injected by Trifle']),
+          MARC::DataField.new('856', '4', '1',['3', 'SM4'], ['y', 'Online version'], ['u', 'http://www.example.com/trifle_link4'], ['x', 'Injected by Trifle']),
+          MARC::DataField.new('856', '4', '1',['8', '1\c'], ['3', 'SM1'], ['y', 'Online version'], ['u', 'http://www.example.com/trifle_link1'], ['x', 'Injected by Trifle']),
           MARC::DataField.new('533', nil, nil,['8', '1\c'], ['3', 'SM1'], ['a', 'Digital image'], ['c', 'Durham University'], ['n', 'new note'])
         ],
         'mid5678' => [ MARC::DataField.new('533', nil, nil,['a', 'Digital image'], ['n', 'another test']) ]
       })
       expect(actor).to receive(:existing_millennium_fields).twice.and_return([
+          MARC::DataField.new('856', '4', '1',['3', 'SM3'], ['y', 'Online version'], ['u', 'http://www.example.com/trifle_link3'], ['x', 'Injected by Trifle']),
+          MARC::DataField.new('856', '4', '1',['3', 'SM5'], ['y', 'Online version'], ['u', 'http://www.example.com/trifle_link5'], ['x', 'Injected by Trifle']),
           MARC::DataField.new('856', '4', '1',['8', '2\c'], ['3', 'SM2'], ['y', 'Online version'], ['u', 'https://n2t.durham.ac.uk/ark:/12345/t0abcdefg.html'], ['x', 'Injected by Trifle']),
           MARC::DataField.new('856', '4', '1',['z', 'Online version'], ['u', 'http://www.example.com/preserved_link']),
           MARC::DataField.new('533', nil, nil,['8', '2\c'], ['3', 'SM2'], ['a', 'Digital image'], ['n', 'test note']),
@@ -54,7 +58,10 @@ RSpec.describe Trifle::MillenniumActor do
       expect(contents).to include('Online version')
       expect(contents).to include('new note')
       expect(contents).to include('http://www.example.com/preserved_link')
-      expect(contents).to include('http://www.example.com/trifle_link')
+      expect(contents).to include('http://www.example.com/trifle_link1')
+      expect(contents).to include('http://www.example.com/trifle_link3')
+      expect(contents).to include('http://www.example.com/trifle_link4')
+      expect(contents).not_to include('http://www.example.com/trifle_link5')
       expect(contents).to include("<subfield code='8'>2\\c</subfield>")
       expect(contents).not_to include("another test")
       expect(package[1].path).to eql('mid5678')
