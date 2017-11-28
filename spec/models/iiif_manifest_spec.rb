@@ -286,6 +286,22 @@ RSpec.describe Trifle::IIIFManifest do
       end
     end
   end
+
+  describe "#root_collection" do
+    let!(:root) { FactoryGirl.create(:iiifcollection, ordered_members: [sub1]) }
+    let!(:sub1) { FactoryGirl.create(:iiifcollection, ordered_members: [sub2])}
+    let!(:sub2) { FactoryGirl.create(:iiifcollection, ordered_members: [man])}
+    let!(:man) { FactoryGirl.create(:iiifmanifest) }
+    it "finds the root collection" do
+      m = Trifle::IIIFManifest.find(man.id)
+      expect(m.root_collection.id).to eql(root.id)
+    end
+    it "works if parent set already" do
+      m = Trifle::IIIFManifest.find(man.id)
+      m.has_parent!(sub2)
+      expect(m.root_collection.id).to eql(root.id)      
+    end
+  end
   
   describe "::all_in_collections" do
     let!(:root1) { FactoryGirl.create(:iiifcollection, ordered_members: [sub1, man1]) }

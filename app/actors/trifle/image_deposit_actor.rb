@@ -184,6 +184,7 @@ module Trifle
     def deposit_image_batch(image_data)
       log!(:info,"Depositing image batch")
       status = true
+      @model_object.ancestors_from_solr!
       index_offset = @model_object.ordered_members.to_a.count
       image_data.each_with_index do |hash,i|
         hash = {'source_path' => hash.to_s} unless hash.is_a? Hash

@@ -57,7 +57,11 @@ module Trifle
     end    
          
     def root_collection
-      parent.try(:root_collection) || self
+      if @parent
+        parent.root_collection
+      else
+        ordered_by_from_solr.find do |m| m.is_a? IIIFCollection end .try(:root_collection) || self
+      end
     end
     
     def sub_collections
