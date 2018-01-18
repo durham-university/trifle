@@ -90,6 +90,11 @@ module Trifle
             yielder << FileEntry.new("#{prefix}/canvas/#{image.id}", image.to_iiif(opts) )
             yielder << FileEntry.new("#{prefix}/annotation/canvas_#{image.id}", image.iiif_annotation(opts) )
 
+            image.layers.each do |layer|
+              raise "Layer id contains invalid characters #{layer.id}" unless /^[a-zA-Z0-9_-]+$/ =~ layer.id
+              yielder << FileEntry.new("#{prefix}/annotation/canvas_#{layer.id}", layer.iiif_annotation(opts))
+            end
+
             image.annotation_lists.each do |list|
               raise "Annotation list id contains invalid characters #{list.id}" unless /^[a-zA-Z0-9_-]+$/ =~ list.id
               yielder << FileEntry.new("#{prefix}/list/#{list.id}", list.to_iiif(opts) )

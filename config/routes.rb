@@ -20,7 +20,11 @@ Trifle::Engine.routes.draw do
     resources :iiif_images, only: [:new, :create, :show, :edit, :update, :destroy], path: 'canvas' do
       resources :iiif_annotation_lists, only: [:new, :create], path: 'list'
       resources :iiif_annotations, only: [:new, :create], path: 'annotation'
+      resources :iiif_layers, only: [:new, :create], path: 'layer'
     end
+
+    resources :iiif_layers, only: [:show, :edit, :update, :destroy], path: 'layer'
+    
     resources :iiif_annotation_lists, only: [:show, :edit, :update, :destroy], path: 'list' do
       resources :iiif_annotations, only: [:new, :create], path: 'annotation'
     end
@@ -45,6 +49,7 @@ Trifle::Engine.routes.draw do
   post '/manifest/:id/link_millennium', to: 'iiif_manifests#link_millennium', as: :iiif_manifest_link_millennium
   post '/canvas/:id/link_millennium', to: 'iiif_images#link_millennium', as: :iiif_image_link_millennium
   get '/canvas/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_image_background_jobs
+  post '/manifest/:iiif_manifest_id/canvas/:id/convert_to_layer', to: 'iiif_images#convert_to_layer', as: :iiif_manifest_iiif_image_convert_to_layer
   
   post '/manifest/:id/select', to: 'iiif_manifests#select_resource', as: :select_iiif_manifest
   post '/manifest/:id/deselect', to: 'iiif_manifests#deselect_resource', as: :deselect_iiif_manifest
@@ -66,6 +71,7 @@ Trifle::Engine.routes.draw do
     get 'manifest/:id', to: 'iiif_manifests#show_iiif'
     get 'manifest/:id/sequence/:sequence_name', to: 'iiif_manifests#show_sequence_iiif', as: :iiif_manifest_sequence_iiif
     get 'manifest/:iiif_manifest_id/canvas/:id', to: 'iiif_images#show_iiif', as: :iiif_manifest_iiif_image_iiif    
+    get 'manifest/:iiif_manifest_id/layer/:id', to: 'iiif_layers#show_iiif', as: :iiif_manifest_iiif_layer_iiif    
     get 'manifest/:iiif_manifest_id/annotation/canvas_:id', to: 'iiif_images#show_annotation_iiif', as: :iiif_manifest_iiif_image_annotation_iiif
     get 'manifest/:iiif_manifest_id/list/:id', to: 'iiif_annotation_lists#show_iiif', as: :iiif_manifest_iiif_annotation_list_iiif    
     get 'manifest/:iiif_manifest_id/annotation/:id', to: 'iiif_annotations#show_iiif', as: :iiif_manifest_iiif_annotation_iiif    

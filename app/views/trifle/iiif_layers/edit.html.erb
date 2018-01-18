@@ -1,0 +1,6 @@
+<% content_for :sidebar do %>
+  <%= render 'durham_rails/base_shared/sidebar/edit_link_control', resource: @resource, non_af_resource: true %>
+  <%= render 'durham_rails/base_shared/sidebar/destroy_control', resource: @resource, non_af_resource: true %>
+<% end %>
+
+<%= render 'durham_rails/base_shared/edit' %>

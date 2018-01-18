@@ -9,11 +9,12 @@ RSpec.describe Trifle::IIIFImage do
     it "sets properties" do
       expect(json['title']).to be_present
       expect(json['serialised_annotations']).to be_nil
+      expect(json['serialised_layers']).to be_nil
     end
   end  
   
   describe "#to_iiif" do
-    let(:image) { FactoryGirl.create(:iiifimage, :with_manifest, source_record: 'schmit:ark:/12345/test', description: "test_description" )}
+    let(:image) { FactoryGirl.create(:iiifimage, :with_manifest, :with_layers, source_record: 'schmit:ark:/12345/test', description: "test_description" )}
     before { 
       allow(Schmit::API).to receive(:config).and_return({'schmit_xtf_base_url' => 'http://www.example.com/xtf/view?docId='})
       image.save 
@@ -26,6 +27,7 @@ RSpec.describe Trifle::IIIFImage do
       expect(json['height']).to be_present
       expect(json['images']).to be_a(Array)
       expect(json['images'][0]['resource']['service']['@context']).to be_present
+      expect(json['images'][1]['@id']).to end_with(image.layers[0].id)
       expect(json['related']['@id']).to eql('http://www.example.com/xtf/view?docId=12345_test.xml')
       expect(json['related']['label']).to be_present
       expect(json['description']).to eql('test_description')
@@ -34,6 +36,7 @@ RSpec.describe Trifle::IIIFImage do
   
   describe "#to_solr" do
     let(:solr_doc) { image.to_solr }
+    let(:profile) { JSON.parse(solr_doc['object_profile_ssm']) }
     context "with annotations" do
       let(:annotation_list) { FactoryGirl.build(:iiifannotationlist, :with_annotations, parent: image) }
       before {
@@ -41,8 +44,13 @@ RSpec.describe Trifle::IIIFImage do
         annotation_list.save
       }
       it "adds ranges to object profile" do
-        profile = JSON.parse(solr_doc['object_profile_ssm'])
         expect(profile['serialised_annotations']).to be_present
+      end
+    end
+    context "with layers" do
+      let(:image) { FactoryGirl.create(:iiifimage, :with_manifest, :with_layers)}
+      it "adds layers to object profile" do
+        expect(profile['serialised_layers']).to be_present
       end
     end
   end
@@ -82,7 +90,7 @@ RSpec.describe Trifle::IIIFImage do
       expect(image.annotation_lists.first.annotations.first.content).to eql(test_string)
     end
   end
-  
+
   describe "source record" do
     # iiif_manifest_spec has more source record tests, manifest and collection share the same concern
     let(:image) { FactoryGirl.build(:iiifimage, source_record: 'schmit:ark:/12345/testid#subid') }    

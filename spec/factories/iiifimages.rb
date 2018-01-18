@@ -13,5 +13,21 @@ FactoryGirl.define do
         manifest.save
       end
     end
+
+    transient do
+      num_layers 2
+    end
+
+    trait :with_layers do
+      after :create do |image, evaluator|
+        (1..(evaluator.num_layers)).each do |num|
+          layer = FactoryGirl.build(:iiiflayer, image: image)
+          layer.assign_id!
+          image.layers << layer
+        end
+        image.serialise_layers
+        image.save
+      end
+    end
   end
 end

@@ -48,8 +48,12 @@
             "name": "IIIF Toc Endpoint", 
             "module": "IIIFTocEndpoint", 
             "options": { "url": "<%= trifle.iiif_manifest_update_ranges_url(@manifest) %>", "addCsrf": true } 
-          }           
-         <% end %>         
+          },
+         <% end %>    
+          "sidePanelOptions" : {
+            "tocTabAvailable": true,
+            "layersTabAvailable": true
+          }
        };
        if(manifest){
          options["windowObjects"]=[{

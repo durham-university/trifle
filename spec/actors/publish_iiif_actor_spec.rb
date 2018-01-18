@@ -20,7 +20,11 @@ RSpec.describe Trifle::PublishIIIFActor do
       man.save
       image = man.images.first
       image.annotation_lists.push(FactoryGirl.create(:iiifannotationlist, :with_annotations, parent: image))
+      layer = FactoryGirl.build(:iiiflayer, image: image)
+      layer.assign_id!
+      image.layers << layer
       image.serialise_annotations
+      image.serialise_layers
       image.save
     end
   }
@@ -161,6 +165,7 @@ RSpec.describe Trifle::PublishIIIFActor do
             *(manifest.images.map do |img| "#{prefix}/annotation/canvas_#{img.id}" end),
             "#{prefix}/list/#{manifest.images.first.annotation_lists.first.id}",
             *(manifest.images.first.annotation_lists.first.annotations.map do |ann| "#{prefix}/annotation/#{ann.id}" end),
+            *(manifest.images.first.layers.map do |layer| "#{prefix}/annotation/canvas_#{layer.id}" end),
             "collection/12345/#{manifest.parent.id}"
           ])
         expect(iiif).to be_a(IIIF::Presentation::Manifest)
@@ -220,7 +225,8 @@ RSpec.describe Trifle::PublishIIIFActor do
               *(manifest.images.map do |img| "#{prefix}/canvas/#{img.id}" end),
               *(manifest.images.map do |img| "#{prefix}/annotation/canvas_#{img.id}" end),
               "#{prefix}/list/#{manifest.images.first.annotation_lists.first.id}",
-              *(manifest.images.first.annotation_lists.first.annotations.map do |ann| "#{prefix}/annotation/#{ann.id}" end)
+              *(manifest.images.first.annotation_lists.first.annotations.map do |ann| "#{prefix}/annotation/#{ann.id}" end),
+              *(manifest.images.first.layers.map do |layer| "#{prefix}/annotation/canvas_#{layer.id}" end)
             ])
           expect(iiif).to be_a(IIIF::Presentation::Manifest)
         end

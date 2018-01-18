@@ -44,6 +44,9 @@ module Trifle
           'iiif_image_iiif_annotation_lists' => [''],
           'iiif_image_iiif_annotation_list' => ['new_'],
           'iiif_image_all_annotations' => [''],
+          'iiif_image_iiif_layers' => [''],
+          'iiif_image_iiif_layer' => ['new_'],
+          'iiif_layer' => ['','edit_'],
         }.each do |suffix,prefixes|
           prefixes.each do |prefix|
             ['_url','_path'].each do |mode|

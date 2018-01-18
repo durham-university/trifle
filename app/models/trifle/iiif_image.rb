@@ -17,6 +17,7 @@ module Trifle
     attr_accessor :date_published # SourceRecord needs to set this. Might put it in Fedora later
 
     property :title, multiple:false, predicate: ::RDF::Vocab::DC.title
+    property :annotation_label, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#annotation_label')
     property :image_location, multiple:false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_location')
     property :image_source, multiple: false, predicate: ::RDF::URI.new('http://collections.durham.ac.uk/ns/trifle#image_source')
     property :identifier, predicate: ::RDF::DC.identifier do |index|
@@ -30,10 +31,12 @@ module Trifle
 
     has_subresource "annotation_lists_iiif", class_name: 'ActiveFedora::File'
 
+    has_subresource "layers_iiif", class_name: 'ActiveFedora::File'    
+
     use_parent_ark!
 
     def as_json(*args)
-      super(*args).except('serialised_annotations').tap do |json|
+      super(*args).except('serialised_annotations', 'serialised_layers').tap do |json|
         parent_id = parent.try(:id)
         json.merge!({'parent_id' => parent_id}) if parent_id.present?
       end
@@ -42,6 +45,7 @@ module Trifle
     def reload
       super
       @annotation_lists = nil
+      @layers = nil
       self
     end
     
@@ -87,6 +91,28 @@ module Trifle
       end
       self.annotation_lists_iiif.content << ']'      
     end
+
+    def layers
+      @layers ||= begin
+        iiif = @solr_layers || layers_iiif.try(:content).try(:force_encoding,"UTF-8")
+        if iiif.present?
+          json = JSON.parse(iiif)
+          json.map do |layer_json| Trifle::IIIFLayer.new(self, layer_json) end
+        else
+          []
+        end
+      end
+    end
+
+    def serialise_layers
+      self.layers_iiif ||= ActiveFedora::File.new
+      self.layers_iiif.content = '['
+      layers.each_with_index do |layer,index|
+        self.layers_iiif.content << ",\n" if index > 0
+        self.layers_iiif.content << layer.to_iiif.to_json(pretty: true)
+      end
+      self.layers_iiif.content << ']'      
+    end
     
     def image_url(crop: 'full', size: 'full', width: nil, height: nil)
       size = "#{width},#{height}" if width || height
@@ -114,9 +140,14 @@ module Trifle
     def iiif_annotation(opts={})
       IIIF::Presentation::Annotation.new.tap do |annotation|
         annotation['@id'] = Trifle.cached_url_helpers.iiif_manifest_iiif_image_annotation_iiif_url(self.manifest, self)
+        annotation.label = annotation_label if annotation_label.present?
         annotation.resource = iiif_resource(opts)
         annotation['on'] = Trifle.cached_url_helpers.iiif_manifest_iiif_image_iiif_url(self.manifest, self)
       end
+    end
+
+    def iiif_layers(opts={})
+      self.layers.map do |layer| layer.to_iiif(opts) end
     end
     
     def iiif_canvas(opts={})
@@ -131,7 +162,7 @@ module Trifle
         source_link = public_source_link
         canvas['related'] = source_link if source_link        
 
-        canvas.images = [iiif_annotation(opts)]
+        canvas.images = [iiif_annotation(opts)] + iiif_layers(opts)
 
         unless opts[:no_annotations]
           canvas.other_content = annotation_lists.map do |al| al.iiif_annotation_list(opts.merge(with_children: false)) end  if annotation_lists.any?
@@ -144,13 +175,17 @@ module Trifle
     end
     
     def serializable_hash(*args)
-      super(*args).merge({'serialised_annotations' => (annotation_lists_iiif.try(:content).try(:force_encoding,'UTF-8') || '[]')})
+      super(*args).merge({
+        'serialised_annotations' => (annotation_lists_iiif.try(:content).try(:force_encoding,'UTF-8') || '[]'),
+        'serialised_layers' => (layers_iiif.try(:content).try(:force_encoding,'UTF-8') || '[]')
+      })
     end    
     
     def init_with_json(json)
       super(json)
       parsed = JSON.parse(json)
       @solr_annotations = parsed['serialised_annotations']
+      @solr_layers = parsed['serialised_layers']
       self
     end
 

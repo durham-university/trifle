@@ -47,6 +47,14 @@ RSpec.describe Trifle::IIIFImagesController, type: :controller do
         post :refresh_from_source, id: image.id, iiif_manifest_id: manifest.id
       end
     end        
+
+    describe "POST #convert_to_layer" do
+      let(:target_image) { manifest.images[1] }
+      it "fails authentication" do
+        expect(Trifle::LayersActor).not_to receive(:new)
+        post :convert_to_layer, id: image.id, target_id: [target_image.id], iiif_manifest_id: manifest.id
+      end
+    end
   end
   
   context "with admin user" do
@@ -109,6 +117,22 @@ RSpec.describe Trifle::IIIFImagesController, type: :controller do
         post :refresh_from_source, id: image.id, iiif_manifest_id: manifest.id
       end
     end        
+
+    describe "POST #convert_to_layer" do
+      let(:target_image) { manifest.images[1] }
+      let(:actor) { double('actor') }
+      it "converts using the actor" do
+        expect(actor).to receive(:make_images_layers) do |targets|
+          expect(targets[0].id).to eql(target_image.id)
+          true
+        end
+        expect(Trifle::LayersActor).to receive(:new) do |object|
+          expect(object.id).to eql(image.id)
+          actor
+        end
+        post :convert_to_layer, id: image.id, target_id: [target_image.id], iiif_manifest_id: manifest.id
+      end
+    end
   end
 
   context "with api user" do

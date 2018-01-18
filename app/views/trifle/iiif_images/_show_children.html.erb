@@ -1,3 +1,18 @@
+<h2>Additional layers
+<% if can? :edit, @resource %>
+  <%= link_to('<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>'.html_safe, trifle.new_iiif_manifest_iiif_image_iiif_layer_path(@resource.manifest, @resource), { class: 'btn btn-default' }) %>
+  <% if @presenter.to_model.layers.length > 1 %>
+    <span class="btn btn-default" onclick="enableReordering(this, '#layerList', '#layerOrderField')"><span class="glyphicon glyphicon-sort" aria-hidden="true"></span></span>    
+    <%= form_for(@resource, url: trifle.iiif_image_path(@resource)) do |form| %>
+      <input type="hidden" id="layerOrderField" name="iiif_image[layer_order]" value=""/>
+    <% end %>
+  <% end %>
+<% end %>
+</h2>
+
+<%= render 'durham_rails/base_shared/item_list', items: @presenter.to_model.layers, list_id: "layerList" %>
+
+
 <% if @resource.to_model.annotation_lists.count == 1 %>
   <% @annotation_list = @resource.to_model.annotation_lists.first %>
   <h2>Annotations in the annotation list

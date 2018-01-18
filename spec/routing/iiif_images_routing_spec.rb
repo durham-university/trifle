@@ -48,4 +48,8 @@ RSpec.describe Trifle::IIIFImagesController, type: :routing do
     expect(post: "/canvas/1/link_millennium").to route_to("trifle/iiif_images#link_millennium", id: "1")
   end
 
+  it "routes to #convert_to_layer" do
+    expect(post: "/manifest/2/canvas/1/convert_to_layer").to route_to("trifle/iiif_images#convert_to_layer", id: "1", iiif_manifest_id: "2")
+  end
+
 end
