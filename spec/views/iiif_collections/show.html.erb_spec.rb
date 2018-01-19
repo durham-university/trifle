@@ -18,4 +18,11 @@ RSpec.describe "trifle/iiif_collections/show", type: :view do
   it "renders attributes in" do
     render
   end
+
+  it "doesn't render inherited source records" do
+    allow(collection).to receive(:public_source_link).and_return({'@id' => 'http://www.example.com/sourcerecord', 'label' => 'test'})
+    expect(collection.source_record).to be_nil
+    render
+    expect(rendered).not_to include('http://www.example.com/sourcerecord')
+  end
 end
