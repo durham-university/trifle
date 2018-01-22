@@ -24,12 +24,12 @@ module Trifle
       target ||= model_object
       Enumerator.new do |yielder|
         target.to_millennium_all.each do |mid,fields|
-          existing_fields = existing_millennium_fields(mid)
-          existing_fields = remove_old_injected_fields(existing_fields)
-          Trifle::IIIFManifest.reassign_marc_field_links(existing_fields, fields)
+#          existing_fields = existing_millennium_fields(mid)
+#          existing_fields = remove_old_injected_fields(existing_fields)
+#          Trifle::IIIFManifest.reassign_marc_field_links(existing_fields, fields)
           
           r = MARC::Record.new()
-          pick_relevant_fields(existing_fields).each do |f| r.append(f) end
+#          pick_relevant_fields(existing_fields).each do |f| r.append(f) end
           fields.each do |f| r.append(f) end
             
           content = case format
