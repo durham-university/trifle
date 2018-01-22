@@ -78,6 +78,10 @@ form.new_user {
   }
 }
 
+.form-group.iiif_range_canvas_ids>select {
+  height: 300px;
+}
+
 .iiif_image_preview {
   text-align: center;
   img {
