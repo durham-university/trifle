@@ -116,7 +116,7 @@ module Trifle
       @content = params['resource'].try(:[],'chars') || params[:content] || params['content']
       @language = params['resource'].try(:[],'language') || params[:language] || params['language']
       @format = params['resource'].try(:[],'format') || params[:format] || params['format']
-      @selector = params['on'].try(:[],'selector') || params[:selector] || params['selector']
+      @selector = Array.wrap(params['on']).first.try(:[],'selector') || params[:selector] || params['selector']
       @selector = @selector.to_json if @selector && !@selector.is_a?(String)
       if params.key?(:parent) || params.key?('parent')
         @parent = params[:parent] || params['parent']

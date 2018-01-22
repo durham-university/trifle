@@ -66,6 +66,11 @@ RSpec.describe Trifle::IIIFAnnotation do
       expect(new_anno.content).to eql(annotation.content)
       expect(new_anno.selector).to eql(annotation.selector)
     end
+    it "works with oa:Choice selectors" do
+      annotation.selector = "{\"@type\":\"oa:Choice\",\"default\":{\"@type\":\"oa:FragmentSelector\",\"value\":\"xywh=176,355,542,45\"},\"item\":{\"@type\":\"oa:SvgSelector\",\"value\":\"\\u003csvg xmlns='http://www.w3.org/2000/svg'\\u003e\\u003c/svg\\u003e\"}}"
+      new_anno = Trifle::IIIFAnnotation.new(JSON.parse(annotation.to_iiif.to_json))
+      expect(new_anno.selector).to eql(annotation.selector)      
+    end
   end
 
 end
