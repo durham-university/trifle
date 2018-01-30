@@ -8,6 +8,7 @@ FactoryGirl.define do
     sequence(:description) { |n| "test description #{n}" }
     width '1000'
     height '2000'
+    sequence(:image_source ) { |n| "oubliette:testtest#{n}" }
     sequence(:image_location) { |n| "folder/layer_image#{n}.ptif" }
     embed_xywh "0,0,1000,2000"
 

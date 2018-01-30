@@ -6,6 +6,18 @@ RSpec.describe Trifle::IIIFLayer do
   let(:image) { FactoryGirl.create(:iiifimage, :with_layers)}
   let(:layer) { image.layers[0] }
 
+  describe "persisting" do
+    let(:layer) { Trifle::IIIFLayer.find(image.layers.first.id) }
+    it "saves and loads all fields" do
+      expect(layer.title).to be_present
+      expect(layer.description).to be_present
+      expect(layer.width).to be_present
+      expect(layer.height).to be_present
+      expect(layer.embed_xywh).to be_present
+      expect(layer.image_source).to be_present
+    end
+  end
+
   describe "#destroy" do
     it "removes list from image" do
       expect(image.layers.length).to eql(2)

@@ -109,7 +109,7 @@ module Trifle
       self.layers_iiif.content = '['
       layers.each_with_index do |layer,index|
         self.layers_iiif.content << ",\n" if index > 0
-        self.layers_iiif.content << layer.to_iiif.to_json(pretty: true)
+        self.layers_iiif.content << layer.to_iiif(include_image_source: true).to_json(pretty: true)
       end
       self.layers_iiif.content << ']'      
     end

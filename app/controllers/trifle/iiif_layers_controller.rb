@@ -22,7 +22,7 @@ module Trifle
     protected
 
     def self.presenter_terms
-      super + [:description, :image_location, :embed_xywh]
+      super + [:description, :image_location, :image_source, :embed_xywh]
     end
 
     def self.form_terms
