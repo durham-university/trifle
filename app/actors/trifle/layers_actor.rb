@@ -18,6 +18,7 @@ module Trifle
           title: image.annotation_label || image.title,
           description: image.description,
           image_location: image.image_location,
+          image_source: image.image_source,
           width: image.width,
           height: image.height,
           embed_xywh: "0,0,#{image.width},#{image.height}"

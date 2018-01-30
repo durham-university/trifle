@@ -33,6 +33,7 @@ RSpec.describe Trifle::LayersActor do
     end
 
     it "converts to layer" do
+      target_images[0].image_source = 'oubliette:testtest1'
       expect(image.layers).to be_empty
       expect(actor.make_images_layers(target_images)).to eql(true)
       image.reload
@@ -42,6 +43,7 @@ RSpec.describe Trifle::LayersActor do
       expect(image.layers[0].width).to eql(target_images[0].width.to_i)
       expect(image.layers[0].height).to eql(target_images[0].height.to_i)
       expect(image.layers[0].image_location).to eql(target_images[0].image_location)
+      expect(image.layers[0].image_source).to eql(target_images[0].image_source)
       expect(image.layers[0].embed_xywh).to be_present
       expect {
         target_images[0].reload
