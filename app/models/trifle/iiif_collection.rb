@@ -123,7 +123,7 @@ module Trifle
         collection.license = config[:licence] || nil
         collection.attribution = config[:attribution] || nil
         collection.logo = config[:logo] || nil
-        collection.collections = root_collections.to_a.map do |c| c.iiif_collection_stub(opts) end
+        collection.collections = root_collections.from_solr!.to_a.map do |c| c.iiif_collection_stub(opts) end
       end        
     end
     

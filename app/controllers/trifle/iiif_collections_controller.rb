@@ -41,11 +41,11 @@ module Trifle
     def show
       if params['full_manifest_list'].present?
         authorize!(:index_all, Trifle::IIIFManifest)
-        resources = Trifle::IIIFManifest.all_in_collection(@resource.root_collection)
+        resources = Trifle::IIIFManifest.all_in_collection(@resource.root_collection).from_solr!
         render json: {resources: (resources.map do |res| res.as_json end), page: 1, total_pages: 1}
       elsif params['full_collection_list'].present?
         authorize!(:index_all, Trifle::IIIFCollection)
-        resources = Trifle::IIIFCollection.all_in_collection(@resource.root_collection)
+        resources = Trifle::IIIFCollection.all_in_collection(@resource.root_collection).from_solr!
         render json: {resources: (resources.map do |res| res.as_json end), page: 1, total_pages: 1}
       else
         super
@@ -144,9 +144,10 @@ module Trifle
           
       def index_resources
         if @parent.present?
+          @parent.ordered_members.from_solr!
           @parent.sub_collections
         else
-          Trifle::IIIFCollection.root_collections
+          Trifle::IIIFCollection.root_collections.from_solr!
         end
       end
     

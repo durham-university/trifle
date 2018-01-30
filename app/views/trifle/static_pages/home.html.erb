@@ -6,6 +6,6 @@
 
 <h2>IIIF Collections</h2>
 <%
-  @resources = Trifle::IIIFCollection.root_collections
+  @resources = Trifle::IIIFCollection.root_collections.from_solr!
 %>
 <%= render 'durham_rails/base_shared/index', model_name: 'iiif_collection', model_class: Trifle::IIIFCollection, no_paging: true, no_title: true, no_add: true %>
