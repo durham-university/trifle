@@ -35,5 +35,29 @@ module Trifle
       end    
     end
 
+    def make_layer_an_image
+      layer = model_object
+      image = layer.parent
+      raise "Couldn't resolve parent image" unless image.is_a?(Trifle::IIIFImage)
+      manifest = image.parent
+      raise "Couldn't resolve parent manifest" unless manifest.is_a?(Trifle::IIIFManifest)
+      image = Trifle::IIIFImage.create(
+        title: layer.title,
+        description: layer.description,
+        image_location: layer.image_location,
+        image_source: layer.image_source,
+        width: layer.width,
+        height: layer.height
+      )
+      return nil unless image.persisted?
+      manifest.ordered_members << image
+      if manifest.save
+        layer.destroy
+        image
+      else
+        nil
+      end
+    end
+
   end
 end

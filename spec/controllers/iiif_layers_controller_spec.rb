@@ -19,6 +19,18 @@ RSpec.describe Trifle::IIIFLayersController, type: :controller do
         }
       end
     end
+
+    describe "POST #convert_to_image" do
+      it "fails authentication" do
+        expect(Trifle::LayersActor).not_to receive(:new)
+        expect {
+          post :convert_to_image, iiif_manifest_id: manifest.id, id: layer.id
+        } .not_to change {
+          image.reload
+          image.layers.count
+        }
+      end
+    end
   end
 
   context "with admin user" do
@@ -35,6 +47,21 @@ RSpec.describe Trifle::IIIFLayersController, type: :controller do
         } .by(1)
       end
     end
+
+    describe "POST #convert_to_image" do
+      it "convert the layer to an image" do
+        expect_any_instance_of(Trifle::LayersActor).to receive(:make_layer_an_image).and_call_original
+        expect {
+          post :convert_to_image, iiif_manifest_id: manifest.id, id: layer.id
+        } .to change {
+          image.reload
+          image.layers.count
+        } .by(-1) .and change {
+          manifest.reload
+          manifest.images.count
+        } .by(1)
+      end
+    end      
     
   end
 

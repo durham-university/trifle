@@ -49,7 +49,40 @@ RSpec.describe Trifle::LayersActor do
         target_images[0].reload
       } .to raise_error(ActiveFedora::ObjectNotFoundError)
     end
+  end
 
+  describe "make_layer_an_image" do
+    let(:manifest) { FactoryGirl.create(:iiifmanifest, :with_images, num_images: 4) }
+    let(:image) {
+      FactoryGirl.create(:iiifimage, :with_layers).tap do |image|
+        manifest.ordered_members << image
+        manifest.save
+      end
+    }
+    let!(:layer) { image.layers[0] }
+    let(:actor) { Trifle::LayersActor.new(layer,user,options) }
+
+    it "converts to image" do
+      expect(manifest.images.count).to eql(5)
+      expect(image.layers.count).to eql(2)
+      new_image = actor.make_layer_an_image
+      expect(new_image).to be_a(Trifle::IIIFImage)
+      expect(new_image).to be_persisted
+      manifest.reload
+      expect(manifest.images.count).to eql(6)
+      expect(manifest.images.map(&:id)).to include(new_image.id)
+      expect(new_image.title).to eql(layer.title)
+      expect(new_image.description).to eql(layer.description)
+      expect(new_image.image_location).to eql(layer.image_location)
+      expect(new_image.image_source).to eql(layer.image_source)
+      expect(new_image.width).to eql(layer.width)
+      expect(new_image.height).to eql(layer.height)
+      expect(new_image.local_ark).to be_present
+
+      image.reload
+      expect(image.layers.count).to eql(1)
+      expect(image.layers.map(&:id)).not_to include(layer.id)
+    end
   end
 
 end

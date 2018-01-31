@@ -50,7 +50,8 @@ Trifle::Engine.routes.draw do
   post '/canvas/:id/link_millennium', to: 'iiif_images#link_millennium', as: :iiif_image_link_millennium
   get '/canvas/:resource_id/background_jobs', to: 'background_jobs#index', as: :iiif_image_background_jobs
   post '/manifest/:iiif_manifest_id/canvas/:id/convert_to_layer', to: 'iiif_images#convert_to_layer', as: :iiif_manifest_iiif_image_convert_to_layer
-  
+  post '/manifest/:iiif_manifest_id/layer/:id/convert_to_image', to: 'iiif_layers#convert_to_image', as: :iiif_manifest_iiif_layer_convert_to_image
+
   post '/manifest/:id/select', to: 'iiif_manifests#select_resource', as: :select_iiif_manifest
   post '/manifest/:id/deselect', to: 'iiif_manifests#deselect_resource', as: :deselect_iiif_manifest
   post '/manifest/deselect_all', to: 'iiif_manifests#deselect_all_resources'

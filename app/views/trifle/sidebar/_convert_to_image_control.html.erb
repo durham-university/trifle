@@ -1,0 +1,26 @@
+<% if can?(:convert_to_image, resource) %>
+  <li><a href="#" data-target="#convert_to_image_modal" data-toggle="modal"><%= "Convert to image" %></a></li>
+
+  <% content_for :modal_dialogs do %>
+    <div id="convert_to_image_modal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="ajax-modal-close close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h1 class="modal-title">Convert to image</h1>
+          </div>
+          <div class="popup-tool-form">
+          <%= form_for resource, url: engine_paths.polymorphic_path([resource.manifest,resource,:convert_to_image]), html: {
+              method: 'post'
+            } do |f| %>
+            <p>
+              <input type="submit" class="btn btn-primary" value="Convert"/>
+              <button type="button" class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+            </p>
+          <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
