@@ -65,7 +65,7 @@ module Trifle
     end
     
     def self.form_terms
-      super - [:image_source]
+      super
     end
 
     def set_parent
