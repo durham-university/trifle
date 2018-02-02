@@ -157,7 +157,6 @@
       record['@id'] = this.annotationId(record['@id']);
       record['resource'] = [record['resource']];
       record['endpoint'] = this;
-      record['on'] = [record['on']];
       return record;
     },
     

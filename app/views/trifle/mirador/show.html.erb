@@ -26,7 +26,7 @@
        window.Mirador.BookmarkPanel.prototype.listenForActions = function() {};
        <% if @use_annotations %>
         // disables annotations in the manifest if we use an annotation endpoint
-        window.Mirador.Manifest.prototype.getAnnotationsListUrl = function(canvasId) { return false; };
+        window.Mirador.Manifest.prototype.getAnnotationsListUrls = function(canvasId) { return false; };
        <% end %>
        
        var options = {
