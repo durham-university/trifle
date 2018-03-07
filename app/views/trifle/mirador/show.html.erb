@@ -12,7 +12,8 @@
       .annotation-editor .tags-editor { display: none; }
       .mce-branding-powered-by { display: none; }
       .mirador-container .mce-edit-area iframe { height: 150px !important; }
-      .qtip { max-width: 350px }
+      .mirador-container .qtip-viewer .qtip-content { max-height: 500px; }
+      .mirador-container .qtip { max-width: 400px }
     </style>
   </head>
   <body>
@@ -24,11 +25,25 @@
      function initMirador(manifest, image){
        // disable Bookmark panel excessively posting things to jsonBlob
        window.Mirador.BookmarkPanel.prototype.listenForActions = function() {};
+
+       // allow inline data urls in annotations (the allowedSchemes part, rest is the default implementation)
+       window.Mirador.sanitizeHtml = function(dirty) {
+        return sanitizeHtml(dirty, {
+          allowedTags: ['a', 'b', 'br', 'i', 'img', 'p', 'span', 'strong', 'em', 'ul', 'ol', 'li'],
+          allowedAttributes: {
+            'a': ['href', 'target'],
+            'img': ['src', 'alt'],
+            'p': ['dir']
+          },
+          allowedSchemes: ['http', 'https', 'data']
+        });
+       };
+       
        <% if @use_annotations %>
         // disables annotations in the manifest if we use an annotation endpoint
         window.Mirador.Manifest.prototype.getAnnotationsListUrls = function(canvasId) { return false; };
        <% end %>
-       
+              
        var options = {
          "id": "viewer",
          "saveSession": false,
