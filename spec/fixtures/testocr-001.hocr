@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>OCR Results</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="ocr-system" content="ocropy-1.0" />
+<meta name="ocr-capabilities" content="ocr_line ocr_page" />
+</head>
+<body>
+
+<div class='ocr_page' title='image test-ocr/test-001.tif; bbox 0 0 5564 8020'>
+<p />
+<p />
+<p />
+<span class='ocr_line' title='bbox 648 2432 2304 2573'>Test line 1</span><br />
+<span class='ocr_line' title='bbox 639 2693 2259 2814'>Test line 2</span><br />
+<p />
+<span class='ocr_line' title='bbox 639 2794 2193 2933'>Test <em>line</em> 3</span><br />
+<span class='ocr_line' title='bbox 640 2928 2244 3047'>Test line <em>4</em></span><br />
+<span class='ocr_line' title='bbox 718 6013 2306 6152'>Test line 5</span><br />
+<p />
+</div>
+</body>
+</html>
+
