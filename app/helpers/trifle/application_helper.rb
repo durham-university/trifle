@@ -12,5 +12,13 @@ module Trifle
       return super
     end
     
+    def render_ancestry_breadcrumbs(resource, active=true )
+      if resource.try(:hidden_root?)
+        index_path = engine_paths.polymorphic_path(resource.class)
+        return safe_join ['<li>'.html_safe, link_to(resource.model_name.human.pluralize, index_path), '</li>'.html_safe]
+      end
+      super(resource, active)
+    end
+      
   end
 end

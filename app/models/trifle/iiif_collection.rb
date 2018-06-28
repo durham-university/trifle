@@ -58,9 +58,12 @@ module Trifle
          
     def root_collection
       if @parent
+        return self if @parent.hidden_root?
         parent.root_collection
       else
-        ordered_by_from_solr.find do |m| m.is_a? IIIFCollection end .try(:root_collection) || self
+        ordered_by_from_solr.find do |m| 
+          m.is_a?(IIIFCollection) && !m.hidden_root?
+        end .try(:root_collection) || self
       end
     end
     
@@ -97,7 +100,9 @@ module Trifle
         collection.manifests = manifests.to_a.map do |m| m.iiif_manifest_stub(opts) end
         
         parent_collection = self.parent
-        collection.within = Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url(parent_collection, host: Trifle.iiif_host) if parent_collection.present?
+        if parent_collection.present? && !parent_collection.hidden_root?
+          collection.within = Trifle::Engine.routes.url_helpers.iiif_collection_iiif_url(parent_collection, host: Trifle.iiif_host) 
+        end
       end
     end
     
@@ -115,20 +120,43 @@ module Trifle
     end
     
     def self.index_collection_iiif(opts={})
-      IIIF::Presentation::Collection.new.tap do |collection|
-        config = (Trifle.config[:index_collection] || Trifle.config['index_collection'] || {}).with_indifferent_access        
-        collection['@id'] = Trifle::Engine.routes.url_helpers.iiif_collection_index_iiif_url(host: Trifle.iiif_host)
-        collection.label = config[:label] || 'Collection index'
-        collection.description = config[:description] || nil
-        collection.license = config[:licence] || nil
-        collection.attribution = config[:attribution] || nil
-        collection.logo = config[:logo] || nil
-        collection.collections = root_collections.from_solr!.to_a.map do |c| c.iiif_collection_stub(opts) end
-      end        
+      hidden_root = hidden_root_collection
+      if hidden_root.present?
+        hidden_root.to_iiif(opts).tap do |iiif|
+          iiif['@id'] = Trifle::Engine.routes.url_helpers.iiif_collection_index_iiif_url(host: Trifle.iiif_host)
+        end
+      else
+        IIIF::Presentation::Collection.new.tap do |collection|
+          config = (Trifle.config[:index_collection] || Trifle.config['index_collection'] || {}).with_indifferent_access        
+          collection['@id'] = Trifle::Engine.routes.url_helpers.iiif_collection_index_iiif_url(host: Trifle.iiif_host)
+          collection.label = config[:label] || 'Collection index'
+          collection.description = config[:description] || nil
+          collection.license = config[:licence] || nil
+          collection.attribution = config[:attribution] || nil
+          collection.logo = config[:logo] || nil
+          collection.collections = root_collections.from_solr!.to_a.map do |c| c.iiif_collection_stub(opts) end
+        end        
+      end
     end
     
     def self.root_collections
-      self.where(Solrizer.solr_name('root_collection_id', type: :symbol) => nil)
+      hidden_root_collection.try(:sub_collections) || self.where(Solrizer.solr_name('root_collection_id', type: :symbol) => nil)
+    end
+
+    def hidden_root?
+      self.id == Trifle.hidden_root_collection_id
+    end
+
+    def self.hidden_root_collection(from_solr=false)
+      if Trifle.hidden_root_collection_id.present?
+        if from_solr
+          Trifle::IIIFCollection.load_instance_from_solr(Trifle.hidden_root_collection_id)
+        else
+          Trifle::IIIFCollection.find(Trifle.hidden_root_collection_id)
+        end
+      else
+        nil
+      end
     end
     
     def self.all_in_collection(c)

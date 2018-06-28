@@ -116,7 +116,7 @@ module Trifle
           yielder << FileEntry.new("collection/#{target.local_ark.split('/')[1..2].join('/')}", target.to_iiif(opts))
           unless attributes[:skip_parent]
             parent = target.parent
-            if parent
+            if parent && !parent.hidden_root?
               raise "Parent has no local_ark" unless parent.local_ark.present?
               yielder << FileEntry.new("collection/#{parent.local_ark.split('/')[1..2].join('/')}", parent.to_iiif(opts))
             else

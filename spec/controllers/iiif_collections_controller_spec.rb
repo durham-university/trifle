@@ -10,6 +10,28 @@ RSpec.describe Trifle::IIIFCollectionsController, type: :controller do
   before {
     allow(Trifle.queue).to receive(:push).and_return(true)
   }
+
+  describe "#index" do
+    let(:user) { FactoryGirl.create(:user,:admin) }
+    let!(:collection) { FactoryGirl.create(:iiifcollection) }
+    let!(:root_collection) { FactoryGirl.create(:iiifcollection, ordered_members: [collection]) }
+    before { sign_in user }
+
+    context "with hidden_root_collection" do
+      before { allow(Trifle).to receive(:config).and_return({'hidden_root_collection_id' => root_collection.id})}      
+      it "returns root collections" do
+        get :index
+        expect(assigns(:resources).map(&:id)).to eql([collection.id])
+      end
+    end
+
+    context "without hidden_root_collection" do
+      it "returns root collections" do
+        get :index
+        expect(assigns(:resources).map(&:id)).to eql([root_collection.id])
+      end
+    end
+  end
   
   describe "#create" do
     let(:user) { FactoryGirl.create(:user,:admin) }

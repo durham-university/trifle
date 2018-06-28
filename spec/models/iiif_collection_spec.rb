@@ -2,6 +2,42 @@ require 'rails_helper'
 
 RSpec.describe Trifle::IIIFCollection do
   let(:collection) { FactoryGirl.build(:iiifcollection) }
+
+  describe "#root_collection" do
+    let!(:root_collection) { FactoryGirl.create(:iiifcollection, title: 'root collection', ordered_members: [collection])}
+    let!(:collection) { FactoryGirl.create(:iiifcollection, :with_sub_collections)}
+    let!(:sub_collection) { collection.sub_collections.first }
+
+    context "without hidden root collection" do
+      it "returns the root collection" do
+        expect(sub_collection.root_collection.id).to eql(root_collection.id)
+      end
+    end
+
+    context "with hidden root collection" do
+      before { allow(Trifle).to receive(:config).and_return({'hidden_root_collection_id' => root_collection.id})}
+      it "returns the root collection" do
+        expect(sub_collection.root_collection.id).to eql(collection.id)
+      end
+    end
+  end
+
+  describe "::root_collections" do
+    let!(:root_collection) { FactoryGirl.create(:iiifcollection, title: 'root collection', ordered_members: [collection])}
+    let!(:collection) { FactoryGirl.create(:iiifcollection, :with_sub_collections)}
+    context "without hidden root collection" do
+      it "returns the root collection" do
+        expect(Trifle::IIIFCollection.root_collections.map(&:id)).to eql([root_collection.id])
+      end
+    end
+
+    context "with hidden root collection" do
+      before { allow(Trifle).to receive(:config).and_return({'hidden_root_collection_id' => root_collection.id})}
+      it "returns the root collection" do
+        expect(Trifle::IIIFCollection.root_collections.map(&:id)).to eql([collection.id])
+      end
+    end
+  end
   
   describe "#iiif_collection" do
     let(:collection) { FactoryGirl.create(:iiifcollection,:with_manifests) }
@@ -25,7 +61,7 @@ RSpec.describe Trifle::IIIFCollection do
     let!(:collection) { FactoryGirl.create(:iiifcollection,:with_sub_collections) }
     let!(:collection2) { FactoryGirl.create(:iiifcollection,:with_sub_collections) }
     let(:iiif) { Trifle::IIIFCollection.index_collection_iiif }
-    before { allow(Trifle).to receive(:config).and_return({ark_naan: '12345', index_collection: {'label' => 'test label', logo: 'http://www.example.com/logo.jpg'}})}
+    before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345', 'index_collection' => {'label' => 'test label', 'logo' => 'http://www.example.com/logo.jpg'}})}
     it "creates index collection iiif" do
       expect(Trifle::IIIFCollection.count).to be > 2
       expect(iiif['label']).to eql('test label')
@@ -33,6 +69,19 @@ RSpec.describe Trifle::IIIFCollection do
       expect(iiif['collections'].count).to eql(2)
       expect(iiif['collections'].map do |c| c['label'] end).to match_array ([collection.title, collection2.title])
       expect(iiif['logo']).to eql('http://www.example.com/logo.jpg')
+    end
+
+    context "with hidden root collection" do
+      let(:root_collection) { FactoryGirl.create(:iiifcollection, title: 'root collection', logo: 'http://www.example.com/root.jpg', ordered_members: [collection, collection2])}
+      before { allow(Trifle).to receive(:config).and_return({'hidden_root_collection_id' => root_collection.id, 'ark_naan' => '12345', 'index_collection' => {'label' => 'test label', 'logo' => 'http://www.example.com/logo.jpg'}})}
+      it "returns root collection iiif" do
+        expect(iiif['label']).to eql('root collection')
+        expect(iiif['@id']).to be_present
+        expect(iiif['@id']).not_to include(root_collection.id) # it's supposed to be just host/iiif/collection
+        expect(iiif['collections'].count).to eql(2)
+        expect(iiif['collections'].map do |c| c['label'] end).to match_array ([collection.title, collection2.title])
+        expect(iiif['logo']).to eql('http://www.example.com/root.jpg')
+        end
     end
   end
 

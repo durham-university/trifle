@@ -11,6 +11,8 @@ module Trifle
 
     helper 'trifle/application'
 
+    before_action :set_index_parent, only: [:index]    
+
     def self.presenter_terms
       super + [:digitisation_note, :identifier,  :description, :source_record, :licence, :attribution, :logo, :keeper]
     end
@@ -18,7 +20,15 @@ module Trifle
     def set_parent
       if params[:iiif_collection_id].present?
         @parent = Trifle::IIIFCollection.find(params[:iiif_collection_id])
+      else
+        # This can be nil if not configured, then there will be no parent.
+        # The parameter makes it load from solr
+        @parent = Trifle::IIIFCollection.hidden_root_collection(action_name == 'index')
       end
+    end
+
+    def set_index_parent
+      set_parent
     end
     
     def show_iiif

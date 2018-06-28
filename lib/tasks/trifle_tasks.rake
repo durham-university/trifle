@@ -1,4 +1,22 @@
 namespace :trifle do
+  desc "create a hidden root collection"
+  task "create_hidden_root" => :environment do
+    if Trifle.hidden_root_collection_id.present?
+      puts "Hidden root collection id is already set in config."
+    else
+      puts "Creating root collection"
+      root = Trifle::IIIFCollection.create(title: "Collection index")
+      sub_collections = []
+      puts "Moving existing top collections"
+      Trifle::IIIFCollection.root_collections.each do |c|
+        sub_collections << c unless c.id == root.id
+      end
+      root.ordered_members = sub_collections
+      root.save
+      puts "To enable the root collection, add  \"hidden_root_collection_id: #{root.id}\" to config/trifle.yml"
+    end
+  end
+
   desc "statify all dirty manifests"
   task "statify_dirty" => :environment do
     if Trifle::StatifyDirtyJob.new.queue_job

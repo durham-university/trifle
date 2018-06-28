@@ -30,6 +30,10 @@ module Trifle
   def self.iiif_service
     self.config.fetch('image_service_url','http://localhost/iipsrv/iipsrv.fcgi?IIIF=')
   end
+
+  def self.hidden_root_collection_id
+    self.config['hidden_root_collection_id']
+  end
   
   def self.mirador_location
     self.config.fetch('mirador_location','')

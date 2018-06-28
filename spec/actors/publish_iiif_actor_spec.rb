@@ -187,16 +187,36 @@ RSpec.describe Trifle::PublishIIIFActor do
     end
     
     context "with a top-level collection" do
-      # variable manifest is really a collection!
-      let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests)}
-      let(:iiif) { entries.find do |e| e.path.ends_with?("collection/12345/#{manifest.id}") end .content }
-      it "works with a collection object" do
-        expect(enum).to be_a(Enumerator)
-        expect(entries.map(&:path)).to match_array([
-            "collection/12345/#{manifest.id}",
-            "collection/index"
-          ])
-        expect(iiif).to be_a(IIIF::Presentation::Collection)
+      context "without hidden_root_collection" do
+        # variable manifest is really a collection!
+        let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests)}
+        let(:iiif) { entries.find do |e| e.path.ends_with?("collection/12345/#{manifest.id}") end .content }
+        it "works with a collection object" do
+          expect(enum).to be_a(Enumerator)
+          expect(entries.map(&:path)).to match_array([
+              "collection/12345/#{manifest.id}",
+              "collection/index"
+            ])
+          expect(iiif).to be_a(IIIF::Presentation::Collection)
+        end
+      end
+
+      context "with hidden_root_collection" do
+        # variable manifest is really a collection!
+        let(:manifest) { FactoryGirl.create(:iiifcollection, :with_manifests)}
+        let(:iiif) { entries.find do |e| e.path.ends_with?("collection/12345/#{manifest.id}") end .content }
+        let(:root_collection) { FactoryGirl.create(:iiifcollection, ordered_members: [manifest])}
+        before {
+          Trifle.config['hidden_root_collection_id'] = root_collection.id
+        }
+        it "works with a collection object" do
+          expect(enum).to be_a(Enumerator)
+          expect(entries.map(&:path)).to match_array([
+              "collection/12345/#{manifest.id}",
+              "collection/index"
+            ])
+          expect(iiif).to be_a(IIIF::Presentation::Collection)
+        end
       end
     end
     
