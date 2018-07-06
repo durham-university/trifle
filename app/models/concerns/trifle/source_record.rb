@@ -60,7 +60,7 @@ module Trifle
       self.send(type_method, cache)
     end
     
-    def refresh_from_millenium_source(cache=nil)
+    def refresh_from_millennium_source(cache=nil)
       raise 'TODO'
     end
     

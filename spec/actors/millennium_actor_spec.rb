@@ -21,6 +21,26 @@ RSpec.describe Trifle::MillenniumActor do
     end
   end
 
+  describe "#upload_everything" do
+    let(:manifest) { nil }
+    let!(:manifest1) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:testid1') }
+    let!(:manifest2) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:testid2#fragment1') }
+    let!(:manifest3) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:testid1#fragment2') }
+    let!(:manifest4) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:testid1') }
+    let!(:manifest5) { FactoryGirl.create(:iiifmanifest, source_record: 'millennium:testid2#fragment3') }
+    
+    it "uploads everything with Millennium source record" do
+      uploaded_objects = []
+      expect(actor).to receive(:upload_package).twice do
+        uploaded_objects << actor.instance_variable_get(:@model_object).source_record.split('#').first
+      end
+
+      actor.upload_everything
+
+      expect(uploaded_objects).to match_array(['millennium:testid1','millennium:testid2'])
+    end
+  end
+
   describe "#millennium_package" do
     before {
       expect(manifest).to receive(:to_millennium_all).and_return({

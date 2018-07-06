@@ -5,6 +5,12 @@ module Trifle
     def to_millennium
       # NOTE: Millennium actor has code which recognises and removes fields
       # created here. Adding new fields may require modifying that code as well.
+
+      # NOTE: Publishing happens automatically at initial deposit. It is assumed that
+      # the fields included in Millennium will only change very infrequently if at all
+      # and a new linking job is manually triggered if they do. If any fields are included
+      # here which might change more frequently, then it might be worthwhile to do the
+      # Millennium export automatically at any modification (or publishing).
       
       return nil unless self.source_record.try(:start_with?,'millennium:')
       raise "Record doesn't have an ark" unless self.local_ark.present?

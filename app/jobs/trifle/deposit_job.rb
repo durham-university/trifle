@@ -29,6 +29,12 @@ module Trifle
         iiif_actor = Trifle::PublishIIIFActor.new(resource)
         iiif_actor.instance_variable_set(:@log,log)
         iiif_actor.upload_package
+
+        if resource.source_record.try(:start_with?, 'millennium:')
+          millennium_actor = Trifle::MillenniumActor.new(resource)
+          millennium_actor.instance_variable_set(:@log, log)
+          millennium_actor.upload_package
+        end
       end
     end
     

@@ -7,6 +7,29 @@ module Trifle
     def initialize(model_object, user=nil, attributes={})
       super(model_object, user, attributes)
     end
+
+    # Use this to upload all millennium linked objects. 
+    # a = Trifle::MillenniumActor.new(nil)
+    # a.log.to_stdout! # If needed
+    # a.upload_everything
+    def upload_everything
+      rs = ActiveFedora::Base.where("source_record_ssim:millennium*").from_solr!
+      re = /^millennium:([^#]+)(#.*)?$/
+      index = {}
+      rs.each do |o|
+        m = re.match(o.source_record)
+        next unless m
+        next if index.key?(m[1])
+        index[m[1]] = o
+      end
+      log!("Found #{index.count} unique Millennium references")
+
+      index.each do |millennium_id, o|
+        @model_object = o
+        upload_package
+      end
+      nil
+    end
     
     def upload_package(package=nil, connection_params=nil, remote_path=nil)
       super(package || millennium_package, connection_params, remote_path)
