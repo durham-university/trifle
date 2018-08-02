@@ -230,8 +230,8 @@ RSpec.describe Trifle::IIIFManifest do
         manifest.refresh_from_source
       end
       it "calls millenium version" do 
-        manifest.source_record='millenium:test'
-        expect(manifest).to receive('refresh_from_millenium_source')
+        manifest.source_record='millennium:test'
+        expect(manifest).to receive('refresh_from_millennium_source')
         manifest.refresh_from_source        
       end
     end
