@@ -4,6 +4,7 @@ module Trifle
     before_action :set_convert_to_layer_resource, only: [:convert_to_layer]
     
     include DurhamRails::ModelControllerBase
+    include DurhamRails::SelectableResourceBehaviour
     include Trifle::RefreshFromSourceBehaviour
     include Trifle::LinkMillenniumBehaviour
     include Trifle::ServeIIIFBehaviour
@@ -94,6 +95,15 @@ module Trifle
       end
     end
 
+    def deselect_all_resources
+      # Overridden only for handling redirection correctly
+      selection_bucket.clear
+      respond_to do |format|
+        # route helpers will automatically pick params[:id] for redirection if needed
+        format.html { redirect_to (root_url), notice: "All #{self.class.model_name.human.pluralize} deselected." }
+        format.json { render json: bucket_json.merge({'status' => 'OK'}) }
+      end
+    end
 
     protected
 
@@ -126,7 +136,10 @@ module Trifle
         end
       end
 
-
+      def selection_bucket_key
+        'trifle_all'
+      end    
+  
     private
       def set_all_annotations_resource
         @resource = self.class.model_class.load_instance_from_solr(params[:id])

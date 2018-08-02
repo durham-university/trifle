@@ -5,6 +5,10 @@
   <%= render 'trifle/sidebar/convert_to_layer_control', resource: @resource %>
 <% end %>
 
+<% content_for :side_components do %>
+  <%= render 'durham_rails/base_shared/show_selection' %>
+<% end %>
+
 <%= render 'durham_rails/base_shared/show', next_prev: get_next_prev(method: :images) %>
 
 <% # render 'iipmooviewer' %>

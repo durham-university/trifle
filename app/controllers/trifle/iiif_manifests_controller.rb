@@ -2,6 +2,7 @@ module Trifle
   class IIIFManifestsController < Trifle::ApplicationController
     include DurhamRails::ModelControllerBase
     include DurhamRails::SelectableResourceBehaviour
+    include DurhamRails::ReceiveMovesBehaviour
     include Trifle::ImageDepositBehaviour
     include Trifle::ServeIIIFBehaviour
     include Trifle::RefreshFromSourceBehaviour
@@ -76,7 +77,43 @@ module Trifle
       end
     end
     
+    def move_selection_into
+      # This hook will only work if bucket is emptied on successful move.
+      raise 'Assert error, empty_bucket_after_move? must be true' unless empty_bucket_after_move?
+      
+      changed = {}
+      changed[@resource.id] = @resource
+      
+      selection_bucket.from_fedora!.each do |res|
+        manifest = res.manifest
+        changed[manifest.id] ||= manifest
+      end
+      
+      super
+      
+      changed.values.each do |res|
+        job = Trifle::PublishJob.new(resource: res)
+        job.validate_job!
+        job.queue_job
+      end
+    end
+    
     protected
+
+    def validate_move
+      return false unless super
+      selection_bucket.each do |res|
+        unless res.is_a?(Trifle::IIIFImage)
+          error_message = "Can only move images into a manifest"
+          respond_to do |format|
+            format.html { flash[:error] = error_message ; redirect_to @resource }
+            format.json { render json: { status: 'error', message: error_message } }
+          end          
+          return false
+        end
+      end
+      true
+    end  
 
     def new_resource(params={})
       super(params).tap do |res|

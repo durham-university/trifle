@@ -1,15 +1,15 @@
 module Trifle
   class IIIFImage < ActiveFedora::Base
-    include Hydra::Works::WorkBehavior
+#    include Hydra::Works::WorkBehavior
     include DurhamRails::FastContainerItem
-#    fast_container_item_pcdm_compatibility
+    fast_container_item_pcdm_compatibility
     
     include DurhamRails::NoidBehaviour # ModelBase overrides NoidBehaviour, keep this line before include ModelBase
     include Trifle::ModelBase
     include Trifle::ArkNaanOptionsBehaviour
     include DurhamRails::WithBackgroundJobs
     include DurhamRails::DestroyFromContainers
-    include DurhamRails::DestroyDependentMembers
+#    include DurhamRails::DestroyDependentMembers # annotations and ranges are serialised, don't need to specifically delete them
     include Trifle::TrackDirtyParentBehaviour
     include Trifle::SourceRecord
     include Trifle::MillenniumLinkBehaviour

@@ -56,6 +56,8 @@ Trifle::Engine.routes.draw do
   post '/manifest/:id/deselect', to: 'iiif_manifests#deselect_resource', as: :deselect_iiif_manifest
   post '/manifest/deselect_all', to: 'iiif_manifests#deselect_all_resources'
   post '/manifest/:id/deselect_all', to: 'iiif_manifests#deselect_all_resources', as: :deselect_all_iiif_manifest
+  post '/manifest/:id/move_into', to: 'iiif_manifests#move_selection_into', as: :move_into_iiif_manifest
+  
   post '/collection/:id/select', to: 'iiif_collections#select_resource', as: :select_iiif_collection
   post '/collection/:id/deselect', to: 'iiif_collections#deselect_resource', as: :deselect_iiif_collection
   post '/collection/deselect_all', to: 'iiif_collections#deselect_all_resources'
@@ -63,6 +65,11 @@ Trifle::Engine.routes.draw do
   post '/collection/:id/move_into', to: 'iiif_collections#move_selection_into', as: :move_into_iiif_collection
   post '/collection/:id/publish', to: 'iiif_collections#publish', as: :iiif_collection_publish
   post '/collection/:id/link_millennium', to: 'iiif_collections#link_millennium', as: :iiif_collection_link_millennium
+
+  post '/canvas/:id/select', to: 'iiif_images#select_resource', as: :select_iiif_image
+  post '/canvas/:id/deselect', to: 'iiif_images#deselect_resource', as: :deselect_iiif_image
+  post '/canvas/deselect_all', to: 'iiif_images#deselect_all_resources'
+  post '/canvas/:id/deselect_all', to: 'iiif_images#deselect_all_resources', as: :deselect_all_iiif_image
   
   
   scope 'iiif' do
