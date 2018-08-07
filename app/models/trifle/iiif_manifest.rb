@@ -264,9 +264,11 @@ module Trifle
       def update_image_arks
         # local_ark presence check is mostly for specs which don't always have arks
         if ordered_members.changed? && self.local_ark.present?
-          # We're relying on images not being moved between manifests
           if yield
             self.images.each do |img|
+              # Make sure image has the correct memoised parent. If images are moved
+              # between manifests, they might otherwise still use the old parent.
+              img.has_parent!(self)
               img.save if img.update_ark_parents
             end
           end

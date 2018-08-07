@@ -17,7 +17,7 @@ module Trifle
     # If the parent is known then use this to set it so it doesn't need to be 
     # fetched again.
     def has_parent!(parent)
-      @parent ||= parent
+      @parent = parent
       self
     end
     

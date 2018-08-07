@@ -442,4 +442,28 @@ RSpec.describe Trifle::IIIFManifest do
         ])
     end
   end
+
+  describe "parent arks" do
+    before { allow(Trifle).to receive(:config).and_return({'ark_naan' => '12345'}) }
+    
+    let(:manifest) { image.manifest }
+    let(:manifest2) { FactoryGirl.create(:iiifmanifest) }
+    let(:image) { FactoryGirl.create(:iiifimage, :with_manifest) }
+
+    it "changes image arks to match parent" do
+      expect(image.local_ark).to start_with(manifest.local_ark)
+      manifest.ordered_members = []
+      manifest2.ordered_members = [image]
+      manifest.save
+      manifest2.save
+      expect(image.local_ark).to start_with(manifest2.local_ark)
+      manifest.ordered_members = [image]
+      manifest2.ordered_members = []
+      # note that with this save order, image will for a short whilebelong to both
+      # manifests when the first is saved. It should still work correctly.
+      manifest.save
+      manifest2.save
+      expect(image.local_ark).to start_with(manifest.local_ark)      
+    end
+  end
 end
